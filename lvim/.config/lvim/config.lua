@@ -12,7 +12,7 @@ vim.opt.linespace = 2
 vim.opt.sts = 4
 -- general
 lvim.log.level = "warn"
-lvim.format_on_save.enabled = false
+lvim.format_on_save.enabled = true
 lvim.colorscheme = "lunar"
 
 lvim.builtin.project.manual_mode = true
@@ -74,18 +74,18 @@ lvim.builtin.nvimtree.setup.renderer.icons.show.git = false
 
 -- if you don't want all the parsers change this to a table of the ones you want
 lvim.builtin.treesitter.ensure_installed = {
-  "bash",
-  "c",
-  "javascript",
-  "json",
-  "lua",
-  "python",
-  "typescript",
-  "tsx",
-  "css",
-  "rust",
-  "java",
-  "yaml",
+    "bash",
+    "c",
+    "javascript",
+    "json",
+    "lua",
+    "python",
+    "typescript",
+    "tsx",
+    "css",
+    "rust",
+    "java",
+    "yaml",
 }
 
 lvim.builtin.treesitter.ignore_install = { "haskell" }
@@ -147,6 +147,10 @@ lvim.builtin.treesitter.highlight.enable = true
 --     filetypes = { "typescript", "typescriptreact" },
 --   },
 -- }
+local formatters = require "lvim.lsp.null-ls.formatters"
+formatters.setup {
+    { command = "prettierd", filetypes = { "typescript", "javascript" } }
+}
 
 -- -- set additional linters
 -- local linters = require "lvim.lsp.null-ls.linters"
@@ -165,11 +169,15 @@ lvim.builtin.treesitter.highlight.enable = true
 --     filetypes = { "javascript", "python" },
 --   },
 -- }
+local linters = require "lvim.lsp.null-ls.linters"
+linters.setup {
+    { command = "eslint", filetypes = { "typescript", "javascript" } }
+}
 
 -- Additional Plugins
 lvim.plugins = {
     {
-     'nvim-treesitter/nvim-treesitter-context'
+        'nvim-treesitter/nvim-treesitter-context'
     },
 }
 
