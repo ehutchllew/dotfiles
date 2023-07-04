@@ -14,6 +14,8 @@ vim.opt.rnu = true
 lvim.keys.normal_mode["*"] = "*``"
 -- Creates new map `gt` specifically for going to type definition
 lvim.keys.normal_mode["gt"] = { vim.lsp.buf.type_definition, { desc = "Goto Type Definition" } }
+-- Add mapping for MiniMap toggle
+lvim.keys.normal_mode["mm"] = { "<cmd>lua MiniMap.toggle() <cr>", { desc = "Toggle MiniMap" } }
 -- Utilizes Telescope popup for references instead of native vim refs
 lvim.lsp.buffer_mappings.normal_mode["gr"][1] = "<cmd>Telescope lsp_references <cr>"
 
@@ -40,9 +42,32 @@ lvim.plugins = {
     name = "catppuccin",
     priority = 1000
   },
-  { 'echasnovski/mini.map',       version = '*' },
-  { 'echasnovski/mini.splitjoin', version = '*' },
-  { 'echasnovski/mini.surround',  version = '*' },
+  {
+    'echasnovski/mini.map',
+    config = function()
+      local map = require("mini.map")
+      map.setup({
+        symbols = {
+          encode = map.gen_encode_symbols.dot('4x2')
+        }
+      })
+    end,
+    version = '*'
+  },
+  {
+    'echasnovski/mini.splitjoin',
+    config = function()
+      require("mini.splitjoin").setup()
+    end,
+    version = '*'
+  },
+  {
+    'echasnovski/mini.surround',
+    config = function()
+      require("mini.surround").setup()
+    end,
+    version = '*'
+  },
   {
     "folke/trouble.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
