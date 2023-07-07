@@ -5,6 +5,7 @@
 
 -- Uses relative line numbers
 vim.opt.rnu = true
+lvim.builtin.nvimtree.setup.view.relativenumber = true
 
 --
 -- MAPPINGS
