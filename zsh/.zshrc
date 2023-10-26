@@ -47,6 +47,7 @@ eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 # Source
 plug "$HOME/.config/zsh/aliases.zsh"
 plug "$HOME/.config/zsh/exports.zsh"
+plug "$HOME/.config/zsh/functions.zsh"
 
 # Plugins
 plug "romkatv/powerlevel10k"
