@@ -29,6 +29,29 @@ lvim.builtin.lualine.sections.lualine_c = { "diff", "filename" }
 lvim.colorscheme = "catppuccin-mocha"
 lvim.format_on_save = true
 
+--
+-- FORMATTERS
+--
+
+local formatters = require "lvim.lsp.null-ls.formatters"
+formatters.setup {
+  {
+    name = "prettierd",
+    filetypes = { "typescript" }
+  }
+}
+
+--
+-- LINTERS
+--
+
+local linters = require "lvim.lsp.null-ls.linters"
+linters.setup {
+  {
+    name = "eslint",
+    filetypes = { "typescript" }
+  }
+}
 
 --
 -- PLUGINS
