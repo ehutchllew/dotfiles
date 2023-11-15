@@ -1,6 +1,6 @@
 
 # List
-alias ll="ls -alp --color=always"
+alias ll="ls -alFG"
 alias la="ls -a"
 
 # File or Dir Size
