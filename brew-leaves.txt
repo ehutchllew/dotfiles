@@ -1,0 +1,7 @@
+fzf
+gnupg
+hashicorp/tap/terraform
+make
+neovim
+ripgrep
+stow
