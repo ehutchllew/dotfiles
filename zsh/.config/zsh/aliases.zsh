@@ -8,6 +8,8 @@ alias la="ls -a"
 alias dub="du -b"
 # Calc total bytes for argument only
 alias dus="du -sb"
+# Calc human readable bytes
+alias duh="du -sbh"
 
 # File Manipulation
 alias cb="xclip -selection 'clipboard' -i"
