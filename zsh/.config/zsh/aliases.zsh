@@ -13,3 +13,6 @@ alias duh="du -sbh"
 
 # File Manipulation
 alias cb="xclip -selection 'clipboard' -i"
+
+# Git
+alias gph="git push -u origin HEAD"
