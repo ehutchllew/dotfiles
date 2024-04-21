@@ -5,6 +5,27 @@ vim.g.maplocalleader = " "
 -- Set to true if Nerd Font used in terminal
 vim.g.have_nerd_font = true
 
+
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- [[ Keymaps ]]
+-- For list of options run: `:help vim.keymap.set()`
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- ~~~~~
+-- [[ Normal Mode ]]
+-- ~~~~~
+--
+-- Movement:
+vim.keymap.set('n', "<A-j>", ":m .+1<CR>==", { desc = "Move current line/block down (vscode)" })
+vim.keymap.set('n', "<A-k>", ":m .-2<CR>==", { desc = "Move current line/block up (vscode)" })
+
+vim.keymap.set('n', "<C-h>", "<C-w>h", { desc = "Jump to leftward window" })
+vim.keymap.set('n', "<C-j>", "<C-w>j", { desc = "Jump to upward window" })
+vim.keymap.set('n', "<C-k>", "<C-w>k", { desc = "Jump to downward window" })
+vim.keymap.set('n', "<C-l>", "<C-w>l", { desc = "Jump to rightward window" })
+
+
+
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- [[ Setting Options ]]
 -- For list of options run: `:help option-list`
@@ -57,6 +78,12 @@ end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
 
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- [[ Basic Autocommands (event listeners) ]]
+-- For list of options run: `:help lua-guide-autocommands`
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- [[ Plugins: Configure & Install ]]
@@ -72,6 +99,36 @@ vim.opt.rtp:prepend(lazypath)
 -- Useful for group configs and lazy loading
 
 require("lazy").setup({
+	-- Comment
+	{
+		"numToStr/Comment.nvim",
+		opts = {}
+	},
+	-- Telescope
+	{
+		"nvim-telescope/telescope.nvim",
+		event = "VimEnter",
+		branch = "0.1.x",
+		cmd = "Telescope",
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			{
+				"nvim-telescope/telescope-fzf-native.nvim",
+				build = "make"
+			},
+			{
+				"nvim-telescope/telescope-ui-select.nvim"
+			},
+			{
+				"nvim-tree/nvim-web-devicons",
+				enabled = vim.g.have_nerd_font
+			}
+		},
+		config = function()
+			require("plugins.telescope").setup()
+		end
+	},
+	-- WhichKey
 	{
 		"folke/which-key.nvim",
 		event = "VeryLazy",
