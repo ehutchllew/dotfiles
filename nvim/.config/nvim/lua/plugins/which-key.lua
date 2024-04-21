@@ -13,6 +13,7 @@ local function config()
 			s = {
 				-- NOTE: if using `Telescope` is too slow we can change this
 				-- to use the telescope.builtin
+				-- See: `:help telescope.builtin`
 				name = "Search",
 				b = { "<cmd>Telescope current_buffer_fuzzy_find<cr>", "[S]earch Current [B]uffer" },
 				f = { "<cmd>Telescope find_files<cr>", "[S]earch [F]iles" },

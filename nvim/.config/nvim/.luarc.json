@@ -1,0 +1,25 @@
+{
+    "workspace.library": [
+        "/home/ehutchllew/.local/share/nvim/lazy/neodev.nvim/types/stable",
+        "/home/linuxbrew/.linuxbrew/Cellar/neovim/0.9.5/share/nvim/runtime/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/Comment.nvim/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/plenary.nvim/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/nvim-lspconfig/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/telescope-fzf-native.nvim/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/nvim-cmp/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/telescope-ui-select.nvim/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/mason-lspconfig.nvim/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/lazy.nvim/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/which-key.nvim/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/neodev.nvim/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/nvim-web-devicons/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/cmp-nvim-lsp/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/mason.nvim/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/cmp-buffer/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/cmp-cmdline/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/telescope.nvim/lua",
+        "/home/ehutchllew/.local/share/nvim/lazy/cmp-path/lua",
+        "/home/ehutchllew/Documents/dotfiles/nvim/.config/nvim/lua",
+        "${3rd}/luv/library"
+    ]
+}

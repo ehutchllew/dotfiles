@@ -99,10 +99,40 @@ vim.opt.rtp:prepend(lazypath)
 -- Useful for group configs and lazy loading
 
 require("lazy").setup({
+	-- Autocompletion
+	{
+		"hrsh7th/nvim-cmp",
+		event = "InsertEnter",
+		dependencies = {
+			"cmp-buffer",
+			"cmp-cmdline",
+			"cmp-nvim-lsp",
+			"cmp-path"
+		}
+	},
+	{ "hrsh7th/cmp-buffer", lazy = true },
+	{ "hrsh7th/cmp-cmdline", lazy = true },
+	{ "hrsh7th/cmp-nvim-lsp", lazy = true },
+	{ "hrsh7th/cmp-path", lazy = true },
 	-- Comment
 	{
 		"numToStr/Comment.nvim",
 		opts = {}
+	},
+	-- LSP
+	{
+		"neovim/nvim-lspconfig",
+		dependencies = {
+			{
+				"williamboman/mason.nvim",
+				config = true
+			},
+			"williamboman/mason-lspconfig.nvim",
+			{ "folke/neodev.nvim", opts = {} }
+		},
+		config = function()
+			require("plugins.lsp").setup()
+		end
 	},
 	-- Telescope
 	{
