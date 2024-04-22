@@ -4,8 +4,7 @@ vim.g.maplocalleader = " "
 
 -- Set to true if Nerd Font used in terminal
 vim.g.have_nerd_font = true
-
-
+vim.cmd "colorscheme desert"
 
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- [[ Keymaps ]]
@@ -24,6 +23,14 @@ vim.keymap.set('n', "<C-j>", "<C-w>j", { desc = "Jump to upward window" })
 vim.keymap.set('n', "<C-k>", "<C-w>k", { desc = "Jump to downward window" })
 vim.keymap.set('n', "<C-l>", "<C-w>l", { desc = "Jump to rightward window" })
 
+-- ~~~~~
+-- [[ Visual Block Mode ]]
+-- ~~~~~
+--
+-- Movement:
+vim.keymap.set('x', "<A-j>", ":m '>+1<CR>gv-gv", { desc = "Move current line/block down (vscode)" })
+vim.keymap.set('x', "<A-k>", ":m '<-2<CR>gv-gv", { desc = "Move current line/block up (vscode)" })
+
 
 
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,6 +45,29 @@ vim.opt.breakindent = true
 -- See `:help 'clipboard'`
 vim.opt.clipboard = "unnamedplus"
 
+-- Show popup from completion
+vim.opt.completeopt = { "menuone", "noselect" }
+vim.opt.pumheight = 10
+
+-- Show which line your cursor is on
+vim.opt.cursorline = true
+
+-- Enforce indents to be 2 spaces
+vim.opt.expandtab = true
+vim.opt.shiftwidth = 2
+vim.opt.tabstop = 2
+
+-- Scope Folding
+-- vim.opt.foldmethod = "expr"
+-- vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
+
+-- Preview substitutions live, as you type!
+vim.opt.inccommand = 'split'
+
+-- Display certain whitespace
+vim.opt.list = true
+vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+
 -- Enable mouse mode, can be useful for resizing splits
 vim.opt.mouse = "a"
 
@@ -45,8 +75,21 @@ vim.opt.mouse = "a"
 vim.opt.number = true
 vim.opt.relativenumber = true
 
+-- Minimal number of screen lines to keep above, below, and to the sides the cursor.
+vim.opt.scrolloff = 10
+vim.opt.sidescrolloff = 10
+
 -- Don't show mode, will be on status line
 vim.opt.showmode = false
+
+-- Always show sign column
+vim.opt.signcolumn = "yes"
+
+-- Set term gui colors
+vim.opt.termguicolors = true
+
+-- Set window title
+vim.opt.title = true
 
 -- Save undo history
 vim.opt.undofile = true
@@ -114,6 +157,8 @@ require("lazy").setup({
 	{ "hrsh7th/cmp-cmdline", lazy = true },
 	{ "hrsh7th/cmp-nvim-lsp", lazy = true },
 	{ "hrsh7th/cmp-path", lazy = true },
+	-- Colorschemes
+	{ "ellisonleao/gruvbox.nvim" },
 	-- Comment
 	{
 		"numToStr/Comment.nvim",

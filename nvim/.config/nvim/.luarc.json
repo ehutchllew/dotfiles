@@ -21,5 +21,6 @@
         "/home/ehutchllew/.local/share/nvim/lazy/cmp-path/lua",
         "/home/ehutchllew/Documents/dotfiles/nvim/.config/nvim/lua",
         "${3rd}/luv/library"
-    ]
+    ],
+    "workspace.checkThirdParty": false
 }

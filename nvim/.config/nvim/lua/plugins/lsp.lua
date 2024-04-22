@@ -43,17 +43,26 @@ M.setup = function()
 		gopls = {},
 		jsonls = {},
 		lua_ls = {
-			runtime = { version = "LuaJIT" },
-			workspace = {
-				checkThirdParty = false,
-				-- Tells Lua where to find neovim configs
-				library = {
-					"${3rd}/luv/library",
-					unpack(vim.api.nvim_get_runtime_file("", true)),
-				},
-			},
-			completions = {
-				callSnippet = "Replace"
+			settings = {
+				Lua = {
+					runtime = {
+						version = "LuaJIT",
+						special = {
+							reload = "require"
+						}
+					},
+					workspace = {
+						checkThirdParty = false,
+						library = {
+							require("neodev.config").types(),
+							"${3rd}/luv/library",
+							unpack(vim.api.nvim_get_runtime_file("", true))
+						}
+					},
+					completion = {
+						callSnippet = "Replace"
+					}
+				}
 			}
 		},
 		tsserver = {},
