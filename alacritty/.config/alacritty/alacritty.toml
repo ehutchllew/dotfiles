@@ -1,0 +1,15 @@
+[env]
+TERM = "xterm-256color"
+
+[font]
+size = 16
+
+[shell]
+program = "/bin/zsh"
+
+[window]
+blur = true
+decorations = "Buttonless"
+opacity = 0.8
+
+option_as_alt = "Both"

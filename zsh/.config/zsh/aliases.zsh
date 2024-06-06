@@ -1,5 +1,7 @@
 
 # List
+alias l="eza -lahF --icons --git-ignore"
+alias lt="eza -lahF --icons --git-ignore --tree --level=2"
 alias ll="ls -alFG --color"
 alias la="ls -a"
 
