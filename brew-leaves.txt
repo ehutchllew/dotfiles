@@ -1,5 +1,7 @@
+eza
 fzf
 gnupg
+go
 hashicorp/tap/terraform
 make
 neovim
