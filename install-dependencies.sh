@@ -41,6 +41,9 @@ fi
 # Stow
 ## Currently done through Brew above
 
+# Tmux
+## Currently done through Brew above
+
 # LunarVim
 if [[ ! -f "$HOME/.local/bin/lvim" ]]; then
   echo -e "${CYAN}Installing LunarVim...${COLOR_OFF}"
@@ -48,6 +51,13 @@ if [[ ! -f "$HOME/.local/bin/lvim" ]]; then
   ## Also need to remove the default lvim user config file and use stowed version.
   LV_BRANCH='release-1.3/neovim-0.9' zsh <(curl -s https://raw.githubusercontent.com/LunarVim/LunarVim/release-1.3/neovim-0.9/utils/installer/install.sh)
 fi
+
+# Tmux Plugin Manager
+if [[ ! -f "$HOME/.tmux/plugins/tpm/tpm" ]]; then
+  echo -e "${CYAN}Installing Tmux Plugin Manager...${COLOR_OFF}"
+  zsh <(git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm)
+fi
+
 
 # Volta
 
