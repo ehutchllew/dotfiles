@@ -7,7 +7,9 @@ alias gfp="git fetch && git pull"
 alias gph="git push -u origin HEAD"
 
 # List
-alias ll="ls -al"
+alias l="eza -lahF --icons --git-ignore"
+alias lt="eza -lahF --icons --git-ignore --tree --level=2"
+alias ll="ls -alFG --color"
 alias la="ls -a"
 
 # File or Dir Size
@@ -15,6 +17,11 @@ alias la="ls -a"
 alias dub="du -b"
 # Calc total bytes for argument only
 alias dus="du -sb"
+# Calc human readable bytes
+alias duh="du -sbh"
 
 # File Manipulation
 alias cb="xclip -selection 'clipboard' -i"
+
+# Git
+alias gph="git push -u origin HEAD"

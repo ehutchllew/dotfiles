@@ -1,13 +1,15 @@
+
 bat
 bufbuild/buf/buf
 eza
 fzf
 gnupg
 go
+hashicorp/tap/terraform
 lazygit
+make
 neovim
-postgresql@16
+ripgrep
 stow
-stripe/stripe-cli/stripe
 the_silver_searcher
 tmux
