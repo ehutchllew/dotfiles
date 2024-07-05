@@ -22,6 +22,13 @@ rrm(){
   return 0
 }
 
+# File Searching
+## Find in File
+fif() {
+  if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
+  rg --files-with-matches --hidden --ignore-case --no-messages "$1" | fzf --preview "highlight -O ansi -l {} 2> /dev/null | rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 '$1' || rg --ignore-case --pretty --context 10 '$1' {}"
+}
+
 # Git
 ## FZF Completion for `git checkout` -- triggered on `git co **<TAB>`
 _fzf_complete_git() {
