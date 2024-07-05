@@ -12,6 +12,8 @@ fi
 
 source "$HOME/.local/share/zap/zap.zsh"
 
+source <(fzf --zsh)
+
 # Set up the prompt
 
 autoload -Uz promptinit

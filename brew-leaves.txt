@@ -1,10 +1,14 @@
+bat
+bufbuild/buf/buf
 eza
 fzf
 gnupg
 go
 hashicorp/tap/terraform
+lazygit
 make
 neovim
 ripgrep
 stow
+the_silver_searcher
 tmux

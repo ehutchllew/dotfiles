@@ -7,6 +7,10 @@
 vim.opt.rnu = true
 lvim.builtin.nvimtree.setup.view.relativenumber = true
 
+-- Folding config
+vim.opt.foldmethod = "indent"
+vim.opt.foldlevel = 99
+
 --
 -- MAPPINGS
 --
@@ -26,7 +30,7 @@ lvim.lsp.buffer_mappings.normal_mode["gr"][1] = "<cmd>Telescope lsp_references <
 
 -- Adds filename to statusline
 lvim.builtin.lualine.sections.lualine_c = { "diff", "filename" }
-lvim.colorscheme = "catppuccin-mocha"
+lvim.colorscheme = "gruvbox"
 lvim.format_on_save = true
 
 --
@@ -65,6 +69,11 @@ lvim.plugins = {
     "catppuccin/nvim",
     name = "catppuccin",
     priority = 1000
+  },
+  {
+    "ellisonleao/gruvbox.nvim",
+    name = "gruvbox",
+    priority = 1001
   },
   {
     'echasnovski/mini.map',

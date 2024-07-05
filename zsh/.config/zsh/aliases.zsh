@@ -1,3 +1,10 @@
+# FZF
+alias fzfp="fzf --preview 'bat --style=numbers --color=always {}'"
+# Git
+alias gc="git commit -S -m"
+alias ga="git add ."
+alias gfp="git fetch && git pull"
+alias gph="git push -u origin HEAD"
 
 # List
 alias l="eza -lahF --icons --git-ignore"
