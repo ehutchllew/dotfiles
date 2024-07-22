@@ -12,8 +12,6 @@ fi
 
 source "$HOME/.local/share/zap/zap.zsh"
 
-source <(fzf --zsh)
-
 # Set up the prompt
 
 autoload -Uz promptinit
@@ -64,6 +62,11 @@ plug "$HOME/.config/zsh/functions.zsh"
 plug "romkatv/powerlevel10k"
 plug "zsh-users/zsh-autosuggestions"
 plug "zsh-users/zsh-syntax-highlighting"
+
+# This has to be sourced AFTER sourcing the `exports.zsh` file
+# as FZF is within the homebrew bin folder and this does not get
+# added to the PATH until `exports.zsh` gets sourced.
+source <(fzf --zsh)
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
