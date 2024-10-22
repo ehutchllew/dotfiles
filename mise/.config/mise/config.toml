@@ -1,0 +1,4 @@
+[tools]
+neovim = "0.9"
+node = "lts"
+tilt = "latest"
