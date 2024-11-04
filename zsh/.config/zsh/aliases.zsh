@@ -1,5 +1,6 @@
 # FZF
 alias fzfp="fzf --preview 'bat --style=numbers --color=always {}'"
+
 # Git
 alias gc="git commit -S -m"
 alias ga="git add ."
@@ -24,4 +25,5 @@ alias duh="du -sbh"
 alias cb="xclip -selection 'clipboard' -i"
 
 # Git
+alias gg="lazygit"
 alias gph="git push -u origin HEAD"
