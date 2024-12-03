@@ -11,6 +11,16 @@ lvim.builtin.nvimtree.setup.view.relativenumber = true
 vim.opt.foldmethod = "indent"
 vim.opt.foldlevel = 99
 
+lvim.builtin.project.detection_methods = { "lsp", "pattern" }
+lvim.builtin.project.patterns = {
+  ".git",
+  "go.mod",
+  "go.work",
+  "package.json",
+  "deno.json",
+  "deno.jsonc",
+}
+
 --
 -- MAPPINGS
 --
@@ -52,7 +62,7 @@ formatters.setup {
 local linters = require "lvim.lsp.null-ls.linters"
 linters.setup {
   {
-    name = "eslint",
+    name = "eslint_d",
     filetypes = { "typescript" }
   }
 }
