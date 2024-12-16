@@ -12,6 +12,7 @@ This will ensure programs like the following are installed:
  * Stow
  * Volta
 
+<!-- TODO: Will be removing the `brew-leaves` functionality in favor of using `mise` -->
 Furthermore, the script will proceed to `brew install` a list of casks/formulae as well.
 
 
@@ -24,6 +25,72 @@ stow zsh
 This will create a symlink between the previously stowed directory and contents in the Linux/Mac home dir (~/).
 
 For instance, running `stow zsh` will create a symlink at `~/.zshrc` and `~/.config/zsh/`.
+
+
+## Using Mise
+Mise is a way to install and manage different versions of software.
+To install all the tools listed within the stowed `config.toml` file you simply have to run:
+```sh
+mise install
+```
+
+To list all tools installed by mise run:
+```sh
+mise ls
+```
+
+To list tools available to install and their package versions run:
+```sh
+mise ls-remote {tool}[@{version}]
+```
+Example:
+```
+mise ls-remote node
+mise ls-remote node@20
+```
+
+To use a specific version of a tool run: 
+```sh
+mise use {tool}[@{version}]
+```
+Example:
+```sh
+mise use node@20
+```
+
+To get the latest version of a tool (and version) run:
+```sh
+mise latest {tool}[@{version}]
+```
+Example:
+```sh
+mise latest node
+mise latest node@20
+```
+
+To remove a tool from mise run:
+```sh
+mise uninstall [--all] [--dry-run] {installed_tool}[@{version}]
+```
+Example:
+```
+mise uninstall node
+mise uninstall node@20
+```
+
+
+## Using TMUX
+To ensure all tmux plugins are installed run:
+```sh
+tmux
+```
+(leader key by default is `<CTRL-B>`)
+When inside of a tmux session press `<leader> + I`.
+
+To view the various tmux commands related to sessions, windows, panes, etc.
+press `<leader> + ?`
+
+To exit out of a pane, window, or session simply type `exit` at the terminal command line.
 
 
 ## Updating Dependencies (TODO)
