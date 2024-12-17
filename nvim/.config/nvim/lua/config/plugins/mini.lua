@@ -2,9 +2,12 @@ return {
   {
     "echasnovski/mini.nvim",
     enabled = true,
-    config = function()
+    opts = {
+      use_icons = true
+    },
+    config = function(_, opts)
       local statusline = require("mini.statusline")
-      statusline.setup({ use_icons = true })
+      statusline.setup(opts)
     end
   }
 }
