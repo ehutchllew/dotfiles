@@ -19,7 +19,7 @@ if [[ ! -f "$(brew --prefix)/bin/brew" ]]; then
     zsh $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)
 fi
 
-
+## TODO: Depecreate brew leaves in favor of the mise `config.toml`
 # Install Brew Leaves
 script_path="$(dirname $0)/brew-leaves.txt"
 if [[ -e $script_path && -s $script_path ]]; then

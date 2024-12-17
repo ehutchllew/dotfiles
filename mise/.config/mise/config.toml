@@ -1,5 +1,5 @@
 [tools]
 deno = "latest"
-neovim = "0.9"
+"aqua:neovim/neovim" = "0.9"
 node = "lts"
-tilt = "latest"
+"aqua:tilt-dev/tilt" = "latest"

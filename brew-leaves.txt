@@ -7,7 +7,6 @@ go
 hashicorp/tap/terraform
 lazygit
 make
-neovim
 ripgrep
 stow
 the_silver_searcher
