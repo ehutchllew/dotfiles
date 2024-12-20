@@ -1,14 +1,30 @@
--- Options
+--
+-- OPTIONS
+--
 
 vim.opt.clipboard = "unnamedplus"
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.shiftwidth = 4
 
--- Keymaps
+--
+-- KEYMAPS
+--
 vim.keymap.set("n", "<space><space>x", "<cmd>source %<CR>")
 vim.keymap.set("n", "<space>x", ":.lua<CR>")
 vim.keymap.set("v", "<space>x", ":lua<CR>")
+
+-- Window Navigation
+vim.keymap.set("n", "<C-h>", "<C-w>h")
+vim.keymap.set("n", "<C-l>", "<C-w>l")
+vim.keymap.set("n", "<C-j>", "<C-w>j")
+vim.keymap.set("n", "<C-k>", "<C-w>k")
+
+-- Editor Commands
+-- Remove highlight from search
+vim.keymap.set("n", "<space>h", "<cmd>noh<CR>")
+-- Prevents pattern match on current word from moving forward
+vim.keymap.set("n", "*", "*``")
 
 -- Highlight when yanking (copying) text
 -- Try with `yap` in normal mode
