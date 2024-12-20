@@ -33,6 +33,7 @@ To install all the tools listed within the stowed `config.toml` file you simply 
 ```sh
 mise install
 ```
+This works as well when using idiomatic versioning files like `.nvmrc` or `.go-version`.
 
 To list all tools installed by mise run:
 ```sh
