@@ -11,28 +11,11 @@ vim.opt.tabstop = 2
 --
 -- KEYMAPS
 --
-vim.keymap.set("n", "<space><space>x", "<cmd>source %<CR>")
-vim.keymap.set("n", "<space>x", ":.lua<CR>")
-vim.keymap.set("v", "<space>x", ":lua<CR>")
+require("config.keymappings"):init()
 
--- Window Navigation
-vim.keymap.set("n", "<C-h>", "<C-w>h")
-vim.keymap.set("n", "<C-l>", "<C-w>l")
-vim.keymap.set("n", "<C-j>", "<C-w>j")
-vim.keymap.set("n", "<C-k>", "<C-w>k")
-
--- File Nav & Manipulation
--- Use ALT to swap lines like vscode
-vim.keymap.set("n", "<A-j>", ":m .+1<CR>==")
-vim.keymap.set("n", "<A-k>", ":m .-2<CR>==")
-vim.keymap.set("x", "<A-j>", ":m '>+1<CR>gv-gv")
-vim.keymap.set("x", "<A-k>", ":m '<-2<CR>gv-gv")
-
--- Editor Commands
--- Remove highlight from search
-vim.keymap.set("n", "<space>h", "<cmd>noh<CR>")
--- Prevents pattern match on current word from moving forward
-vim.keymap.set("n", "*", "*``")
+--
+-- AUTO COMMANDS
+--
 
 -- Highlight when yanking (copying) text
 -- Try with `yap` in normal mode
