@@ -10,6 +10,13 @@ function M:init()
 
 	-- Remove highlight from search
 	vim.keymap.set("n", "<space>h", "<cmd>noh<CR>")
+
+	-- Navigate Quickfix Items
+	vim.keymap.set("n", "<C-M-j>", "<cmd>cnext<CR>")
+	vim.keymap.set("n", "<C-M-k>", "<cmd>cprev<CR>")
+
+	-- Open Oil Navigator
+	vim.keymap.set("n", "<space>e", "<cmd>Oil --float<CR>")
 end
 
 return M
