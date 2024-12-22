@@ -2,8 +2,8 @@ return {
   {
     "williamboman/mason.nvim",
     enabled = true,
-    cmd = { "Mason", "MasonInstall", "MasonUninstall", "MasonUninstallAll", "MasonLog" },
-    lazy = true,
+    -- cmd = { "Mason", "MasonInstall", "MasonUninstall", "MasonUninstallAll", "MasonLog" },
+    -- lazy = true,
     opts = {
       ui = {
         icons = {
@@ -20,7 +20,7 @@ return {
     end,
     config = function(_, opts)
       local msn = require("mason")
-      msn.setup(opts)
+      msn.setup()
     end,
   }
 }

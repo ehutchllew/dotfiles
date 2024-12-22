@@ -5,7 +5,8 @@
 vim.opt.clipboard = "unnamedplus"
 vim.opt.number = true
 vim.opt.relativenumber = true
-vim.opt.shiftwidth = 4
+vim.opt.shiftwidth = 2
+vim.opt.tabstop = 2
 
 --
 -- KEYMAPS
@@ -30,18 +31,18 @@ vim.keymap.set("n", "*", "*``")
 -- Try with `yap` in normal mode
 -- See `:help vim.highlight.on_yank()`
 vim.api.nvim_create_autocmd('TextYankPost', {
-    desc = "Highlight when yanking (copying) text",
-    group = vim.api.nvim_create_augroup("kickstart-highlight-yank", { clear = true }),
-    callback = function()
-	vim.highlight.on_yank()
-    end,
+	desc = "Highlight when yanking (copying) text",
+	group = vim.api.nvim_create_augroup("kickstart-highlight-yank", { clear = true }),
+	callback = function()
+		vim.highlight.on_yank()
+	end,
 })
 
 -- Plugins
 require("config.lazy")
 
 -- Docs
--- 
+--
 -- After Dir
 -- Neovim runs anything in this dir after the default config
 --
