@@ -21,6 +21,13 @@ vim.keymap.set("n", "<C-l>", "<C-w>l")
 vim.keymap.set("n", "<C-j>", "<C-w>j")
 vim.keymap.set("n", "<C-k>", "<C-w>k")
 
+-- File Nav & Manipulation
+-- Use ALT to swap lines like vscode
+vim.keymap.set("n", "<A-j>", ":m .+1<CR>==")
+vim.keymap.set("n", "<A-k>", ":m .-2<CR>==")
+vim.keymap.set("x", "<A-j>", ":m '>+1<CR>gv-gv")
+vim.keymap.set("x", "<A-k>", ":m '<-2<CR>gv-gv")
+
 -- Editor Commands
 -- Remove highlight from search
 vim.keymap.set("n", "<space>h", "<cmd>noh<CR>")
