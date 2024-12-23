@@ -17,6 +17,10 @@ function M:init()
 
 	-- Open Oil Navigator
 	vim.keymap.set("n", "<space>e", "<cmd>Oil --float<CR>")
+
+	-- Toggle Neovim Floating Terminal
+	vim.keymap.set("n", "<C-\\>", ":Floaterminal<CR>")
+	--vim.keymap.set("t", "<C-\\>", "<C-\\><C-n> :lua Floaterminal<CR>")
 end
 
 return M
