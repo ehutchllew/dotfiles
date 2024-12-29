@@ -21,17 +21,15 @@ function M:init()
 	-- Prevents pattern match on current word from moving forward
 	vim.keymap.set("n", "*", "*``", { desc = "Highlight All Matches at Cursor" })
 
+	-- NOTE: Using telescope versions of these and defining within the telescope plugin file
 	-- Go To
-	vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", { desc = "GoTo Definition" })
+	--	vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", { desc = "GoTo Definition" })
 	vim.keymap.set("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<cr>", { desc = "GoTo Declaration" })
-	vim.keymap.set("n", "gI", "<cmd>lua vim.lsp.buf.implementation()<cr>", { desc = "GoTo Implementation" })
-	vim.keymap.set("n", "gr", "<cmd>Telescope lsp_references <cr>", { desc = "GoTo References" })
+	--	vim.keymap.set("n", "gI", "<cmd>lua vim.lsp.buf.implementation()<cr>", { desc = "GoTo Implementation" })
+	--	vim.keymap.set("n", "gr", "<cmd>Telescope lsp_references <cr>", { desc = "GoTo References" })
 
 	-- Trigger Diagnostic Popup
 	vim.keymap.set("n", "gl", get_diag, { desc = "Trigger Diagnostic Popup" })
-
-	-- Search Symbols
-	vim.keymap.set("n", "<space>ss", "<cmd>Telescope lsp_document_symbols <cr>", { desc = "Search Buffer Symbols" })
 end
 
 return M
