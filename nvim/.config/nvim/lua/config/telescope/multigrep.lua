@@ -49,7 +49,7 @@ local live_multigrep = function(opts)
 end
 
 M.setup = function()
-	vim.keymap.set("n", "<space>sm", live_multigrep)
+	vim.keymap.set("n", "<space>sm", live_multigrep, { desc = "Search With Multigrep" })
 end
 
 return M
