@@ -107,6 +107,12 @@ mise uninstall node@20
 
 To ensure all tmux plugins are installed run:
 
+First download the Tmux Plugin Manager (tpm):
+```sh
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+```
+
+Then run a Tmux session:
 ```sh
 tmux
 ```
