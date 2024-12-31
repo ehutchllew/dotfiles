@@ -42,6 +42,7 @@ return {
 		vim.keymap.set("n", "gT", require("telescope.builtin").lsp_type_definitions, { desc = "Goto Type Definition" })
 
 		-- Search
+		vim.keymap.set("n", "<space>sb", require("telescope.builtin").buffers, { desc = "Search Buffers" })
 		vim.keymap.set("n", "<space>sc", require("telescope.builtin").commands, { desc = "Search Available Commands" })
 		vim.keymap.set("n", "<space>sd", require("telescope.builtin").diagnostics, { desc = "Search Diagnostics" })
 		vim.keymap.set("n", "<space>sf", require("telescope.builtin").find_files, { desc = "Search Files" })
