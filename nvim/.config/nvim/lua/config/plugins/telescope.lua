@@ -23,6 +23,11 @@ return {
 					"--hidden",
 					"--glob=!.git/",
 				},
+				mappings = {
+					i = {
+						["<C-d>"] = require("telescope.actions").delete_buffer
+					}
+				}
 			},
 			extensions = {
 				fzf = {}
@@ -31,7 +36,7 @@ return {
 				find_files = {
 					find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" }
 				}
-			}
+			},
 		})
 
 		require("telescope").load_extension("fzf")
