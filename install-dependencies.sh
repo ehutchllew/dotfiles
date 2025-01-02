@@ -4,7 +4,7 @@ COLOR_OFF="\e[0m"
 GREEN="\e[1;32m"
 YELLOW="\e[1;33m"
 CYAN="\e[1;36m"
-#
+
 # TODO
 # Check if deps are not only present (-f), but executable (-x)
 # if present and not executable, run a `chmod` to fix it

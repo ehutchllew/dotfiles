@@ -28,6 +28,10 @@ function M:init()
 	--	vim.keymap.set("n", "gI", "<cmd>lua vim.lsp.buf.implementation()<cr>", { desc = "GoTo Implementation" })
 	--	vim.keymap.set("n", "gr", "<cmd>Telescope lsp_references <cr>", { desc = "GoTo References" })
 
+	-- LSP Utils
+	vim.keymap.set("n", "<space>la", "<cmd>lua vim.lsp.buf.code_action()<cr>", { desc = "Code Action" })
+	vim.keymap.set("n", "<space>lr", "<cmd>lua vim.lsp.buf.rename()<cr>", { desc = "Rename Symbol" })
+
 	-- Trigger Diagnostic Popup
 	vim.keymap.set("n", "gl", get_diag, { desc = "Trigger Diagnostic Popup" })
 end

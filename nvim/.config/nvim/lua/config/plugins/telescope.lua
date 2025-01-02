@@ -55,6 +55,8 @@ return {
 		vim.keymap.set("n", "<space>sk", require("telescope.builtin").keymaps, { desc = "Search Keymaps" })
 		vim.keymap.set("n", "<space>ss", require("telescope.builtin").lsp_document_symbols,
 			{ desc = "Search Buffer Symbols" })
+		vim.keymap.set("n", "<space>sS", require("telescope.builtin").lsp_dynamic_workspace_symbols,
+			{ desc = "Search Workspace Symbols" })
 		vim.keymap.set("n", "<space>st", require("telescope.builtin").live_grep, { desc = "Search Text" })
 
 		-- Keymap to search all plugin files... for science
