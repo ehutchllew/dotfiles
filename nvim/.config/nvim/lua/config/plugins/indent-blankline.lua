@@ -25,6 +25,7 @@ return {
 
 			local hooks = require("ibl.hooks")
 			hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
+				-- NOTE: When changing colorscheme, update these to maintain a gradient-like indent effect.
 				vim.api.nvim_set_hl(0, "Grayscale0", { background = "#1a212e" })
 				vim.api.nvim_set_hl(0, "Grayscale1", { background = "#1d2431" })
 				vim.api.nvim_set_hl(0, "Grayscale2", { background = "#202734" })
