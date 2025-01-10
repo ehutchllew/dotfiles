@@ -23,6 +23,7 @@ return {
 			lspconfig.gopls.setup(opts)
 			lspconfig.lua_ls.setup(opts)
 			lspconfig.tsserver.setup(opts)
+			lspconfig.buf_ls.setup(opts)
 
 			vim.api.nvim_create_autocmd('LspAttach', {
 				callback = function(args)
