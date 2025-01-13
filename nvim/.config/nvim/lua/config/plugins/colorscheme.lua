@@ -1,11 +1,19 @@
 return {
 	{
+		"tiagovla/tokyodark.nvim",
+		enabled = true,
+		opts = {},
+		config = function(_, opts)
+			require("tokyodark").setup(opts)
+			vim.cmd.colorscheme("tokyodark")
+		end,
+	},
+	{
 		"rebelot/kanagawa.nvim",
 		enabled = true,
 		opts = {},
 		config = function(_, opts)
 			require("kanagawa").setup(opts)
-			vim.cmd.colorscheme("kanagawa")
 		end
 	},
 	{

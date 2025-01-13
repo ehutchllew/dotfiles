@@ -5,7 +5,7 @@ return {
 		main = "ibl",
 		opts = {
 			indent = {
-				char = "",
+				-- char = "",
 			},
 			whitespace = {
 				remove_blankline_trail = false,
@@ -14,6 +14,13 @@ return {
 		},
 		config = function(_, opts)
 			local highlight = {
+				"RainbowRed",
+				"RainbowYellow",
+				"RainbowBlue",
+				"RainbowGreen",
+				"RainbowViolet",
+				"RainbowCyan",
+				"RainbowOrange",
 				"Grayscale0",
 				"Grayscale1",
 				"Grayscale2",
@@ -27,15 +34,32 @@ return {
 			local hooks = require("ibl.hooks")
 			hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
 				-- NOTE: When changing colorscheme, update these to maintain a gradient-like indent effect.
+				-- TOKYO DARK
+				vim.api.nvim_set_hl(0, "RainbowRed", { fg = "#E06C75" })
+				vim.api.nvim_set_hl(0, "RainbowYellow", { fg = "#E5C07B" })
+				vim.api.nvim_set_hl(0, "RainbowBlue", { fg = "#61AFEF" })
+				vim.api.nvim_set_hl(0, "RainbowGreen", { fg = "#98C379" })
+				vim.api.nvim_set_hl(0, "RainbowViolet", { fg = "#C678DD" })
+				vim.api.nvim_set_hl(0, "RainbowCyan", { fg = "#56B6C2" })
+				vim.api.nvim_set_hl(0, "RainbowOrange", { fg = "#D19A66" })
+				vim.api.nvim_set_hl(0, "Grayscale0", { background = "#11121D" })
+				vim.api.nvim_set_hl(0, "Grayscale1", { background = "#0F101B" })
+				vim.api.nvim_set_hl(0, "Grayscale2", { background = "#0D0E19" })
+				vim.api.nvim_set_hl(0, "Grayscale3", { background = "#0B0C17" })
+				vim.api.nvim_set_hl(0, "Grayscale4", { background = "#090A15" })
+				vim.api.nvim_set_hl(0, "Grayscale5", { background = "#070813" })
+				vim.api.nvim_set_hl(0, "Grayscale6", { background = "#050611" })
+				vim.api.nvim_set_hl(0, "Grayscale7", { background = "#03040F" })
+
 				-- KANAGAWA
-				vim.api.nvim_set_hl(0, "Grayscale0", { background = "#1F1F28" })
-				vim.api.nvim_set_hl(0, "Grayscale1", { background = "#1C1C25" })
-				vim.api.nvim_set_hl(0, "Grayscale2", { background = "#191922" })
-				vim.api.nvim_set_hl(0, "Grayscale3", { background = "#16161F" })
-				vim.api.nvim_set_hl(0, "Grayscale4", { background = "#13131C" })
-				vim.api.nvim_set_hl(0, "Grayscale5", { background = "#101009" })
-				vim.api.nvim_set_hl(0, "Grayscale6", { background = "#0E0E06" })
-				vim.api.nvim_set_hl(0, "Grayscale7", { background = "#0B0B03" })
+				-- vim.api.nvim_set_hl(0, "Grayscale0", { background = "#1F1F28" })
+				-- vim.api.nvim_set_hl(0, "Grayscale1", { background = "#1C1C25" })
+				-- vim.api.nvim_set_hl(0, "Grayscale2", { background = "#191922" })
+				-- vim.api.nvim_set_hl(0, "Grayscale3", { background = "#16161F" })
+				-- vim.api.nvim_set_hl(0, "Grayscale4", { background = "#13131C" })
+				-- vim.api.nvim_set_hl(0, "Grayscale5", { background = "#101009" })
+				-- vim.api.nvim_set_hl(0, "Grayscale6", { background = "#0E0E06" })
+				-- vim.api.nvim_set_hl(0, "Grayscale7", { background = "#0B0B03" })
 
 				-- ONEDARK
 				-- vim.api.nvim_set_hl(0, "Grayscale0", { background = "#1a212e" })
