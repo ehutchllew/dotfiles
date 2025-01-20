@@ -18,6 +18,12 @@ function M:init()
 	vim.keymap.set("x", "<A-j>", ":m '>+1<CR>gv-gv", { desc = "Swap Highlighted Lines Below" })
 	vim.keymap.set("x", "<A-k>", ":m '<-2<CR>gv-gv", { desc = "Swap Highlighted Lines Above" })
 
+	-- Use ALT to Change Indentation
+	vim.keymap.set("n", "<A-l>", ">>", { desc = "Increase Indentation to the Right" })
+	vim.keymap.set("n", "<A-h>", "<<", { desc = "Decrease Indentation to the Left" })
+	vim.keymap.set("x", "<A-l>", ">gv", { desc = "Increase Indentation to the Right" })
+	vim.keymap.set("x", "<A-h>", "<gv", { desc = "Decrease Indentation to the Left" })
+
 	-- Prevents pattern match on current word from moving forward
 	vim.keymap.set("n", "*", "*``", { desc = "Highlight All Matches at Cursor" })
 

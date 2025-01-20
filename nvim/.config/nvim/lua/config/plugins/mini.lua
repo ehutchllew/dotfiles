@@ -7,6 +7,8 @@ return {
 			tabpage_setion = "right"
 		},
 		config = function(_, opts)
+			local pairs = require("mini.pairs")
+			pairs.setup()
 			local splitjoin = require("mini.splitjoin")
 			splitjoin.setup()
 			local statusline = require("mini.statusline")
