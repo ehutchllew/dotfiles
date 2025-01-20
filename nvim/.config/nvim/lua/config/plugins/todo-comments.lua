@@ -1,7 +1,7 @@
 return {
 	{
 		"folke/todo-comments.nvim",
-		enable = true,
+		enabled = false,
 		dependencies = { "nvim-lua/plenary.nvim" },
 		opts = {
 			highlight = {
