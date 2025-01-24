@@ -15,8 +15,8 @@ function M:init()
 	vim.keymap.set("n", "<C-M-j>", "<cmd>cnext<CR>", { desc = "Move to Next Quickfix Item" })
 	vim.keymap.set("n", "<C-M-k>", "<cmd>cprev<CR>", { desc = "Move to Previous Quickfix Item" })
 
-	-- Open Oil Navigator
-	vim.keymap.set("n", "<space>e", "<cmd>Oil --float<CR>", { desc = "Open Oil Navigator" })
+	-- -- Open Oil Navigator
+	-- vim.keymap.set("n", "<space>e", "<cmd>Oil --float<CR>", { desc = "Open Oil Navigator" })
 
 	-- Toggle Neovim Floating Terminal
 	vim.keymap.set("n", "<C-\\>", ":Floaterminal<CR>", { desc = "Toggle Floating Terminal" })
