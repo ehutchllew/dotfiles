@@ -3,6 +3,9 @@
 --
 
 vim.opt.clipboard = "unnamedplus"
+vim.opt.foldcolumn = "1"
+vim.opt.foldlevel = 99
+vim.opt.foldmethod = "indent"
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.shiftwidth = 2
