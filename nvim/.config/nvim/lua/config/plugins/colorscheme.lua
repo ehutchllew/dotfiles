@@ -1,14 +1,5 @@
 return {
 	{
-		"tiagovla/tokyodark.nvim",
-		enabled = true,
-		opts = {},
-		config = function(_, opts)
-			require("tokyodark").setup(opts)
-			vim.cmd.colorscheme("tokyodark")
-		end,
-	},
-	{
 		"rebelot/kanagawa.nvim",
 		enabled = true,
 		opts = {},
@@ -25,5 +16,24 @@ return {
 		config = function(_, opts)
 			require("onedark").setup(opts)
 		end
+	},
+	{
+		"thallada/farout.nvim",
+		enabled = true,
+		opts = {
+			style = "night",
+		},
+		config = function(_, opts)
+			require("farout").setup(opts)
+			vim.cmd.colorscheme("farout")
+		end
+	},
+	{
+		"tiagovla/tokyodark.nvim",
+		enabled = true,
+		opts = {},
+		config = function(_, opts)
+			require("tokyodark").setup(opts)
+		end,
 	},
 }
