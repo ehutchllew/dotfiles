@@ -1,6 +1,11 @@
 local M = {}
 
 function M:init()
+	-- Source init.lua
+	vim.keymap.set("n", "<space>X", function()
+		vim.cmd('luafile $MYVIMRC')
+		print('NeoVim config reloaded!')
+	end, { desc = "Source init.lua File" })
 	-- Source current file (%)
 	vim.keymap.set("n", "<space><space>x", "<cmd>source %<CR>", { desc = "Source Current File" })
 	-- Source current line

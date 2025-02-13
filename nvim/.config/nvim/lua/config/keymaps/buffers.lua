@@ -6,6 +6,10 @@ local get_diag = function()
 	if float then
 		local config = type(float) == "table" and float or {}
 		config.scope = "line"
+		config.source = true
+		config.prefix = function(_)
+			return "● ", ""
+		end
 
 		vim.diagnostic.open_float(config)
 	end
