@@ -30,7 +30,6 @@ local Kanagawa = {
 		whitespace = {
 			remove_blankline_trail = false,
 		},
-		scope = { enabled = true },
 	},
 	config = function(_, opts)
 		local highlight = {
@@ -67,7 +66,6 @@ local OneDark = {
 		whitespace = {
 			remove_blankline_trail = false,
 		},
-		scope = { enabled = true },
 	},
 	config = function(_, opts)
 		local highlight = {
@@ -102,7 +100,6 @@ local TokyoDark = {
 		whitespace = {
 			remove_blankline_trail = false,
 		},
-		scope = { enabled = true },
 	},
 	config = function(_, opts)
 		local highlight = {
