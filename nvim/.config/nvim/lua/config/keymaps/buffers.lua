@@ -31,6 +31,15 @@ function M:init()
 	-- Prevents pattern match on current word from moving forward
 	vim.keymap.set("n", "*", "*``", { desc = "Highlight All Matches at Cursor" })
 
+	-- Overriding insert mode to check for appropriate indent level
+	vim.keymap.set("n", "i", function()
+		if #vim.fn.getline(".") == 0 then
+			return [["_cc]]
+		else
+			return "i"
+		end
+	end, { expr = true, desc = "Properly Indent On Empty Line Insert" })
+
 	-- NOTE: Using telescope versions of these and defining within the telescope plugin file
 	-- Go To
 	--	vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", { desc = "GoTo Definition" })
