@@ -33,7 +33,7 @@ function M:init()
 
 	-- Overriding insert mode to check for appropriate indent level
 	vim.keymap.set("n", "i", function()
-		if #vim.fn.getline(".") == 0 then
+		if #vim.api.nvim_get_current_line() == 0 then
 			return [["_cc]]
 		else
 			return "i"
