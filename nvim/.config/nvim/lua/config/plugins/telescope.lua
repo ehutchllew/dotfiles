@@ -33,6 +33,9 @@ return {
 				fzf = {}
 			},
 			pickers = {
+				colorscheme = {
+					enable_preview = true
+				},
 				find_files = {
 					find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" }
 				}
@@ -49,6 +52,8 @@ return {
 		-- Search
 		vim.keymap.set("n", "<space>sb", require("telescope.builtin").buffers, { desc = "Search Buffers" })
 		vim.keymap.set("n", "<space>sc", require("telescope.builtin").commands, { desc = "Search Available Commands" })
+		vim.keymap.set("n", "<space>sC", require("telescope.builtin").colorscheme,
+			{ desc = "Preview Available Colorschemes" })
 		vim.keymap.set("n", "<space>sd", require("telescope.builtin").diagnostics, { desc = "Search Diagnostics" })
 		vim.keymap.set("n", "<space>sf", require("telescope.builtin").find_files, { desc = "Search Files" })
 		vim.keymap.set("n", "<space>sl", require("telescope.builtin").resume, { desc = "Search Last Query" })
