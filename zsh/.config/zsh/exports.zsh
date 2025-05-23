@@ -22,7 +22,6 @@ fi
 
 # Define Paths
 CARGO_BIN="$HOME/.cargo/bin"
-VOLTA_BIN="$HOME/.volta/bin"
 LOCAL_BIN="$HOME/.local/bin"
 PULUMI_BIN="$HOME/.pulumi/bin"
 
@@ -32,7 +31,6 @@ add_to_path "${LOCAL_BIN}"
 add_to_path "${BREW_BIN}"
 add_to_path "${CARGO_BIN}"
 add_to_path "${PULUMI_BIN}"
-add_to_path "${VOLTA_BIN}"
 
 # Export PATH
 if [[ -n "${NEW_PATH}" ]]; then
