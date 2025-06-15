@@ -4,4 +4,3 @@ deno = "latest"
 go = "latest"
 neovim = ["0.10", "0.9"]
 node = "lts"
-tilt = "latest"
