@@ -54,34 +54,10 @@ fi
 # Tmux
 ## Currently done through Brew above
 
-# LunarVim
-if [[ ! -f "$HOME/.local/bin/lvim" ]]; then
-  echo -e "${CYAN}Installing LunarVim...${COLOR_OFF}"
-  ## Might need to check and install lvim deps like cargo, node, make, etc.
-  ## Also need to remove the default lvim user config file and use stowed version.
-  LV_BRANCH='release-1.4/neovim-0.9' zsh <(curl -s https://raw.githubusercontent.com/LunarVim/LunarVim/release-1.4/neovim-0.9/utils/installer/install.sh)
-fi
-
 # Tmux Plugin Manager
 if [[ ! -f "$HOME/.tmux/plugins/tpm/tpm" ]]; then
   echo -e "${CYAN}Installing Tmux Plugin Manager...${COLOR_OFF}"
   zsh <(git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm)
-fi
-
-
-# Volta
-if [[ ! -f "$HOME/.volta/bin/volta" ]]; then
-  echo -e "${YELLOW}Volta is not installed${COLOR_OFF}"
-  echo -e -n "${YELLOW}Would you like to install it? ${GREEN}(y/n):${COLOR_OFF} "   
-  read -q answer 
-  echo
-  if [[ $answer == "Y" || $answer == "y" ]]; then
-    echo -e "${CYAN}Installing Volta...${COLOR_OFF}"
-    zsh <(curl https://get.volta.sh)
-    echo -e "${GREEN}Volta Installed!${COLOR_OFF}"
-  else
-    echo -e "${CYAN}Volta will not be installed.${COLOR_OFF}"
-  fi
 fi
 
 echo -e "${GREEN}All Done!${COLOR_OFF}"
