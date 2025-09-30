@@ -1,5 +1,4 @@
 [tools]
-cmake = "latest"
 deno = "latest"
 go = "latest"
 neovim = ["0.10", "0.9"]
