@@ -145,4 +145,12 @@ rrm "node_modules"
 
 This will remove all node_modules directories at the root of the function invocation and any sub-directories as well.
 
+## TODO
+
+- Fix `install-dependencies` script using Mac and Docker Linux image.
+    - Script should correctly install everything or exit
+    - Should pull preferred font (DepartureMono)
+- Add `bootstrap` script that relies on `install-dependencies`.
+    - Stows all the configs
+
 ### Author: Evan Hutch (ev-the-dev)
