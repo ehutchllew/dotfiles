@@ -8,9 +8,11 @@ return {
 			-- go = { "gofmt" },
 			html = { "prettierd" },
 			javascript = { "prettierd" },
+			javascriptreact = { "prettierd" },
 			json = { "prettierd" },
 			yaml = { "prettierd" },
 			typescript = { "prettierd" },
+			typescriptreact = { "prettierd" },
 		},
 		format_on_save = {
 			async = false,
