@@ -9,6 +9,7 @@ alias gc="git commit -S -m"
 alias ga="git add ."
 alias gfp="git fetch && git pull"
 alias gph="git push -u origin HEAD"
+alias gg="lazygit"
 
 # List
 alias l="eza -lahF --icons --git-ignore"
@@ -26,7 +27,3 @@ alias duh="du -sbh"
 
 # File Manipulation
 alias cb="xclip -selection 'clipboard' -i"
-
-# Git
-alias gg="lazygit"
-alias gph="git push -u origin HEAD"
