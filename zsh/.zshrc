@@ -25,8 +25,8 @@ HISTSIZE=1000
 SAVEHIST=1000
 setopt histignorealldups sharehistory hist_verify
 
-bindkey '^[[A' history-search-backward
-bindkey '^[[B' history-search-forward
+bindkey '^[[A' history-beginning-search-backward
+bindkey '^[[B' history-beginning-search-forward
 
 # Use modern completion system
 autoload -Uz compinit
