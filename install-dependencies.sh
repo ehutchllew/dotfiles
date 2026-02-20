@@ -4,60 +4,114 @@ COLOR_OFF="\e[0m"
 GREEN="\e[1;32m"
 YELLOW="\e[1;33m"
 CYAN="\e[1;36m"
+RED="\e[1;31m"
 
-# TODO
-# Check if deps are not only present (-f), but executable (-x)
-# if present and not executable, run a `chmod` to fix it
+DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
+STOW_PACKAGES=(alacritty lvim mise nvim tmux zsh)
 
-echo -e "${GREEN}Let's get crackin'!${COLOR_OFF}"
+log_info() { echo -e "${CYAN}$1${COLOR_OFF}"; }
+log_success() { echo -e "${GREEN}$1${COLOR_OFF}"; }
+log_warn() { echo -e "${YELLOW}$1${COLOR_OFF}"; }
+log_error() { echo -e "${RED}$1${COLOR_OFF}"; }
 
-# Install Homebrew/Linuxbrew
-# kernel_name=$(uname -s) # <-- not sure if we need custom config for Linux vs MacOS
-# kernal_name == 'Darwin' || 'Linux'
-if [[ ! -f "$(brew --prefix)/bin/brew" ]]; then
-    echo -e "${CYAN}Installing Homebrew...${COLOR_OFF}"
-    zsh $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)
-    echo -e "${GREEN}Homebrew Installed!${COLOR_OFF}"
-fi
+# Detect Homebrew prefix based on platform/architecture
+detect_brew_prefix() {
+    if [[ "$(uname)" == "Darwin" && "$(uname -m)" == "arm64" ]]; then
+        echo "/opt/homebrew"
+    elif [[ "$(uname)" == "Darwin" && "$(uname -m)" == "x86_64" ]]; then
+        echo "/usr/local"
+    else
+        echo "/home/linuxbrew/.linuxbrew"
+    fi
+}
 
-## TODO: Depecreate brew leaves in favor of the mise `config.toml`
-# Install Brew Leaves
-script_path="$(dirname $0)/brew-leaves.txt"
-if [[ -e $script_path && -s $script_path ]]; then
-  	echo -e "${CYAN}Installing Brew Leaves...${COLOR_OFF}"
-  	xargs brew install < "brew-leaves.txt"
-  	echo -e "${GREEN}Brew Leaves Installed!${COLOR_OFF}"
+BREW_PREFIX="$(detect_brew_prefix)"
+BREW_BIN="${BREW_PREFIX}/bin/brew"
+
+log_success "Let's get crackin'!"
+
+# ============================================================
+# Phase 1: Foundation (Homebrew + Stow)
+# ============================================================
+log_info "=== Phase 1: Foundation ==="
+
+# Install Homebrew
+if [[ -x "${BREW_BIN}" ]]; then
+    log_success "Homebrew already installed."
 else
-  	echo -e "${YELLOW}No brew leaves to install!${COLOR_OFF}"
+    log_info "Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    log_success "Homebrew installed!"
 fi
 
-# Install zap-zsh
-if [[ ! -f "$HOME/.local/share/zap/zap.zsh" ]]; then
-    echo -e "${CYAN}Installing Zap-Zsh...${COLOR_OFF}"
-    zsh <(curl -s https://raw.githubusercontent.com/zap-zsh/zap/master/install.zsh) --branch release-v1
-  	echo -e "${GREEN}Zap-Zsh Installed!${COLOR_OFF}"
+# Ensure brew is in PATH for the remainder of this script
+eval "$(${BREW_BIN} shellenv)"
+
+# Install stow first — needed to symlink configs before other tools install
+if command -v stow &>/dev/null; then
+    log_success "Stow already installed."
+else
+    log_info "Installing Stow..."
+    brew install stow
+    log_success "Stow installed!"
 fi
+
+# ============================================================
+# Phase 2: Stow Configs
+# ============================================================
+log_info "=== Phase 2: Stow Configs ==="
+
+for package in "${STOW_PACKAGES[@]}"; do
+    log_info "Stowing ${package}..."
+    stow -d "${DOTFILES_DIR}" -t "${HOME}" -R "${package}"
+done
+log_success "All configs stowed!"
+
+# ============================================================
+# Phase 3: Install Tools
+# ============================================================
+log_info "=== Phase 3: Install Tools ==="
+
+# Install Brew formulae from Brewfile
+log_info "Installing Brew packages from Brewfile..."
+brew bundle --file="${DOTFILES_DIR}/Brewfile"
+log_success "Brew packages installed!"
 
 # Install Mise
-if [[ ! -f "$HOME/.local/bin/mise" ]]; then
-    echo -e "${CYAN}Installing Mise...${COLOR_OFF}"
-		zsh $(curl https://mise.run | sh)
-  	echo -e "${GREEN}Mise Installed!${COLOR_OFF}"
+if [[ -x "$HOME/.local/bin/mise" ]]; then
+    log_success "Mise already installed."
+else
+    log_info "Installing Mise..."
+    curl https://mise.run | sh
+    log_success "Mise installed!"
 fi
 
-# NeoVim
-## Currently done through Mise
+# Install all tools defined in the (now stowed) mise config
+log_info "Installing Mise tools..."
+"$HOME/.local/bin/mise" install
+log_success "Mise tools installed!"
 
-# Stow
-## Currently done through Brew above
+# ============================================================
+# Phase 4: Plugin Managers
+# ============================================================
+log_info "=== Phase 4: Plugin Managers ==="
 
-# Tmux
-## Currently done through Brew above
-
-# Tmux Plugin Manager
-if [[ ! -f "$HOME/.tmux/plugins/tpm/tpm" ]]; then
-  echo -e "${CYAN}Installing Tmux Plugin Manager...${COLOR_OFF}"
-  zsh <(git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm)
+# Install Zap-Zsh (--keep prevents overwriting the stowed .zshrc)
+if [[ -f "$HOME/.local/share/zap/zap.zsh" ]]; then
+    log_success "Zap-Zsh already installed."
+else
+    log_info "Installing Zap-Zsh..."
+    zsh <(curl -s https://raw.githubusercontent.com/zap-zsh/zap/master/install.zsh) --branch release-v1 --keep
+    log_success "Zap-Zsh installed!"
 fi
 
-echo -e "${GREEN}All Done!${COLOR_OFF}"
+# Install Tmux Plugin Manager
+if [[ -d "$HOME/.tmux/plugins/tpm" ]]; then
+    log_success "TPM already installed."
+else
+    log_info "Installing Tmux Plugin Manager..."
+    git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
+    log_success "TPM installed!"
+fi
+
+log_success "=== All Done! ==="
