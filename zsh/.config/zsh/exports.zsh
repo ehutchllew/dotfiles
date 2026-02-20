@@ -23,6 +23,7 @@ fi
 # Define Paths
 CARGO_BIN="$HOME/.cargo/bin"
 LOCAL_BIN="$HOME/.local/bin"
+OPENCODE_BIN="$HOME/.opencode/bin"
 PULUMI_BIN="$HOME/.pulumi/bin"
 
 # Build PATH
@@ -30,6 +31,7 @@ NEW_PATH=""
 add_to_path "${LOCAL_BIN}"
 add_to_path "${BREW_BIN}"
 add_to_path "${CARGO_BIN}"
+add_to_path "${OPENCODE_BIN}"
 add_to_path "${PULUMI_BIN}"
 
 # Export PATH
