@@ -8,6 +8,7 @@ RED="\e[1;31m"
 
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 STOW_PACKAGES=(alacritty lvim mise nvim tmux zsh)
+NERD_FONTS=(DepartureMono)
 
 log_info() { echo -e "${CYAN}$1${COLOR_OFF}"; }
 log_success() { echo -e "${GREEN}$1${COLOR_OFF}"; }
@@ -90,6 +91,31 @@ fi
 log_info "Installing Mise tools..."
 "$HOME/.local/bin/mise" install
 log_success "Mise tools installed!"
+
+# Install Nerd Fonts
+if [[ "$(uname)" == "Darwin" ]]; then
+    FONT_DIR="$HOME/Library/Fonts"
+else
+    FONT_DIR="$HOME/.local/share/fonts"
+fi
+
+for font in "${NERD_FONTS[@]}"; do
+    if find "${FONT_DIR}" -name "*${font}*" -print -quit 2>/dev/null | grep -q .; then
+        log_success "${font} Nerd Font already installed."
+    else
+        mkdir -p "${FONT_DIR}"
+        log_info "Installing ${font} Nerd Font..."
+        curl -fsSL -o /tmp/${font}.tar.xz \
+            "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.tar.xz"
+        tar -xf /tmp/${font}.tar.xz -C "${FONT_DIR}"
+        rm -f /tmp/${font}.tar.xz
+        log_success "${font} Nerd Font installed!"
+    fi
+done
+
+if [[ "$(uname)" != "Darwin" ]]; then
+    fc-cache -fv
+fi
 
 # ============================================================
 # Phase 4: Plugin Managers
