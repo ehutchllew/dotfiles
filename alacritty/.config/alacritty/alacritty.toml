@@ -6,7 +6,7 @@ normal = { family = "DepartureMono Nerd Font Mono", style = "Regular" }
 offset = { x = 1, y = 2 }
 size = 15
 
-[shell]
+[terminal.shell]
 program = "/bin/zsh"
 
 [window]
