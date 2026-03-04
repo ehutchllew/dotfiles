@@ -1,7 +1,9 @@
 [tools]
+buf = "latest"
 deno = "latest"
 go = "latest"
 neovim = ["0.10", "0.9"]
 node = "lts"
 redis = "latest"
+terraform = "latest"
 tilt = "latest"
