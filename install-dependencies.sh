@@ -7,7 +7,7 @@ CYAN="\e[1;36m"
 RED="\e[1;31m"
 
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
-STOW_PACKAGES=(alacritty lvim mise nvim tmux zsh)
+STOW_PACKAGES=(alacritty mise nvim tmux zsh)
 NERD_FONTS=(DepartureMono)
 
 log_info() { echo -e "${CYAN}$1${COLOR_OFF}"; }

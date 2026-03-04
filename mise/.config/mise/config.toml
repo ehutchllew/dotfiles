@@ -2,7 +2,7 @@
 buf = "latest"
 deno = "latest"
 go = "latest"
-neovim = ["0.10", "0.9"]
+neovim = ["0.11","0.10"]
 node = "lts"
 redis = "latest"
 terraform = "latest"
