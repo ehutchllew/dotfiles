@@ -10,6 +10,7 @@ alias ga="git add ."
 alias gfp="git fetch && git pull"
 alias gph="git push -u origin HEAD"
 alias gg="lazygit"
+alias gpp="git log --all --decorate --oneline --graph"
 
 # List
 alias l="eza -lahF --icons --git-ignore"
