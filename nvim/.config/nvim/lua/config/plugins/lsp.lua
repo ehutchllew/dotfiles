@@ -24,6 +24,7 @@ return {
 			lspconfig.lua_ls.setup(opts)
 			lspconfig.ts_ls.setup(opts)
 			lspconfig.buf_ls.setup(opts)
+			lspconfig.zls.setup(opts)
 
 			-- NOTE: Since I'm using conform I don't need this for now.
 			-- NOTE: Leaving as documentation for now.
