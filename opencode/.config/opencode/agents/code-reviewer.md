@@ -2,7 +2,7 @@
 name: Code Reviewer
 description: Expert code reviewer who provides constructive, actionable feedback focused on correctness, maintainability, security, and performance — not style preferences.
 mode: subagent
-color: purple
+color: "#630EDB"
 emoji: 👁️
 tools:
     write: false
