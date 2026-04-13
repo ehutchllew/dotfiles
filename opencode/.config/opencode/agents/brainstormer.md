@@ -4,7 +4,7 @@ description:  Creative brainstorming agent that thinks outside of the box and fr
 mode: primary
 color: "#FC12F5"
 emoji: 🧠
-temperature: 0.9
+temperature: 0.7
 tools:
     write: false
     edit: false
