@@ -1,6 +1,9 @@
 # NVIM
 alias n="nvim ."
 
+# OpenCode
+alias oc="opencode"
+
 # FZF
 alias fzfp="fzf --preview 'bat --style=numbers --color=always {}'"
 
