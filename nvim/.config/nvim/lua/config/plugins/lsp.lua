@@ -18,12 +18,13 @@ return {
 		opts = {},
 		config = function(_, opts)
 			local capabilities = require("blink.cmp").get_lsp_capabilities()
-			opts.capabilities = capabilities
-			local lspconfig = require("lspconfig")
-			lspconfig.gopls.setup(opts)
-			lspconfig.lua_ls.setup(opts)
-			lspconfig.ts_ls.setup(opts)
-			lspconfig.buf_ls.setup(opts)
+			vim.lsp.config("*", {
+				capabilities = capabilities
+			})
+			vim.lsp.enable("gopls")
+			vim.lsp.enable("lua_ls")
+			vim.lsp.enable("ts_ls")
+			vim.lsp.enable("buf_ls")
 
 			-- NOTE: Since I'm using conform I don't need this for now.
 			-- NOTE: Leaving as documentation for now.
