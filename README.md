@@ -8,14 +8,11 @@ This will ensure programs like the following are installed:
 
 - Homebrew/Linuxbrew
 - NeoVim
-- LunarVim
 - Zap-Zsh
 - Stow
-- Volta
+- Mise
 
-<!-- TODO: Will be removing the `brew-leaves` functionality in favor of using `mise` -->
-
-Furthermore, the script will proceed to `brew install` a list of casks/formulae as well.
+Furthermore, the script will proceed to `brew bundle` a list of casks/formulae from a Brewfile.
 
 ## Using Stow
 
@@ -105,14 +102,7 @@ mise uninstall node@20
 
 ## Using TMUX
 
-To ensure all tmux plugins are installed run:
-
-First download the Tmux Plugin Manager (tpm):
-```sh
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-```
-
-Then run a Tmux session:
+Run a Tmux session:
 ```sh
 tmux
 ```
@@ -149,8 +139,7 @@ This will remove all node_modules directories at the root of the function invoca
 
 - Fix `install-dependencies` script using Mac and Docker Linux image.
     - Script should correctly install everything or exit
-    - Should pull preferred font (DepartureMono)
-- Add `bootstrap` script that relies on `install-dependencies`.
-    - Stows all the configs
+- Update NeoVim `<leader>sf` keymap to include option to open file in new vertical window.
+    - Do the same for all the `<leader>s*` commands.
 
 ### Author: Evan Hutch (ev-the-dev)

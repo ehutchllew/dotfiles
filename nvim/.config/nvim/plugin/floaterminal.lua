@@ -1,4 +1,5 @@
 vim.keymap.set("t", "<esc><esc>", "<c-\\><c-n>")
+vim.keymap.set("t", "<C-\\>", "<cmd>Floaterminal<CR>", { desc = "Toggle Floating Terminal" })
 
 local state = {
 	floating = {
@@ -47,6 +48,7 @@ local toggle_terminal = function()
 		if vim.bo[state.floating.buf].buftype ~= "terminal" then
 			vim.cmd.terminal()
 		end
+		vim.cmd.startinsert()
 	else
 		vim.api.nvim_win_hide(state.floating.win)
 	end
