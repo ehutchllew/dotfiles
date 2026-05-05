@@ -26,6 +26,7 @@ return {
 			vim.lsp.enable("ts_ls")
 			vim.lsp.enable("buf_ls")
 			vim.lsp.enable("svelte")
+			vim.lsp.enable("yamlls")
 			vim.lsp.enable("zls")
 
 			-- NOTE: Since I'm using conform I don't need this for now.
