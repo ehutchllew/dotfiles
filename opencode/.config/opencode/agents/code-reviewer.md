@@ -8,7 +8,7 @@ temperature: 0.1
 tools:
     write: false
     edit: false
-    bash: false
+    bash: true
 vibe: Reviews code like a mentor, not a gatekeeper. Every comment teaches something.
 ---
 
