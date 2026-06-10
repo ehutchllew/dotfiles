@@ -32,6 +32,35 @@ BREW_BIN="${BREW_PREFIX}/bin/brew"
 log_success "Let's get crackin'!"
 
 # ============================================================
+# Phase 0: System Prerequisites (Linux only)
+# ============================================================
+if [[ "$(uname)" != "Darwin" ]]; then
+    log_info "=== Phase 0: System Prerequisites ==="
+
+    MISSING_PKGS=()
+    command -v zsh &>/dev/null      || MISSING_PKGS+=(zsh)
+    command -v cc &>/dev/null       || MISSING_PKGS+=(build-essential)
+    command -v pkg-config &>/dev/null || MISSING_PKGS+=(pkg-config)
+    command -v curl &>/dev/null     || MISSING_PKGS+=(curl)
+    dpkg -s libssl-dev &>/dev/null  || MISSING_PKGS+=(libssl-dev)
+
+    if [[ ${#MISSING_PKGS[@]} -gt 0 ]]; then
+        log_info "Installing missing packages: ${MISSING_PKGS[*]}"
+        sudo apt-get update -y
+        sudo apt-get install -y "${MISSING_PKGS[@]}"
+        log_success "System prerequisites installed!"
+    else
+        log_success "All system prerequisites already present."
+    fi
+
+    if [[ "$(basename "$SHELL")" != "zsh" ]]; then
+        log_warn "Default shell is not zsh. Changing to zsh..."
+        chsh -s "$(command -v zsh)"
+        log_success "Default shell changed to zsh (takes effect on next login)."
+    fi
+fi
+
+# ============================================================
 # Phase 1: Foundation (Homebrew + Stow)
 # ============================================================
 log_info "=== Phase 1: Foundation ==="
