@@ -1,25 +1,42 @@
+local config_augroup = vim.api.nvim_create_augroup("treesitter_config", { clear = true })
+
 return {
 	{
 		"nvim-treesitter/nvim-treesitter",
 		build = ":TSUpdate",
 		config = function()
-			require("nvim-treesitter.config").setup {
-				ensure_installed = {
-					"c",
-					"go",
-					"gomod",
-					"gowork",
-					"gosum",
-					"markdown",
-					"markdown_inline",
-					"query",
-					"tsx",
-					"typescript",
-				},
-				auto_install = false,
+			local ensure_installed = {
+				"c",
+				"go",
+				"gomod",
+				"gowork",
+				"gosum",
+				"lua",
+				"markdown",
+				"markdown_inline",
+				"typescript",
 			}
 
+			local installed = require("nvim-treesitter.config").get_installed("parsers")
+			local installed_set = {}
+			for _, lang in ipairs(installed) do
+				installed_set[lang] = true
+			end
+
+			local to_install = {}
+			for _, lang in ipairs(ensure_installed) do
+				if not installed_set[lang] then
+					table.insert(to_install, lang)
+				end
+			end
+
+			if #to_install > 0 then
+				vim.cmd("TSInstall! " .. table.concat(to_install, " "))
+			end
+
 			vim.api.nvim_create_autocmd("FileType", {
+				pattern = { "*" },
+				group = config_augroup,
 				callback = function(args)
 					local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(args.buf))
 					if ok and stats and stats.size > 100 * 1024 then
