@@ -14,7 +14,8 @@ return {
 				"lua",
 				"markdown",
 				"markdown_inline",
-				"typescript",
+				"tsx",
+			"typescript",
 			}
 
 			local installed = require("nvim-treesitter.config").get_installed("parsers")

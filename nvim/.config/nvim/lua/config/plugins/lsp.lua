@@ -23,7 +23,7 @@ return {
 			})
 			vim.lsp.enable("gopls")
 			vim.lsp.enable("lua_ls")
-			vim.lsp.enable("ts_ls")
+			vim.lsp.enable("vtsls")
 			vim.lsp.enable("buf_ls")
 			vim.lsp.enable("svelte")
 			vim.lsp.enable("yamlls")

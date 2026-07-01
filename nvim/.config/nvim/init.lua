@@ -40,11 +40,11 @@ vim.api.nvim_create_autocmd("TermOpen", {
 	end,
 })
 
--- Plugins
-require("config.lazy")
-
 -- NOTE: This is something new I had to add. For some reason my fresh install of my config wasn't registering Mason binaries in the PATH automatically
 vim.env.PATH = vim.fn.stdpath("data") .. "/mason/bin" .. ":" .. vim.env.PATH
+
+-- Plugins
+require("config.lazy")
 
 -- Docs
 --

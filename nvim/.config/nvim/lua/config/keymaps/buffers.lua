@@ -1,18 +1,13 @@
 local M = {}
 
 local get_diag = function()
-	local float = vim.diagnostic.config().float
-
-	if float then
-		local config = type(float) == "table" and float or {}
-		config.scope = "line"
-		config.source = true
-		config.prefix = function(_)
+	vim.diagnostic.open_float({
+		scope = "line",
+		source = true,
+		prefix = function(_)
 			return "● ", ""
-		end
-
-		vim.diagnostic.open_float(config)
-	end
+		end,
+	})
 end
 
 function M:init()
