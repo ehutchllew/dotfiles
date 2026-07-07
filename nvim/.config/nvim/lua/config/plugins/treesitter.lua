@@ -7,15 +7,18 @@ return {
 		config = function()
 			local ensure_installed = {
 				"c",
+				"css",
 				"go",
 				"gomod",
 				"gowork",
 				"gosum",
+				"html",
+				"javascript",
 				"lua",
 				"markdown",
 				"markdown_inline",
 				"tsx",
-			"typescript",
+				"typescript",
 			}
 
 			local installed = require("nvim-treesitter.config").get_installed("parsers")
