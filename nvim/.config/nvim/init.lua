@@ -11,6 +11,7 @@ vim.opt.scrolloff = 5
 vim.opt.shiftwidth = 2
 vim.opt.tabstop = 2
 vim.opt.termguicolors = true
+vim.opt.winborder = "rounded"
 
 --
 -- KEYMAPS
