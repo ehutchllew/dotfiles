@@ -49,6 +49,7 @@ return {
 			vim.lsp.enable("lua_ls")
 			vim.lsp.enable("vtsls")
 			vim.lsp.enable("buf_ls")
+			vim.lsp.enable("roslyn_ls")
 			vim.lsp.enable("svelte")
 			vim.lsp.enable("yamlls")
 			vim.lsp.enable("zls")

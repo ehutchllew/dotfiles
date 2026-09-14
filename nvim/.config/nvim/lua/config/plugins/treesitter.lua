@@ -7,6 +7,7 @@ return {
 		config = function()
 			local ensure_installed = {
 				"c",
+				"c_sharp",
 				"css",
 				"go",
 				"gomod",
