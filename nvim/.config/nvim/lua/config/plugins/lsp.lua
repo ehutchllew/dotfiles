@@ -18,33 +18,41 @@ return {
 		opts = {},
 		config = function(_, opts)
 			local capabilities = require("blink.cmp").get_lsp_capabilities()
-			opts.capabilities = capabilities
-			local lspconfig = require("lspconfig")
-			lspconfig.gopls.setup(opts)
-			lspconfig.lua_ls.setup(opts)
-			lspconfig.ts_ls.setup(opts)
-			lspconfig.buf_ls.setup(opts)
-			lspconfig.svelte.setup(opts)
-			lspconfig.zls.setup(opts)
+			vim.lsp.config("*", {
+				capabilities = capabilities
+			})
 
-			-- NOTE: Since I'm using conform I don't need this for now.
-			-- NOTE: Leaving as documentation for now.
-			-- vim.api.nvim_create_autocmd('LspAttach', {
-			-- 	callback = function(args)
-			-- 		local client = vim.lsp.get_client_by_id(args.data.client_id)
-			-- 		if not client then return end
-			--
-			-- 		if client.supports_method("textDocument/formatting") then
-			-- 			-- Format the current buffer on save
-			-- 			vim.api.nvim_create_autocmd("BufWritePre", {
-			-- 				buffer = args.buf,
-			-- 				callback = function()
-			-- 					vim.lsp.buf.format({ bufnr = args.buf, id = client.id })
-			-- 				end,
-			-- 			})
-			-- 		end
-			-- 	end,
-			-- })
+			local tsserver_filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact", "svelte" }
+			local svelte_plugin = {
+				name = "typescript-svelte-plugin",
+				location = vim.fn.stdpath("data") ..
+				"/mason/packages/svelte-language-server/node_modules/typescript-svelte-plugin",
+				languages = { "svelte" },
+				configNamespace = "typescript",
+			}
+			local vtsls_config = {
+				settings = {
+					vtsls = {
+						tsserver = {
+							globalPlugins = {
+								svelte_plugin
+							}
+						}
+					}
+				},
+				filetypes = tsserver_filetypes,
+			}
+
+			vim.lsp.config("vtsls", vtsls_config)
+
+			vim.lsp.enable("gopls")
+			vim.lsp.enable("lua_ls")
+			vim.lsp.enable("vtsls")
+			vim.lsp.enable("buf_ls")
+			vim.lsp.enable("roslyn_ls")
+			vim.lsp.enable("svelte")
+			vim.lsp.enable("yamlls")
+			vim.lsp.enable("zls")
 		end,
 	}
 }

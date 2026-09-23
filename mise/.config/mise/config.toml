@@ -1,4 +1,5 @@
 [tools]
+aws-cli = { version = "latest", symlink_bins = "true" }
 buf = "latest"
 deno = "latest"
 go = "latest"
