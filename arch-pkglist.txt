@@ -9,6 +9,7 @@ grub
 hyprland
 hyprpolkitagent
 imv
+jq
 kitty
 lazygit
 mako
@@ -26,6 +27,7 @@ qt5-wayland
 qt6-wayland
 reflector
 ripgrep
+rofi
 steam
 stow
 tree-sitter-cli
