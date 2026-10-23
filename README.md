@@ -1,12 +1,29 @@
 # My Dotfiles
 
+## Overview
+
+Dotfile configurations to replicate development environment across different OS architectures and distro flavors.
+
+### Package Managers
+- Mise: used for runtime management
+    - Tools/software that can have varying versions within a system, i.e. per project.
+    - ex: `go`, `node`, `zig`
+- Pacman: system-wide management from Arch official repo
+    - Tools/software that need just one stable version.
+    - ex: `alacritty`, `git`, `hyprland`, `stow`, `zsh`
+- Yay: system-wide management from Arch user repo
+    - Like Pacman but for packages not in the official repo.
+    - ex: `zen-browser`
+- Homebrew/Linuxbrew: system-wide management for Mac/Linux
+   - See: Pacman/Yay for description and examples 
+
 ## Bootstrapping Dependencies
 
 Invoke the `install-dependencies.sh` script to ensure all workstation deps are present.
 
 This will ensure programs like the following are installed:
 
-- Homebrew/Linuxbrew
+- Homebrew/Linuxbrew (if applicable)
 - NeoVim
 - Zap-Zsh
 - Stow

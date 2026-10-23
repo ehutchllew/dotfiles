@@ -10,6 +10,7 @@ mako
 man-db
 man-pages
 mpv
+neovim
 noto-fonts
 noto-fonts-emoji
 openssh

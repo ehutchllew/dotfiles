@@ -7,7 +7,7 @@ fi
 
 # Check if zap-zsh exists -- otherwise install it
 if [[ ! -f "$HOME/.local/share/zap/zap.zsh" ]]; then
-    zsh <(curl -s https://raw.githubusercontent.com/zap-zsh/zap/master/install.zsh) --branch release-v1
+    zsh <(curl -s https://raw.githubusercontent.com/zap-zsh/zap/master/install.zsh) --branch release-v1 --keep
 fi
 
 source "$HOME/.local/share/zap/zap.zsh"
