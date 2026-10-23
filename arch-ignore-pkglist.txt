@@ -1,0 +1,8 @@
+amd-ucode
+base
+base-devel
+efibootmgr
+linux
+linux-firmware
+networkmanager
+vim
