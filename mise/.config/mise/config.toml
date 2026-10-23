@@ -1,11 +1,8 @@
 [tools]
-aws-cli = { version = "latest", symlink_bins = "true" }
 buf = "latest"
 deno = "latest"
 go = "latest"
-neovim = "latest"
 node = "lts"
-redis = "latest"
 terraform = "latest"
 tilt = "latest"
 zig = "latest"
