@@ -2,6 +2,7 @@ bat
 btop
 discord
 eza
+fd
 fzf
 git
 grub
@@ -23,6 +24,7 @@ pipewire-pulse
 qt5-wayland
 qt6-wayland
 reflector
+ripgrep
 stow
 tree-sitter-cli
 ttf-jetbrains-mono-nerd
