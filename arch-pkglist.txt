@@ -14,6 +14,7 @@ lazygit
 mako
 man-db
 man-pages
+mise
 mpv
 neovim
 noto-fonts
@@ -25,6 +26,7 @@ qt5-wayland
 qt6-wayland
 reflector
 ripgrep
+steam
 stow
 tree-sitter-cli
 ttf-jetbrains-mono-nerd
