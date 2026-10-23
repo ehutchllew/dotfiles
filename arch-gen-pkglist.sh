@@ -25,5 +25,5 @@ sync_list() {
   fi
 }
 
-sync_list arch-pkglist.txt     arch-pkglist-ignore.txt     -Qqen
-sync_list arch-aur-pkglist.txt arch-aur-pkglist-ignore.txt -Qqem
+sync_list arch-pkglist.txt     arch-ignore-pkglist.txt     -Qqen
+sync_list arch-aur-pkglist.txt arch-ignore-aur-pkglist.txt -Qqem

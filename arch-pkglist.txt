@@ -18,6 +18,7 @@ pipewire-pulse
 qt5-wayland
 qt6-wayland
 reflector
+stow
 ttf-jetbrains-mono-nerd
 xdg-desktop-portal-hyprland
 zsh
