@@ -1,11 +1,15 @@
+bat
 btop
 discord
+eza
+fzf
 git
 grub
 hyprland
 hyprpolkitagent
 imv
 kitty
+lazygit
 mako
 man-db
 man-pages
@@ -20,6 +24,7 @@ qt5-wayland
 qt6-wayland
 reflector
 stow
+tree-sitter-cli
 ttf-jetbrains-mono-nerd
 xdg-desktop-portal-hyprland
 zsh
