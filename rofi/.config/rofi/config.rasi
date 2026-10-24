@@ -168,3 +168,14 @@ configuration {
 }
 
 @theme "gruvbox-dark-hard"
+
+element-icon {
+	size: calc(((50% - 10em) / 10 ));
+	horizontal-align: 0.5;
+	vertical-align: 0.5;
+}
+
+element-text {
+	padding: 0 1em;
+	vertical-align: 0.5;
+}
