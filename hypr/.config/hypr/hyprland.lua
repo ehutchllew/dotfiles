@@ -87,10 +87,10 @@ hl.env("HYPRCURSOR_SIZE", "24")
 -- Refer to https://wiki.hypr.land/Configuring/Basics/Variables/
 hl.config({
 	general = {
-		gaps_in          = 5,
-		gaps_out         = 20,
+		gaps_in          = 4,
+		gaps_out         = 8,
 
-		border_size      = 2,
+		border_size      = 3,
 
 		col              = {
 			active_border   = { colors = { "rgba(33ccffee)", "rgba(00ff99ee)" }, angle = 45 },
@@ -112,7 +112,7 @@ hl.config({
 
 		-- Change transparency of focused and unfocused windows
 		active_opacity   = 1.0,
-		inactive_opacity = 1.0,
+		inactive_opacity = 0.9,
 
 		shadow           = {
 			enabled      = true,
@@ -262,7 +262,7 @@ hl.bind(secondMod .. " + Q",
 
 -- Apps
 hl.bind(mainMod .. " + C", hl.dsp.exec_cmd(terminal))
-hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(fileManager))
+-- hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))
 
 
@@ -270,12 +270,18 @@ hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + X", hl.dsp.layout("togglesplit")) -- dwindle only
+hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ mode = "maximized" }))
 
 -- Move focus with mainMod + arrow keys
 hl.bind(mainMod .. " + H", hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + L", hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + K", hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + J", hl.dsp.focus({ direction = "down" }))
+
+hl.bind(secondMod .. " + H", hl.dsp.window.move({ direction = "left" }))
+hl.bind(secondMod .. " + L", hl.dsp.window.move({ direction = "right" }))
+hl.bind(secondMod .. " + K", hl.dsp.window.move({ direction = "up" }))
+hl.bind(secondMod .. " + J", hl.dsp.window.move({ direction = "down" }))
 
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
