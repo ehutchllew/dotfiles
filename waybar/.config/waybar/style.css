@@ -1,12 +1,35 @@
+@define-color fg        rgba(17,20,26,0.80);
+/* Accents from Hyprland's default border gradient */
+@define-color blue      rgba(51, 204, 255, 0.93);   /* #33ccff */
+@define-color teal      rgba(0, 255, 153, 0.93);    /* #00ff99 */
+@define-color inactive  rgba(89, 89, 89, 0.67);     /* #595959 */
+@define-color translucent rgba(0,0,0,0.20);
+
+@define-color blue-bg   rgba(51, 204, 255, 0.55);   /* #33ccff */
+@define-color teal-bg   rgba(0, 255, 153, 0.35);    /* #00ff99 */
+
+
+/* Softer accent tints for hover and backgrounds */
+@define-color blue-soft rgba(51, 204, 255, 0.75);   /* #33ccff */
+@define-color teal-soft rgba(0, 255, 153, 0.75);    /* #00ff99 */
+
+/* Dimmer accent tints */
+@define-color blue-dim rgba(51, 204, 255, 0.25);   /* #33ccff */
+@define-color teal-dim rgba(0, 255, 153, 0.25);    /* #00ff99 */
+
+/* States */
+@define-color warning   rgba(255, 200, 80, 1.0);    /* #ffc850 */
+@define-color critical  rgba(255, 85, 100, 1.0);    /* #ff5564 */
+
 * {
     /* `otf-font-awesome` is required to be installed for icons */
     font-family: "JetBrainsMono Nerd Font Propo", sans-serif;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 window#waybar {
-    background-color: rgba(43, 48, 59, 0.5);
-    border-bottom: 3px solid rgba(100, 114, 125, 0.5);
+    background: linear-gradient(45deg, @blue-bg, @teal-bg);
+    border-bottom: 2px solid @teal-soft;
     color: #ffffff;
     transition-property: background-color;
     transition-duration: .5s;
@@ -64,8 +87,8 @@ button:hover {
 }
 
 #workspaces button.focused, #workspaces button.active {
-    background-color: #64727D;
-    box-shadow: inset 0 -3px #ffffff;
+    background-color: @blue-soft;
+    box-shadow: inset 0 -3px @teal-soft;
 }
 
 #workspaces button.urgent {
@@ -79,6 +102,7 @@ button:hover {
 
 #clock,
 #battery,
+#bluetooth,
 #cpu,
 #memory,
 #disk,
@@ -94,8 +118,8 @@ button:hover {
 #scratchpad,
 #power-profiles-daemon,
 #mpd {
-    padding: 0 10px;
-    color: #ffffff;
+    padding: 2px 10px;
+    color: @fg;
 }
 
 #window,
@@ -113,8 +137,10 @@ button:hover {
     margin-right: 0;
 }
 
+#bluetooth {
+}
+
 #clock {
-    background-color: #64727D;
 }
 
 #battery {
@@ -169,12 +195,9 @@ label:focus {
 }
 
 #cpu {
-    background-color: #2ecc71;
-    color: #000000;
 }
 
 #memory {
-    background-color: #9b59b6;
 }
 
 #disk {
@@ -186,7 +209,6 @@ label:focus {
 }
 
 #network {
-    background-color: #2980b9;
 }
 
 #network.disconnected {
@@ -194,13 +216,36 @@ label:focus {
 }
 
 #pulseaudio {
-    background-color: #f1c40f;
-    color: #000000;
 }
 
 #pulseaudio.muted {
-    background-color: #90b1b1;
-    color: #2a5c45;
+}
+
+#pulseaudio-slider {
+	padding-left: 0;
+}
+
+#pulseaudio-slider slider {
+	min-height: 0;
+	min-width: 0;
+	opacity: 0;
+	background-image: none;
+	border: none;
+	box-shadow: none;
+}
+
+#pulseaudio-slider trough {
+	min-height: 8px;
+	min-width: 75px;
+	border: none;
+	border-radius: 5px;
+	background: @translucent;
+}
+
+#pulseaudio-slider highlight {
+	min-width: 10px;
+	border-radius: 5px;
+	background: @teal;
 }
 
 #wireplumber {
@@ -235,7 +280,7 @@ label:focus {
 }
 
 #tray {
-    background-color: #2980b9;
+	
 }
 
 #tray > .passive {
