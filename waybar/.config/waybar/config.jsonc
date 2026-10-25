@@ -2,7 +2,7 @@
     "layer": "top",
     "modules-left": ["hyprland/workspaces", "hyprland/submap"],
     "modules-center": ["hyprland/window"],
-    "modules-right": ["battery", "clock"],
+    "modules-right": ["tray", "battery", "clock"],
     "hyprland/window": {
         "max-length": 50
     },
@@ -12,5 +12,6 @@
     },
     "clock": {
         "format-alt": "{:%a, %d. %b  %H:%M}"
-    }
+    },
+		"reload_style_on_change": true
 }

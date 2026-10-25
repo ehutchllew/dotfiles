@@ -1,9 +1,11 @@
 bat
 btop
 discord
+dmidecode
 eza
 fd
 fzf
+gamemode
 git
 grub
 hyprland
@@ -14,6 +16,7 @@ kitty
 lazygit
 mako
 man-db
+mangohud
 man-pages
 mise
 mpv
@@ -30,7 +33,9 @@ ripgrep
 rofi
 steam
 stow
+tmux
 tree-sitter-cli
 ttf-jetbrains-mono-nerd
+waybar
 xdg-desktop-portal-hyprland
 zsh
