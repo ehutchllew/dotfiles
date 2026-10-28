@@ -28,6 +28,12 @@ setopt histignorealldups sharehistory hist_verify
 bindkey '^[[A' history-beginning-search-backward
 bindkey '^[[B' history-beginning-search-forward
 
+# Platform-specific settings (Homebrew environment, aliases). Loaded before
+# compinit so completions installed by the platform's package manager are found.
+if [[ -r "$HOME/.config/zsh/platform.zsh" ]]; then
+    source "$HOME/.config/zsh/platform.zsh"
+fi
+
 # Use modern completion system
 autoload -Uz compinit
 compinit
@@ -37,7 +43,9 @@ zstyle ':completion:*' completer _expand _complete _correct _approximate
 zstyle ':completion:*' format 'Completing %d'
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*' menu select=2
-eval "$(dircolors -b)"
+if [[ "$(uname -s)" == Linux ]] && (( $+commands[dircolors] )); then
+    eval "$(dircolors -b)"
+fi
 zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' list-colors ''
 zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
@@ -51,8 +59,11 @@ zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
 
-# eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-eval "$(~/.local/bin/mise activate zsh)"
+if (( $+commands[mise] )); then
+    eval "$(mise activate zsh)"
+elif [[ -x "$HOME/.local/bin/mise" ]]; then
+    eval "$("$HOME/.local/bin/mise" activate zsh)"
+fi
 
 # Source
 plug "$HOME/.config/zsh/aliases.zsh"
@@ -64,9 +75,7 @@ plug "romkatv/powerlevel10k"
 plug "zsh-users/zsh-autosuggestions"
 plug "zsh-users/zsh-syntax-highlighting"
 
-# This has to be sourced AFTER sourcing the `exports.zsh` file
-# as FZF is within the homebrew bin folder and this does not get
-# added to the PATH until `exports.zsh` gets sourced.
+# Source FZF after the platform environment and exports.zsh have set PATH.
 source <(fzf --zsh)
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.

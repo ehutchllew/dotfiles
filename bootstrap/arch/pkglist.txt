@@ -7,7 +7,6 @@ fd
 fzf
 gamemode
 git
-grub
 hyprland
 hyprpolkitagent
 imv

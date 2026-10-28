@@ -11,22 +11,14 @@ function add_to_path() {
   fi
 }
 
-BREW_BIN="/home/linuxbrew/.linuxbrew/bin"
-if [[ $(uname) == "Darwin" && $(uname -m) == "arm64" ]]; then
-	BREW_BIN="/opt/homebrew/bin"
-elif [[ $(uname) == "Darwin" && $(uname -m) == "x86_64" ]]; then
-	BREW_BIN="/usr/local/bin"
-else
-	BREW_BIN="/home/linuxbrew/.linuxbrew/bin"
-fi
-
 # Define Paths
 LOCAL_BIN="$HOME/.local/bin"
 
 # Build PATH
 NEW_PATH=""
-add_to_path "${LOCAL_BIN}"
-add_to_path "${BREW_BIN}"
+if [[ -d "${LOCAL_BIN}" ]]; then
+    add_to_path "${LOCAL_BIN}"
+fi
 
 # Export PATH
 if [[ -n "${NEW_PATH}" ]]; then

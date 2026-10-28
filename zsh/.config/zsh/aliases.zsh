@@ -28,6 +28,3 @@ alias dub="du -b"
 alias dus="du -sb"
 # Calc human readable bytes
 alias duh="du -sbh"
-
-# File Manipulation
-alias cb="xclip -selection 'clipboard' -i"
