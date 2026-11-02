@@ -7,3 +7,5 @@ disable-model-invocation: true
 Load the `grilling` and `domain-modeling` skills.
 
 Run the session as `grilling` rounds. Between rounds, apply `domain-modeling`: update `GLOSSARY.md` as terms resolve and offer ADRs when decisions qualify.
+
+Close with the `grilling` shared-understanding summary, and list any glossary terms or ADRs written during the session under its Decisions.

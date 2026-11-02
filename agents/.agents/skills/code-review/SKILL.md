@@ -10,8 +10,6 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings. Start every sub-agent with a fresh context window.
 
-If issue was not provided by the user, request it before proceeding.
-
 ## Process
 
 ### 1. Pin the fixed point
@@ -24,14 +22,21 @@ Then check `git status --short` for uncommitted changes. If they belong to the s
 
 Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here, not inside two parallel sub-agents.
 
-### 2. Identify the spec source
+### 2. Identify the issue and spec
 
-Look for the originating spec, in this order:
+The Spec axis can use two sources:
 
-1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.), fetched via the `issue-tracker` skill.
-2. A path the user passed as an argument.
-3. A spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
-4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
+- **Issue**: the ticket this change implements. It sets the scope of this change.
+- **Spec**: the feature-level document the issue belongs to. It holds the requirements the issue is a slice of.
+
+Find the issue first, in this order:
+
+1. A ticket path or number the user passed.
+2. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.).
+
+Fetch it via the `issue-tracker` skill. Then find its parent spec: the spec the tracker files the issue under, otherwise a path the user passed, otherwise a spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
+
+If you find neither, ask the user for them. If they say there are none, the **Spec** sub-agent will skip and report "no spec available". If you find only one, proceed with it.
 
 ### 3. Identify the standards sources
 
@@ -52,10 +57,10 @@ Issue both sub-agent calls together, in the foreground, and aggregate the report
 **Spec sub-agent prompt** should include:
 
 - The diff command and commit list.
-- The path or fetched contents of the spec.
-- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
+- The path or fetched contents of the issue and the spec (whichever you found).
+- The brief: "Report: (a) requirements the issue asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong, or that contradict the spec. The issue sets the scope; use the spec for the requirements behind it, and don't flag spec requirements that belong to other issues as missing. Quote the issue or spec line for each finding. Under 400 words."
 
-If the spec is missing, skip the Spec sub-agent and note this in the final report.
+If both the issue and the spec are missing, skip the Spec sub-agent and note this in the final report.
 
 ### 5. Aggregate
 
