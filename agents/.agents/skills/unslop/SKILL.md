@@ -1,13 +1,11 @@
 ---
 name: unslop
-description: Cut AI tells from any writing.
-metadata:
-    opencode/autoinvoke: true
+description: Rules for plain, non-AI-sounding prose. Load before writing or editing text for people to read such as docs, READMEs, commit messages, PR descriptions, issue text, or chat replies. Use when the user asks for concise or succinct answers or to unslop, humanize, de-AI, or tighten writing.
 ---
 
 # Unslop
 
-Edit text to remove AI patterns. Scan for the patterns below, then rewrite. Preserve meaning and match the intended tone.
+Write or edit text without AI patterns. When writing, follow the patterns below as you go. When editing, scan for them, then rewrite. Preserve meaning and match the intended tone.
 
 ## Patterns to detect and fix
 
