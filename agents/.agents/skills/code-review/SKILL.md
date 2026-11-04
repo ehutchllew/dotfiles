@@ -62,7 +62,7 @@ Both sub-agents are read-only reviewers. Use a read-only sub-agent if one is ava
 
 - The diff command and commit list.
 - The path or fetched contents of the issue and the spec (whichever you found).
-- The brief: "Report: (a) requirements the issue asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep), but not unused abstractions or parameters, which the Standards axis covers; (c) requirements that look implemented but where the implementation looks wrong, or that contradict the spec. The issue sets the scope; use the spec for the requirements behind it, and don't flag spec requirements that belong to other issues as missing. Quote the issue or spec line for each finding. Under 400 words."
+- The brief: "Report: (a) requirements the issue asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep), but not unused abstractions or parameters, which the Standards axis covers; (c) requirements that look implemented but where the implementation looks wrong, or that contradict the spec. The issue sets the scope; use the spec for the requirements behind it, and don't flag spec requirements that belong to other issues as missing. If the issue has a `Covers:` line, the user stories it lists are the spec requirements in scope. Quote the issue or spec line for each finding. Under 400 words."
 
 If both the issue and the spec are missing, skip the Spec sub-agent and note this in the final report.
 

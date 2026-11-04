@@ -21,17 +21,45 @@ Issues and specs live as markdown files in `.scratch/` at the repo root. Whether
 
 ### Ticket format
 
-Near the top of each ticket:
+```markdown
+# <NN>: <title>
 
-- `Status:` one of `open`, `in-progress`, `done`
-- `Blocked by: NN, NN` (optional). A ticket is unblocked when every ticket it lists is `done`.
+Status: open
+Mode: afk
+Blocked by: 01, 02
+Covers: US 4, US 7
 
-Comments and conversation history go at the bottom of the file under a `## Comments` heading, newest last.
+## What to build
+
+<the end-to-end behaviour this ticket makes work, from the user's point of view>
+
+## Acceptance criteria
+
+- [ ] <a criterion a test or command can check>
+
+## Verification
+
+<the tests or commands that prove each criterion, using commands from the spec's Testing Decisions>
+
+## Out of scope
+
+- <nearby work this ticket must not touch>
+
+## Comments
+```
+
+- `Status:` is one of `open`, `in-progress`, `needs-review`, `done`.
+- `Mode:` is `afk` when an agent can finish the ticket alone, and `hitl` when it needs a person, such as a manual QA pass, a third-party dashboard, or a product decision.
+- `Blocked by:` lists ticket numbers. Leave the line out when nothing blocks the ticket. A ticket is unblocked when every ticket it lists is `done`.
+- `Covers:` lists the spec's user stories this ticket implements.
+- Write the metadata lines plain, without bold, so a script can match `^Status: `.
+- Comments and conversation history go under `## Comments`, newest last.
 
 ### Operations
 
 - **Publish to the issue tracker**: create a new file under `.scratch/<feature-slug>/`, creating the directory if needed. New tickets start as `Status: open`.
 - **Fetch the relevant ticket**: read the file at the referenced path. The user will normally pass the path or the ticket number directly; if a number is ambiguous across features, ask.
 - **List issues**: scan `.scratch/<feature-slug>/issues/` and read each file's `Status:` line.
+- **List ready tickets**: tickets with `Status: open` and `Mode: afk` that are unblocked, lowest number first.
 - **Comment**: append to the `## Comments` section.
 - **Close**: append a comment explaining the outcome, then set `Status: done`.
