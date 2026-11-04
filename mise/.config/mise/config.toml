@@ -1,8 +1,3 @@
 [tools]
-buf = "latest"
-deno = "latest"
 go = "latest"
 node = "lts"
-terraform = "latest"
-tilt = "latest"
-zig = "latest"
