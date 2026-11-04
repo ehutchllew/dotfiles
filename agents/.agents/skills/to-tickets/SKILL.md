@@ -1,18 +1,18 @@
 ---
 name: to-tickets
-description: Break a spec into tickets, one deliverable each, with blocking edges, and publish them through the issue tracker. Use when the user wants a spec or plan turned into tickets.
+description: Turn a spec into implementation tickets and a final acceptance ticket, or reconcile existing tickets with an approved spec revision. Use when the user wants a spec or plan turned into tickets.
 disable-model-invocation: true
 ---
 
 # To Tickets
 
-Break a spec into **tickets**. Each ticket holds one **deliverable** and declares the tickets that **block** it.
+Break a spec into implementation tickets, each with one deliverable and explicit blockers, plus a final acceptance ticket. Reconcile existing work instead of generating duplicate tickets when the spec changes.
 
 ## Process
 
 ### 1. Gather context
 
-Load the `issue-tracker` skill and fetch the spec the user points to, including its comments. Also use whatever is already in the conversation.
+Load the `issue-tracker` skill and fetch the spec the user points to, including its revision and history. Read existing tickets and their execution metadata and comments. Also use whatever is already in the conversation. Pause Ralph before changing the breakdown.
 
 Tickets need a spec. `Covers:` refers to the spec's user story IDs, and `## Verification` uses the commands in its Testing decisions. If there is no spec, suggest running `to-spec` first. If the spec's Testing decisions name no commands, ask the user for them.
 
@@ -24,7 +24,7 @@ Look for opportunities to prefactor the code to make the implementation easier. 
 
 ### 3. Draft the tickets
 
-A ticket holds exactly one deliverable: a change that can be checked on its own once it lands. Acceptance criteria check that one deliverable; they are not a todo list. If the title needs "and", or the criteria check unrelated behaviours, split the ticket.
+An implementation ticket holds exactly one deliverable: a change that can be checked on its own once it lands. Acceptance criteria check that one deliverable; they are not a todo list. If the title needs "and", or the criteria check unrelated behaviours, split the ticket. Final acceptance is a review gate, not a feature-sized implementation ticket.
 
 Most deliverables are **vertical slices**, also called tracer bullets:
 
@@ -44,26 +44,41 @@ Give each ticket its **blocking edges**: the other tickets that must complete be
 Then fill in each ticket:
 
 - **Mode**: `hitl` when the ticket needs a person, such as a manual QA pass, a third-party dashboard, or a product decision. Otherwise `afk`. Each check the spec's Testing decisions lists as needing a person belongs in a `hitl` ticket.
-- **Covers**: the spec's user stories this ticket implements. Every user story should be covered by at least one ticket.
+- **Covers**: the spec's user stories this ticket contributes to or verifies. Every current story needs implementation coverage, not just a final acceptance check.
 - **Verification**: the tests or commands that prove each acceptance criterion. Use only commands from the spec's Testing decisions.
 - **Out of scope**: nearby work this ticket must not touch, usually work that belongs to another ticket.
+
+Use the tracker's initial metadata for new implementation tickets. Do not invent a `Base commit:` before work starts or reset an existing ticket's base, attempt count, limit, or review history.
+
+### Final acceptance and revisions
+
+Add one current `Kind: acceptance` ticket using the tracker contract. It must depend on every implementation ticket, cover all current stories, and verify feature-level behavior and integration through the spec's commands. Include human checks in explicit `hitl` work before final acceptance, or make the acceptance ticket `hitl` if the final check itself needs a person.
+
+When reconciling existing tickets:
+
+- Keep ticket numbers stable and assign new numbers after the highest existing number. Preserve completed tickets and create follow-up work for changed behavior.
+- Propose precise changes to unfinished tickets, including blockers and unmet criteria. Preserve execution metadata and append a comment explaining approved scope changes. If a changed ticket was awaiting review, return it to `in-progress` for implementation against the revised criteria.
+- Do not erase earlier findings, reset budgets, mark unfinished work `done` to remove a blocker, or retire contradictory work without the user's explicit resolution. Name any conflict that prevents a runnable plan.
+- Reuse an unfinished acceptance ticket, preserving its base and attempt history. If final acceptance already passed, append a new acceptance ticket and copy the original feature base. Keep the earlier pass as history.
+- After approval, set the current acceptance ticket's `Spec revision:` to the spec revision being reconciled. Add new blockers for all follow-up work. A failed acceptance ticket remains `hitl` until the user explicitly approves its repair plan and hand-back, including a higher limit if its budget is exhausted.
 
 ### 4. Quiz the user
 
 Present the proposed breakdown as a numbered list. For each ticket, show:
 
 - **Title**: short descriptive name
+- **Kind**: implementation or final acceptance
 - **Mode**: `afk` or `hitl`
 - **Blocked by**: which other tickets (if any) must complete first
-- **Covers**: which user stories it implements
+- **Covers**: which user stories it contributes to or verifies
 - **What it delivers**: the change this ticket makes work
 
-After the list, name any user stories no ticket covers.
+After the list, name any user stories no implementation ticket contributes to. Acceptance coverage alone does not count as implementation coverage. Show changes to existing tickets separately from new tickets.
 
 Ask the user:
 
 - Does the granularity feel right? (too coarse / too fine)
-- Does each ticket hold one deliverable?
+- Does each implementation ticket hold one deliverable?
 - Are the blocking edges correct: does each ticket only depend on tickets that genuinely gate it?
 - Is each `hitl` ticket really one that needs a person, and is any `afk` ticket missing one?
 - Should any tickets be merged or split further?
@@ -72,10 +87,12 @@ Iterate until the user approves the breakdown.
 
 ### 5. Publish the tickets
 
-Publish each approved ticket in the `issue-tracker` ticket format. Publish in dependency order, blockers first, so each `Blocked by:` refers to tickets that already exist.
+Before publishing, check that every blocker exists, the dependency graph has no cycles, current story IDs are valid and covered, each implementation ticket has one deliverable, and its Verification names commands from the spec. Check that the current final acceptance ticket depends on all implementation work and names the approved spec revision. Resolve invalid structure with the user here rather than leaving Ralph to redesign it.
+
+Publish only the approved additions and edits in the `issue-tracker` format, blockers first. Preserve existing ticket history and record the approved reconciliation before Ralph resumes.
 
 Don't close or change the spec or any parent issue.
 
-If the tickets are local files, offer to commit the feature directory with the spec and tickets. Ralph only runs on committed tickets.
+For local files, offer to commit the approved spec and tickets. Respect an intentional gitignore policy rather than force-adding files. Explain that Ralph needs a clean checkout and durable ticket updates, not a new conversation containing the execution history.
 
 Avoid specific file paths or code snippets: they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.

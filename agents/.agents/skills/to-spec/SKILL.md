@@ -1,6 +1,6 @@
 ---
 name: to-spec
-description: Turn the current conversation into a spec and publish it to the project issue tracker. No interview, just a synthesis of what you've already discussed. Use after a grilling session, or when the user asks for a spec.
+description: Turn the current conversation into a new or revised spec and publish it to the project issue tracker. Synthesize what has already been discussed. Use after a grilling session, or when the user asks for a spec.
 disable-model-invocation: true
 ---
 
@@ -8,7 +8,7 @@ This skill takes the current conversation context and codebase understanding and
 
 ## Process
 
-1. Explore the repo to understand the current state of the codebase, if you haven't already. Use the vocabulary in `GLOSSARY.md` throughout the spec, and respect any ADRs in the area you're touching.
+1. Load `issue-tracker`. If the feature already has a spec, fetch it and its tickets before drafting. Revise that spec rather than publishing a duplicate. Explore the repo if needed, use the vocabulary in `GLOSSARY.md`, and respect relevant ADRs.
 
 2. If the conversation has a shared-understanding summary from a grilling session, build the spec from it:
    - Decisions go into Implementation decisions.
@@ -20,11 +20,21 @@ This skill takes the current conversation context and codebase understanding and
 
    Find the exact commands that run the tests and other checks (typecheck, lint) by reading the repo: `package.json`, `Makefile`, CI config, and similar. Check with the user that the seams and commands match their expectations.
 
-4. Write the spec using the template below. Load the `issue-tracker` skill and publish the spec.
+4. Write the spec using the template below and publish it through `issue-tracker`. For a revision, show the proposed requirement and verification changes for approval before publishing them. Apply the revision rules below.
+
+## Revising an existing spec
+
+- Pause Ralph before changing its approved scope. Do not edit the spec while an implementer or reviewer is running.
+- Preserve existing user-story IDs. Add new stories at the end, never renumber or reuse IDs, and record changed or withdrawn requirements explicitly rather than silently deleting their history.
+- Follow the tracker's revision contract. Record the approved changes, affected story IDs, and reason under `## Change history`. Preserve previous history.
+- Do not rewrite completed tickets, reset execution metadata, or claim that a previous final review covers the revision. Leave ticket reconciliation to `to-tickets` and tell the user that Ralph must wait for it.
+- If a new requirement contradicts already-started work, make that conflict explicit for the user rather than assuming the implementation should continue unchanged.
 
 <spec-template>
 
 # <Feature name>
+
+Revision: 1
 
 ## Problem statement
 
@@ -81,5 +91,9 @@ A description of the things that are out of scope for this spec.
 ## Further notes
 
 Any further notes about the feature.
+
+## Change history
+
+For each approved revision, record its number, the affected user-story IDs, and what changed. Keep earlier entries.
 
 </spec-template>

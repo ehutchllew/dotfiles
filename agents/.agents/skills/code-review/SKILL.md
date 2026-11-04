@@ -1,96 +1,116 @@
 ---
 name: code-review
-description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two separate axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does it do what the originating issue or spec asked for?). Use when the user wants a branch, PR, or work-in-progress reviewed, asks whether changes are ready to merge, says \"check my changes\" or \"review since X\", or wants to know if an implementation matches its ticket."
+description: "Review changes, an implementation ticket, or final feature acceptance along separate Standards and Spec axes. Use when reviewing a branch or work in progress, checking an implementation against its ticket, or verifying a complete feature."
 ---
 
-Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
+# Code review
 
-- **Standards**: does the code conform to this repo's documented coding standards?
-- **Spec**: does the code faithfully implement the originating issue / spec?
+Keep two assessments separate:
 
-Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings. Start every sub-agent with a fresh context window.
+- **Standards**: does the changed code conform to documented standards?
+- **Spec**: does the current implementation satisfy the requirements in scope?
 
-## Process
+Use fresh, parallel subagents for the two axes when supported. If nested subagents are unavailable, review the axes sequentially yourself and keep the findings separate. Do not describe that fallback as independent-context review.
 
-### 1. Pin the fixed point
+## 1. Identify the mode and inputs
 
-Whatever the user said is the fixed point (a commit SHA, branch name, tag, `main`, `HEAD~5`, etc.). If they didn't specify one, ask for it.
+Load `issue-tracker` when reading issues or specs. Explicit paths supplied by the caller take precedence over discovery; do not ask for inputs already provided.
 
-Before anything else, confirm the fixed point resolves (`git rev-parse <fixed-point>`). A bad ref should fail here, not inside two parallel sub-agents.
+| Mode | Inputs and scope |
+| --- | --- |
+| Change review | A supplied fixed point, plus an issue or spec when available. Review the diff and its scoped requirements. |
+| Ticket review | An implementation ticket and its spec. Read `Base commit:` from the ticket and review the entire current ticket implementation, including previous blocking findings. |
+| Feature acceptance | The current acceptance ticket, full spec, and every associated ticket. Read the feature baseline from the acceptance ticket. Check every current story and integration requirement against the current implementation. |
 
-Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
+Use the caller's requested mode. Otherwise infer feature acceptance from `Kind: acceptance`, ticket review from an implementation ticket with `Base commit:`, and change review for an ordinary fixed-point comparison.
 
-Then check `git status --short` for uncommitted changes. If they belong to the same work as the commits since the fixed point (same feature, same files), include them: use `git diff $(git merge-base <fixed-point> HEAD)` instead, which covers both commits and uncommitted tracked changes, and list any relevant untracked files for the sub-agents to read. If they look unrelated, leave them out and say so in the final report.
+For discovery in a change review, find the issue from a user-provided path or number, then issue references in commit messages. Use `issue-tracker` to fetch it and its parent spec. Otherwise look for a user-provided spec or a matching spec under `docs/`, `specs/`, or `.scratch/`. If neither exists, ask for them; when the user confirms there are none, skip the Spec axis and report "No spec available."
 
-Finally, run the diff command you chose and confirm it's non-empty (untracked files you listed count). An empty diff should also fail here.
+Read the selected ticket's full comments, not only its latest report. In feature acceptance, also read every associated ticket and require the current acceptance ticket's `Spec revision:` to match the spec's `Revision:`. A previous pass or a set of checked boxes is not evidence that the revised feature works.
 
-### 2. Identify the issue and spec
+## 2. Pin the fixed point
 
-The Spec axis can use two sources:
+For ticket review and feature acceptance, the selected ticket's `Base commit:` is authoritative. Never replace a missing base with `HEAD`, reconstruct it from commit subjects, or use a different ticket's base. Stop for explicit recovery if the field is missing or resolves to a different commit than a caller-supplied fixed point.
 
-- **Issue**: the ticket this change implements. It sets the scope of this change.
-- **Spec**: the feature-level document the issue belongs to. It holds the requirements the issue is a slice of.
+For a change review, use the fixed point the user supplied. If none was supplied, ask for it.
 
-Find the issue first, in this order:
+Confirm the reference resolves with `git rev-parse --verify <fixed-point>^{commit}` before starting any review. A persisted ticket base must also be an ancestor of `HEAD`, checked with `git merge-base --is-ancestor <base> HEAD`. If not, stop for recovery rather than silently comparing against another merge-base.
 
-1. A ticket path or number the user passed.
-2. Issue references in the commit messages (`#123`, `Closes #45`, a ticket file path, etc.).
+Capture `git diff <fixed-point>...HEAD` and `git log <fixed-point>..HEAD --oneline` once. The ticket baseline remains unchanged across repairs and restarts, so the review includes earlier implementation attempts. Keep ticket findings scoped to the selected ticket even if unrelated changes also fall within the range. Feature acceptance deliberately covers the whole feature diff.
 
-Load the `issue-tracker` skill and follow it to fetch the issue. Then find its parent spec: the spec the tracker files the issue under, otherwise a path the user passed, otherwise a spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
+Check `git status --short`. Ralph handoffs require a clean checkout before review; unexpected changes need recovery, not an expanded review scope. For standalone change reviews, include relevant uncommitted changes using `git diff $(git merge-base <fixed-point> HEAD)` and list relevant untracked files for the reviewers to read. Leave unrelated changes out and say so in the report.
 
-If you find neither, ask the user for them. If they say there are none, the **Spec** sub-agent will skip and report "no spec available". If you find only one, proceed with it.
+An empty diff ends an ordinary change review with "No changes to review." It does not prevent ticket or feature acceptance against the current implementation. Report an empty Standards diff and continue the requirements and verification checks.
 
-### 3. Identify the standards sources
+## 3. Independently verify ticket or feature behavior
 
-Search the repo for every file that documents how code should be written. When `CODING_STANDARDS.md` or `CONTRIBUTING.md` exists, it must be on the list.
+In ticket review, run the ticket's `## Verification` commands, or the spec's Testing decisions commands if the ticket has none. In feature acceptance, run the full feature-level commands from the spec and the acceptance ticket. Read the commands and required evidence in associated human-work tickets too.
 
-On top of whatever the repo documents, the Standards axis always carries the **smell baseline** in [references/smell-baseline.md](references/smell-baseline.md): a fixed set of Fowler code smells that applies even when a repo documents nothing. You don't need to read it yourself; the Standards sub-agent reads it.
+Run the commands yourself even when an implementer reported success. Record the exact commands and results. Do not assume a targeted ticket test proves cross-ticket integration. Confirm any required manual checks have explicit human evidence; do not claim to have performed a manual check yourself.
 
-### 4. Spawn both sub-agents in parallel
+Missing commands, unavailable human evidence, or an environment that prevents verification block completion. A completed command that demonstrates unmet behavior is a finding. Do not change source, tests, snapshots, or the requirements to make checks pass. Unexpected repository changes from verification need recovery; never discard them. Pass the results to the two review axes so they need not repeat the same commands.
 
-Issue both sub-agent calls together, in the foreground, and aggregate the reports they return.
+For ordinary change reviews, report any checks you ran or that were unavailable without inventing a verification policy.
 
-Both sub-agents are read-only reviewers. Use a read-only sub-agent if one is available, and end both prompts with: "Perform this review directly. Do not load the `code-review` skill, spawn sub-agents, or modify any files."
+## 4. Identify standards sources
 
-**Standards sub-agent prompt** should include:
+Find the repo's documented coding rules. Include `CODING_STANDARDS.md` and `CONTRIBUTING.md` whenever present.
 
-- The full diff command and commit list.
-- The list of standards-source files you found in step 3, **plus the absolute path to `references/smell-baseline.md`** in this skill's directory, with an instruction to read it.
-- The brief: "Report, per file/hunk where relevant, (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls: documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
+The Standards axis always also reads [references/smell-baseline.md](references/smell-baseline.md). Its baseline smells are judgement calls, never hard violations, and documented repo rules override them.
 
-**Spec sub-agent prompt** should include:
+## 5. Review the two axes
 
-- The diff command and commit list.
-- The path or fetched contents of the issue and the spec (whichever you found).
-- The brief: "Report: (a) requirements the issue asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep), but not unused abstractions or parameters, which the Standards axis covers; (c) requirements that look implemented but where the implementation looks wrong, or that contradict the spec. The issue sets the scope; use the spec for the requirements behind it, and don't flag spec requirements that belong to other issues as missing. If the issue has a `Covers:` line, the user stories it lists are the spec requirements in scope. Quote the issue or spec line for each finding. Under 400 words."
+Start fresh read-only subagents together in the foreground when possible. Otherwise use the sequential fallback described above. End each subagent prompt with:
 
-If both the issue and the spec are missing, skip the Spec sub-agent and note this in the final report.
+> Perform this review directly. Do not load the `code-review` skill, spawn sub-agents, or modify any files.
 
-### 5. Aggregate
+Give both reviewers the selected mode, fixed point, diff command, commit list, relevant paths, previous blocking findings, and independent verification results. Pass paths rather than copied documents when those paths are available.
 
-Present the two reports verbatim or lightly cleaned. Do **not** merge or rerank findings, because the two axes are deliberately separate (see _Why two axes_). Use this template:
+### Standards prompt
+
+Include every standards-source path and the absolute path to this skill's `references/smell-baseline.md`, with instructions to read them.
+
+Ask for documented-rule violations and baseline smells, citing the file, hunk, and rule. Distinguish hard violations from judgement calls. Skip anything tooling enforces. In ticket mode, exclude changes belonging only to other tickets. In feature acceptance, assess the full feature diff. Recheck earlier blocking Standards findings even when the latest repair did not touch their code. Keep the report under 400 words.
+
+### Spec prompt
+
+Include the issue and spec paths when available. For feature acceptance, also include all associated ticket paths.
+
+Ask for:
+
+- Missing or partial requirements in scope.
+- Behavior that was not requested. Do not include unused abstractions or parameters, which belong to Standards.
+- Incorrect behavior or contradictions with the requirements.
+- Unresolved earlier blocking findings and failed verification that demonstrates unmet behavior.
+
+The implementation ticket sets the scope in ticket mode. `Covers:` connects it to user stories but does not make one slice responsible for other tickets' deliverables. Read the current implementation beyond changed lines when needed to establish whether the ticket works. A clean repair diff alone cannot establish that an earlier omission was fixed.
+
+In feature acceptance, the complete current spec sets the scope, not the last implementation ticket or just the acceptance ticket's checklist. Check that all current stories work together, approved scope changes are reflected, no unfinished implementation or unresolved blocker remains, and required human evidence exists. Inspect current code and tests even when relevant behavior predates the latest diff. Do not treat ticket statuses as proof of correctness.
+
+Quote the issue or spec requirement for each finding and cite the relevant implementation. Keep the report under 400 words. Skip this axis only in a change review with neither issue nor spec.
+
+## 6. Aggregate
+
+Present the two reports verbatim or lightly cleaned. Do not merge or rerank their findings. Use this template:
 
 ```markdown
-Reviewed `<fixed-point>...HEAD` (<N> commits<, plus uncommitted changes>).
+Reviewed `<fixed-point>...HEAD` in <change review | ticket review | feature acceptance> mode.
+
+## Verification
+
+<commands, results, required human evidence, and any blocker; or "Not run.">
 
 ## Standards
 
-<Standards sub-agent report>
+<Standards report>
 
 ## Spec
 
-<Spec sub-agent report, or "No spec available.">
+<Spec report, or "No spec available.">
 
-**Summary:** Standards: <n> findings, worst: <issue or "none">. Spec: <n> findings, worst: <issue or "none">.
+**Summary:** Standards: <n> findings, worst: <issue or "none">. Spec: <n> findings, worst: <issue or "none">. Verification: <passed | failed | blocked | not run>.
 ```
 
-Don't pick a single winner across axes in the summary: that's the reranking the separation exists to prevent.
+Do not pick a single winner across axes. Following standards cannot compensate for implementing the wrong thing, and satisfying requirements cannot compensate for a hard standards violation.
 
-## Why two axes
-
-A change can pass one axis and fail the other:
-
-- Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
-- Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
-
-Reporting them separately stops one axis from masking the other.
+In Ralph, return these assessments to the reviewer that loaded this skill. That reviewer saves its ticket outcome using `issue-tracker`. The two axis subagents remain read-only. A pass requires successful independent verification, no hard Standards violation, and no missing, wrong, or unrequested behavior in scope. Blocked verification is not a pass.
