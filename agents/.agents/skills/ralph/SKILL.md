@@ -19,7 +19,7 @@ Load the `issue-tracker` skill for the ticket format, statuses, and the definiti
    - The spec and every ticket file are tracked by git (`git ls-files --error-unmatch <path>`). The checks below diff ticket files, which only works for tracked files.
    - Every ticket has `Status:` and `Mode:` lines, every `Blocked by:` number exists, and the blocking edges have no cycle.
    - Every `afk` ticket that isn't `done` holds one deliverable: one behaviour that can be checked end to end on its own. Read its acceptance criteria to judge. If a ticket looks like more than one deliverable, ask the user to split it. Don't split it yourself.
-   - The spec's Testing Decisions or the tickets' `## Verification` sections name the commands that prove the work. If neither does, ask the user for them.
+   - The spec's Testing decisions or the tickets' `## Verification` sections name the commands that prove the work. If neither does, ask the user for them.
    - At least one ticket is ready (the `issue-tracker` definition).
 4. **Record** `git rev-parse HEAD` as the **loop start**.
 5. **Set the limit.** The iteration limit is 3 times the number of `afk` tickets not yet `done`, unless the user gave one.
@@ -62,7 +62,7 @@ After an **implementer**:
 - The ticket moved from `open` or `in-progress` to `needs-review`. Otherwise it kept its status with a new comment explaining why the implementer stopped, which step 4 handles.
 - `git diff <iteration start> -- <ticket>` changes only the `Status:` line, acceptance-criteria checkboxes, and new lines under `## Comments`.
 - No other ticket file and not the spec changed (`git diff --stat <iteration start>`).
-- If the ticket is now `needs-review`, run its `## Verification` commands yourself, or the spec's Testing Decisions commands when the ticket has none. Read only the tail of any failing output.
+- If the ticket is now `needs-review`, run its `## Verification` commands yourself, or the spec's Testing decisions commands when the ticket has none. Read only the tail of any failing output.
 
 After a **reviewer**:
 

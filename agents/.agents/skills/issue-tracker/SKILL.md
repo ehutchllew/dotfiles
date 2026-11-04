@@ -39,7 +39,7 @@ Covers: US 4, US 7
 
 ## Verification
 
-<the tests or commands that prove each criterion, using commands from the spec's Testing Decisions>
+<the tests or commands that prove each criterion, using commands from the spec's Testing decisions>
 
 ## Out of scope
 

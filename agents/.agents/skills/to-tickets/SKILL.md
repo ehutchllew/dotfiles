@@ -14,7 +14,7 @@ Break a spec into **tickets**. Each ticket holds one **deliverable** and declare
 
 Load the `issue-tracker` skill and fetch the spec the user points to, including its comments. Also use whatever is already in the conversation.
 
-Tickets need a spec. `Covers:` refers to the spec's user stories, and `## Verification` uses the commands in its Testing Decisions. If there is no spec, suggest running `to-spec` first. If the spec's Testing Decisions name no commands, ask the user for them.
+Tickets need a spec. `Covers:` refers to the spec's user story IDs, and `## Verification` uses the commands in its Testing decisions. If there is no spec, suggest running `to-spec` first. If the spec's Testing decisions name no commands, ask the user for them.
 
 ### 2. Explore the codebase (optional)
 
@@ -43,9 +43,9 @@ Give each ticket its **blocking edges**: the other tickets that must complete be
 
 Then fill in each ticket:
 
-- **Mode**: `hitl` when the ticket needs a person, such as a manual QA pass, a third-party dashboard, or a product decision. Otherwise `afk`.
+- **Mode**: `hitl` when the ticket needs a person, such as a manual QA pass, a third-party dashboard, or a product decision. Otherwise `afk`. Each check the spec's Testing decisions lists as needing a person belongs in a `hitl` ticket.
 - **Covers**: the spec's user stories this ticket implements. Every user story should be covered by at least one ticket.
-- **Verification**: the tests or commands that prove each acceptance criterion. Use only commands from the spec's Testing Decisions.
+- **Verification**: the tests or commands that prove each acceptance criterion. Use only commands from the spec's Testing decisions.
 - **Out of scope**: nearby work this ticket must not touch, usually work that belongs to another ticket.
 
 ### 4. Quiz the user
@@ -75,5 +75,7 @@ Iterate until the user approves the breakdown.
 Publish each approved ticket in the `issue-tracker` ticket format. Publish in dependency order, blockers first, so each `Blocked by:` refers to tickets that already exist.
 
 Don't close or change the spec or any parent issue.
+
+If the tickets are local files, offer to commit the feature directory with the spec and tickets. Ralph only runs on committed tickets.
 
 Avoid specific file paths or code snippets: they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.

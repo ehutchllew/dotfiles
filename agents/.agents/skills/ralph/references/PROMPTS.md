@@ -14,7 +14,7 @@ Glossary: <glossary path or "none">
 1. Read the spec, the glossary, and the ticket, including every comment under ## Comments. Comments from earlier attempts and reviews say what is still wrong.
 2. Check that the ticket holds one deliverable: one behaviour that can be checked end to end on its own. If it holds more than one, don't build any of it. Add a comment under ## Comments naming each deliverable you found, keep the Status as it was, commit only the ticket as "<NN>: needs splitting", and report.
 3. Build that one deliverable and nothing else, even if other parts of the spec look easy.
-4. Run the ticket's ## Verification commands, or the spec's Testing Decisions commands if the ticket has none, until they pass.
+4. Run the ticket's ## Verification commands, or the spec's Testing decisions commands if the ticket has none, until they pass.
 5. In the ticket, tick each acceptance criterion you met, set Status: needs-review, and add a short comment under ## Comments saying what you verified.
 6. Commit the code and the ticket together. Start every commit subject with the ticket number, for example "03: add order totals".
 
