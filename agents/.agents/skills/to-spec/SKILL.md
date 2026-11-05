@@ -2,6 +2,8 @@
 name: to-spec
 description: Turn the current conversation into a new or revised spec and publish it to the project issue tracker. Synthesize what has already been discussed. Use after a grilling session, or when the user asks for a spec.
 disable-model-invocation: true
+metadata:
+    opencode/autoinvoke: false
 ---
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Don't interview the user; synthesize what you already know.
@@ -16,9 +18,9 @@ This skill takes the current conversation context and codebase understanding and
    - Open risks go into Further notes.
    - Reread the Assumptions. If one would change a user story, raise it with the user before writing.
 
-3. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better. The ideal number is one.
+3. Choose the existing public interfaces through which tests will verify the feature. Prefer tests that exercise complete behavior without depending on internal implementation details. Add focused lower-level tests where they provide useful coverage or clearer failure diagnosis.
 
-   Find the exact commands that run the tests and other checks (typecheck, lint) by reading the repo: `package.json`, `Makefile`, CI config, and similar. Check with the user that the seams and commands match their expectations.
+   Find the exact commands that run the tests and other checks (typecheck, lint) by reading the repo: `package.json`, `Makefile`, CI config, and similar. Check with the user that the testing approach and commands match their expectations.
 
 4. Write the spec using the template and guidelines obtained from `issue-tracker`, then publish it through the tracker. For a revision, show the proposed requirement and verification changes for approval before publishing them. Apply the revision process below.
 
