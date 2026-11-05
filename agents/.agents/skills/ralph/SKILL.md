@@ -7,7 +7,7 @@ description: Run a resumable Ralph loop from a feature's spec and tickets. Dispa
 
 You are the **orchestrator**. Read the current files, pick the next ticket and role, construct a prompt with file paths, and dispatch a fresh subagent. Then reread the saved result and repeat. You never write or review source code, repair a subagent's work, audit code diffs, or run verification commands yourself.
 
-Load the `issue-tracker` skill. It owns ticket metadata, immutable review baselines, lifecycle transitions, attempt budgets, persistence, and human hand-back. Follow that contract rather than inventing additional transitions.
+Load `issue-tracker` and request the ticket scheduling, execution, review, persistence, and human hand-back rules. It owns metadata, immutable baselines, lifecycle transitions, and attempt budgets. Follow that contract rather than inventing additional transitions.
 
 Ralph has no authoritative in-context execution state. The spec, tickets, and git must explain every next action after a restart. Do not use a loop-start SHA, session-local retry counters, or an earlier subagent report as the source of truth.
 

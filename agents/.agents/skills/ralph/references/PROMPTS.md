@@ -11,7 +11,7 @@ Spec: <spec path>
 Ticket: <ticket path>
 Glossary: <glossary path or "none">
 
-1. Load issue-tracker and read the ticket's metadata and attempt history. Only claim an unblocked afk implementation ticket. Make claiming it as in-progress your first write: follow the shared lifecycle to initialize Base commit once, start or resume the recorded attempt, and persist the checkpoint before any source changes. If an already-started ticket has no base, stop for explicit recovery.
+1. Load issue-tracker and request ticket implementation rules, including metadata, attempts, baselines, edit permissions, and persistence. Read the ticket's metadata and attempt history. Only claim an unblocked afk implementation ticket. Make claiming it as in-progress your first write: follow the shared lifecycle to initialize Base commit once, start or resume the recorded attempt, and persist the checkpoint before any source changes. If an already-started ticket has no base, stop for explicit recovery.
 2. Read the spec, glossary when present, and full ticket history. Follow the shared edit permissions and persistence rules. Never replace an existing base or reset an attempt count.
 3. Check that the ticket holds one deliverable: one behaviour that can be checked end to end on its own. If it holds more than one, build none of it. Record the deliverables and stop using the early-stop lifecycle.
 4. Implement only that deliverable. Address unresolved blocking findings from previous reviews, not just the latest comment.
@@ -35,7 +35,7 @@ Spec: <spec path>
 Ticket: <ticket path>
 Feature tickets: <ticket directory or explicit ticket paths>
 
-1. Load issue-tracker and read the selected ticket, including its Base commit, attempt metadata, and every earlier finding. Follow the shared review lifecycle and edit permissions. Only review an unblocked afk ticket in needs-review.
+1. Load issue-tracker and request ticket review rules, including baselines, attempts, lifecycle transitions, and edit permissions. Read the selected ticket, including its Base commit, attempt metadata, and every earlier finding. Follow the shared review lifecycle and edit permissions. Only review an unblocked afk ticket in needs-review.
 2. Load code-review. Use ticket review mode for Kind: implementation, or feature acceptance mode for Kind: acceptance. The selected ticket supplies the fixed point through Base commit. The provided spec and ticket paths supply the review inputs; do not ask for them again or reconstruct a base from commit subjects.
 3. In feature acceptance mode, read the full spec and all feature tickets. Review the current implementation against every current story, including cross-ticket behavior. Use the acceptance ticket's feature baseline for the Standards diff, not the last implementation ticket's base.
 4. Independently run the verification required by code-review. Recheck unresolved blocking findings and the entire current ticket or feature behavior, not just the newest repair diff. If nested subagents are unavailable, review Standards and Spec sequentially and keep their findings separate.

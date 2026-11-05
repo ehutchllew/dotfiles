@@ -12,7 +12,9 @@ Break a spec into implementation tickets, each with one deliverable and explicit
 
 ### 1. Gather context
 
-Load the `issue-tracker` skill and fetch the spec the user points to, including its revision and history. Read existing tickets and their execution metadata and comments. Also use whatever is already in the conversation. Pause Ralph before changing the breakdown.
+Load `issue-tracker` and request the spec requirements relevant to ticket breakdown, plus the ticket template and authoring, reconciliation, and final acceptance guidelines. Fetch the spec the user points to, including its revision and history. Read existing tickets and their execution metadata and comments. Also use whatever is already in the conversation.
+
+Before changing an existing breakdown, confirm that no one is implementing or reviewing affected tickets.
 
 Tickets need a spec. `Covers:` refers to the spec's user story IDs, and `## Verification` uses the commands in its Testing decisions. If there is no spec, suggest running `to-spec` first. If the spec's Testing decisions name no commands, ask the user for them.
 
@@ -87,12 +89,12 @@ Iterate until the user approves the breakdown.
 
 ### 5. Publish the tickets
 
-Before publishing, check that every blocker exists, the dependency graph has no cycles, current story IDs are valid and covered, each implementation ticket has one deliverable, and its Verification names commands from the spec. Check that the current final acceptance ticket depends on all implementation work and names the approved spec revision. Resolve invalid structure with the user here rather than leaving Ralph to redesign it.
+Before publishing, check that every blocker exists, the dependency graph has no cycles, current story IDs are valid and covered, each implementation ticket has one deliverable, and its Verification names commands from the spec. Check that the current final acceptance ticket depends on all implementation work and names the approved spec revision. Resolve invalid structure with the user before publishing.
 
-Publish only the approved additions and edits in the `issue-tracker` format, blockers first. Preserve existing ticket history and record the approved reconciliation before Ralph resumes.
+Publish only the approved additions and edits in the `issue-tracker` format, blockers first. Preserve existing ticket history and record the approved reconciliation with the changes.
 
 Don't close or change the spec or any parent issue.
 
-For local files, offer to commit the approved spec and tickets. Respect an intentional gitignore policy rather than force-adding files. Explain that Ralph needs a clean checkout and durable ticket updates, not a new conversation containing the execution history.
+For local files, offer to commit the approved spec and tickets. Respect an intentional gitignore policy rather than force-adding files.
 
 Avoid specific file paths or code snippets: they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.

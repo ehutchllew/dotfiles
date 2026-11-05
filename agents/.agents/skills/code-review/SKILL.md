@@ -14,7 +14,7 @@ Use fresh, parallel subagents for the two axes when supported. If nested subagen
 
 ## 1. Identify the mode and inputs
 
-Load `issue-tracker` when reading issues or specs. Explicit paths supplied by the caller take precedence over discovery; do not ask for inputs already provided.
+Load `issue-tracker` when reading issues or specs, requesting storage operations for simple fetches. Explicit paths supplied by the caller take precedence over discovery; do not ask for inputs already provided.
 
 | Mode | Inputs and scope |
 | --- | --- |
@@ -23,6 +23,8 @@ Load `issue-tracker` when reading issues or specs. Explicit paths supplied by th
 | Feature acceptance | The current acceptance ticket, full spec, and every associated ticket. Read the feature baseline from the acceptance ticket. Check every current story and integration requirement against the current implementation. |
 
 Use the caller's requested mode. Otherwise infer feature acceptance from `Kind: acceptance`, ticket review from an implementation ticket with `Base commit:`, and change review for an ordinary fixed-point comparison.
+
+For ticket review or feature acceptance, request ticket review, baseline, revision-matching, and lifecycle rules from `issue-tracker` before applying them. Reading the actual feature spec does not require its authoring template.
 
 For discovery in a change review, find the issue from a user-provided path or number, then issue references in commit messages. Use `issue-tracker` to fetch it and its parent spec. Otherwise look for a user-provided spec or a matching spec under `docs/`, `specs/`, or `.scratch/`. If neither exists, ask for them; when the user confirms there are none, skip the Spec axis and report "No spec available."
 

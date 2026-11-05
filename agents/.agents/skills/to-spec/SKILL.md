@@ -8,7 +8,7 @@ This skill takes the current conversation context and codebase understanding and
 
 ## Process
 
-1. Load `issue-tracker`. If the feature already has a spec, fetch it and its tickets before drafting. Revise that spec rather than publishing a duplicate. Explore the repo if needed, use the vocabulary in `GLOSSARY.md`, and respect relevant ADRs.
+1. Load `issue-tracker` and request the spec template, authoring guidelines, and revision rules. If the feature already has a spec, fetch it and its tickets before drafting. Request ticket metadata rules too if needed to interpret their execution state. Revise the existing spec rather than publishing a duplicate. Explore the repo if needed, use the vocabulary in `GLOSSARY.md`, and respect relevant ADRs.
 
 2. If the conversation has a shared-understanding summary from a grilling session, build the spec from it:
    - Decisions go into Implementation decisions.
@@ -20,7 +20,7 @@ This skill takes the current conversation context and codebase understanding and
 
    Find the exact commands that run the tests and other checks (typecheck, lint) by reading the repo: `package.json`, `Makefile`, CI config, and similar. Check with the user that the seams and commands match their expectations.
 
-4. Write the spec using the template below and publish it through `issue-tracker`. For a revision, show the proposed requirement and verification changes for approval before publishing them. Apply the revision rules below.
+4. Write the spec using the template and guidelines obtained from `issue-tracker`, then publish it through the tracker. For a revision, show the proposed requirement and verification changes for approval before publishing them. Apply the revision process below.
 
 ## Revising an existing spec
 
@@ -29,71 +29,3 @@ This skill takes the current conversation context and codebase understanding and
 - Follow the tracker's revision contract. Record the approved changes, affected story IDs, and reason under `## Change history`. Preserve previous history.
 - Do not rewrite completed tickets, reset execution metadata, or claim that a previous final review covers the revision. Leave ticket reconciliation to `to-tickets` and tell the user that Ralph must wait for it.
 - If a new requirement contradicts already-started work, make that conflict explicit for the user rather than assuming the implementation should continue unchanged.
-
-<spec-template>
-
-# <Feature name>
-
-Revision: 1
-
-## Problem statement
-
-The problem that the user is facing, from the user's perspective.
-
-## Solution
-
-The solution to the problem, from the user's perspective.
-
-## User stories
-
-A numbered list of user stories. Give each one a fixed ID in the format:
-
-US 1: As an <actor>, I want a <feature>, so that <benefit>
-
-<user-story-example>
-US 1: As a mobile bank customer, I want to see balance on my accounts, so that I can make better informed decisions about my spending
-</user-story-example>
-
-Tickets refer to stories by ID, so never renumber them. Add new stories at the end.
-
-Cover every behaviour the feature needs. Don't add stories nobody asked for.
-
-## Implementation decisions
-
-A list of implementation decisions that were made. This can include:
-
-- The modules that will be built/modified
-- The interfaces of those modules that will be modified
-- Technical clarifications from the developer
-- Architectural decisions
-- Schema changes
-- API contracts
-- Specific interactions
-
-Don't include specific file paths or code snippets. They may end up being outdated very quickly.
-
-Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it within the relevant decision and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
-
-## Testing decisions
-
-A list of testing decisions that were made. Include:
-
-- A description of what makes a good test (only test external behavior, not implementation details)
-- Which modules will be tested
-- Prior art for the tests (i.e. similar types of tests in the codebase)
-- The exact commands that run the tests and other checks (typecheck, lint), as typed in a terminal
-- Checks only a person can do, such as a manual QA pass
-
-## Out of scope
-
-A description of the things that are out of scope for this spec.
-
-## Further notes
-
-Any further notes about the feature.
-
-## Change history
-
-For each approved revision, record its number, the affected user-story IDs, and what changed. Keep earlier entries.
-
-</spec-template>
