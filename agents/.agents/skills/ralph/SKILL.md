@@ -17,8 +17,8 @@ Ralph has no authoritative in-context execution state. The spec, tickets, and gi
 2. Request the spec and tickets from the `issue-tracker`. If the user did not provide the feature name to work on, ask the user for it, then request them. Verify with the user that you've requested the correct files.
 3. Read the spec and every ticket's title and metadata. Read a selected ticket's full comments before dispatch.
 4. Require `git status --short` to be empty before a fresh handoff. A dirty checkout needs deliberate recovery; never discard changes. On the default branch, ask the user for a feature branch or worktree rather than switching yourself.
-5. Find the current final final-review ticket using the tracker contract. Require its `Spec revision:` to match the spec's `Revision:`. If the gate or revision metadata is missing or mismatched, ask the user to reconcile with `to-spec` or `to-tickets`. Do not create a gate or guess missing execution metadata yourself.
-6. If the current final-review ticket has no `Base commit:`, record the feature base before any implementation begins and persist it. Copy an earlier final-review ticket's recorded feature base when one exists. If any implementation has already started and no feature base was recorded, stop for an explicit recovery baseline.
+5. Find the current final acceptance ticket using the tracker contract. Require its `Spec revision:` to match the spec's `Revision:`. If the gate or revision metadata is missing or mismatched, ask the user to reconcile with `to-spec` or `to-tickets`. Do not create a gate or guess missing execution metadata yourself.
+6. If the current acceptance ticket has no `Base commit:`, record the feature base before any implementation begins and persist it. Copy an earlier acceptance ticket's recorded feature base when one exists. If any implementation has already started and no feature base was recorded, stop for an explicit recovery baseline.
 
 Tell the user which work is runnable and the stored attempt limits. An existing `in-progress` or `needs-review` ticket is valid resumable work; do not require a ready `open` ticket.
 
@@ -28,15 +28,15 @@ Dispatch only one immediate child at a time, in the foreground. A reviewer may u
 
 ### 1. Pick the ticket and role
 
-Reread the current spec and ticket state before each dispatch. Stop for reconciliation if the spec's `Revision` and the latest final-review ticket's `Spec revision` do not match. Consider only unblocked tickets with `Mode: afk`, excluding historical final-review tickets. Take the first match, lowest ticket number first:
+Reread the current spec and ticket state before each dispatch. Stop for reconciliation if the spec's `Revision` and the latest acceptance ticket's `Spec revision` do not match. Consider only unblocked tickets with `Mode: afk`, excluding historical acceptance tickets. Take the first match, lowest ticket number first:
 
 1. A `needs-review` ticket goes to a **reviewer** subagent.
 2. An `open` or `in-progress` implementation ticket goes to an **implementer** subagent.
-3. The current/latest `final-review` ticket goes directly to a **reviewer** subagent once every implementation ticket is `done`.
+3. The current/latest `acceptance` ticket goes directly to a **reviewer** subagent once every implementation ticket is `done`.
 
 Check the selected ticket's metadata and comments against the shared contract. A new attempt needs remaining budget; an interrupted attempt or pending review can finish at the limit. If a new attempt would exceed the limit, mark the ticket `hitl`, persist the reason, and consider other work.
 
-If the current final-review ticket is already `done` but unfinished implementation work exists, stop for a revised final-review ticket. If its blockers omit feature work, stop for reconciliation. Report missing fields, unknown blockers, or dependency cycles when they prevent selection; do not silently repair them or treat them as completion. 
+If the current acceptance ticket is already `done` but unfinished implementation work exists, stop for a revised acceptance ticket. If its blockers omit feature work, stop for reconciliation. Report missing fields, unknown blockers, or dependency cycles when they prevent selection; do not silently repair them or treat them as completion. 
 
 ### 2. Start a fresh subagent
 
@@ -54,7 +54,7 @@ Read the summary and ticket returned by the subagent. Check only the handoff con
 
 - After an implementer, require a clean checkout and either `needs-review` with recorded verification or `in-progress` with an early-stop reason. An implementer cannot finish its own review.
 - After a reviewer, require `done` or `in-progress` with the matching attempt's review record, or `needs-review` with a blocked-review record. 
-- On a review send-back at the attempt limit, set `Mode: hitl` and record the exhausted budget. On any final final-review send-back, set `Mode: hitl` and request an approved repair plan. Persist these updates with the review result.
+- On a review send-back at the attempt limit, set `Mode: hitl` and record the exhausted budget. On any final acceptance send-back, set `Mode: hitl` and request an approved repair plan. Persist these updates with the review result.
 - Before another dispatch, require `git status --short` to be empty. Intentionally ignored tickets are saved through the tracker without forcing them into git.
 
 Independent verification belongs to the reviewer. Do not rerun tests, count commits, reconstruct commit ranges, or inspect source diffs to validate the report.
@@ -73,7 +73,7 @@ Pause while the user revises spec or scope changes. Resume once the user approve
 
 Stop when:
 
-- the current final final-review ticket and all implementation tickets are `done`,
+- the current final acceptance ticket and all implementation tickets are `done`,
 - no work can be selected because it needs a human, has exhausted its budget, or is blocked, or
 - a handoff or recovery problem requires stopping.
 
@@ -88,7 +88,7 @@ Ralph stopped: <feature accepted | waiting on human work | blocked tickets | rec
 | --- | --- | --- | --- | --- | --- |
 | 01 | implementation | done | afk | 1 / 2 | |
 | 02 | implementation | in-progress | hitl | 2 / 2 | <reason> |
-| 03 | final-review | open | afk | 0 / 2 | blocked by 02 |
+| 03 | acceptance | open | afk | 0 / 2 | blocked by 02 |
 
 <When work remains: the saved blocker and the explicit action needed to resume.>
 ```

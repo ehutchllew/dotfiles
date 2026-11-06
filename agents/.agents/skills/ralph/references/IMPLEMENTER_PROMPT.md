@@ -14,7 +14,7 @@ Glossary: <glossary path or "none">
 3. Read the entire ticket. Stop and notify Ralph if any of the following is true in the ticket file:
     - Its `Status` field isn't `open` or `in-progress`
     - Its `Blocked by` tickets aren't labled as `done`
-    - Its `Attempt` is equal to or greater than `Attempt limit`
+    - Its `Attempt` is greater than `Attempt limit`
     - An already-started ticket has no base 
     - Check that it holds only one deliverable: one behaviour that can be checked end to end on its own
 4. Begin implementing the ticket. Comb the comments and address unresolved blocking findings from previous reviews if any.

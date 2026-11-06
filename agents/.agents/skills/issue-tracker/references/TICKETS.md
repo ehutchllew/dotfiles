@@ -7,7 +7,7 @@
 
 Status: open | in-progress | needs-review | done
 Mode: afk | hitl
-Kind: implementation | final-review
+Kind: implementation | acceptance
 Attempt: uint
 Attempt limit: uint
 Blocked by: []<NN> 
@@ -35,8 +35,8 @@ Base commit: <commit hash>
 
 - `Status:` is one of `open`, `in-progress`, `needs-review`, `done`.
 - `Mode:` is `afk` when an agent can finish the ticket alone, and `hitl` when it needs a person, such as a manual QA pass, a third-party dashboard, or a product decision.
-- `Kind:` is `implementation` or `final-review`. A final-review ticket records the final review of the whole feature, not another implementation task.
-- `Spec revision:` is required on final-review tickets and matches the approved spec revision they verify. It is not required on implementation tickets, whose completed history remains intact across revisions.
+- `Kind:` is `implementation` or `acceptance`. A acceptance ticket records the final review of the whole feature, not another implementation task.
+- `Spec revision:` is required on acceptance tickets and matches the approved spec revision they verify. It is not required on implementation tickets, whose completed history remains intact across revisions.
 - `Attempt:` is a nonnegative integer identifying the current or most recently completed attempt. New tickets start at `0`.
 - `Attempt limit:` is a positive integer limiting complete attempts, normally `2`. A restart does not reset either field. Only a user-approved change may increase the limit.
 - `Blocked by:` lists ticket numbers. Leave the line out when nothing blocks the ticket. A ticket is unblocked when every ticket it lists is `done`.
@@ -47,7 +47,7 @@ Base commit: <commit hash>
 
 ### Spec revision link
 
-The current final-review ticket has a `Spec revision:` line identifying the revision its approved breakdown and final review cover. `to-tickets` sets this only after the user approves reconciliation.
+The current acceptance ticket has a `Spec revision:` line identifying the revision its approved breakdown and final review cover. `to-tickets` sets this only after the user approves reconciliation.
 
 ### Readiness
 
@@ -56,23 +56,23 @@ Ready tickets have `Status: open`, `Mode: afk`, and no unfinished blockers. List
 ### Review baselines
 
 - An implementation ticket's `Base commit:` is the full SHA returned by `git rev-parse HEAD` before its first implementation. The implementer records it when claiming the ticket, before changing source files.
-- The current final-review ticket's `Base commit:` is the feature's starting commit. The implementation workflow records it before dispatching the first implementation agent. Never initialize it when final review begins.
+- The current acceptance ticket's `Base commit:` is the feature's starting commit. The implementation workflow records it before dispatching the first implementation agent. Never initialize it when final review begins.
 - Keep both kinds of base unchanged across repairs, reviews, and restarts. A reviewer reads the base from its ticket ONLY.
 - A baseline is the start of a diff, not a list of changes owned by a ticket. Other tickets may have landed since that base. Ticket reviews must keep findings scoped to their ticket.
 - If implementation has already started and a required base is missing, ask for an explicit recovery baseline. Never substitute the current `HEAD`.
-- Scope changes do not reset a baseline. New follow-up implementation tickets get their own bases when work starts. A replacement final-review ticket retains the original feature base.
+- Scope changes do not reset a baseline. New follow-up implementation tickets get their own bases when work starts. A replacement acceptance ticket retains the original feature base.
 
-### Final final-review
+### Final acceptance
 
-The highest-numbered `Kind: final-review` ticket is the current final final-review ticket. Earlier completed final-review tickets remain as history.
+The highest-numbered `Kind: acceptance` ticket is the current final acceptance ticket. Earlier completed acceptance tickets remain as history.
 
-The current final-review ticket must be blocked by every implementation ticket in the feature, including human work, and cover every current user story. Its criteria require the complete feature to work together, all blocking findings to be resolved, and the feature-level verification to pass. Its reviewer reads the full spec and all associated tickets. Ticket checkboxes alone are not evidence of feature acceptance.
+The current acceptance ticket must be blocked by every implementation ticket in the feature, including human work, and cover every current user story. Its criteria require the complete feature to work together, all blocking findings to be resolved, and the feature-level verification to pass. Its reviewer reads the full spec and all associated tickets. Ticket checkboxes alone are not evidence of feature acceptance.
 
-Once its blockers are cleared, the agentic workflow sends a `needs-review` final-review ticket directly to a reviewer. No implementer or baseline-finding agent is needed. A failed final review needs a human-approved repair plan, not an implementer assigned to the whole feature. Keep the findings in the failed final-review ticket, set `Mode: hitl`, and notify the user.
+Once its blockers are cleared, the agentic workflow sends a `needs-review` acceptance ticket directly to a reviewer. No implementer or baseline-finding agent is needed. A failed final review needs a human-approved repair plan, not an implementer assigned to the whole feature. Keep the findings in the failed acceptance ticket, set `Mode: hitl`, and notify the user.
 
 ### Attempts
 
-A ticket attempt includes implementation and its review. Two attempts allow an initial implementation and review, then one repair and review. For an final-review ticket, an attempt is one final feature review after its blockers are cleared.
+A ticket attempt includes implementation and its review. Two attempts allow an initial implementation and review, then one repair and review. For an acceptance ticket, an attempt is one final feature review after its blockers are cleared.
 
 - Start attempt `1` when first claiming a ticket. An implementer also sets `Status: in-progress` immediately.
 - Record the start in a new comment beginning `Attempt N: started` and persist it before doing the work.
@@ -92,8 +92,8 @@ A ticket attempt includes implementation and its review. Two attempts allow an i
 | Review passes, including independent verification | Reviewer | Set `done` |
 | Review sends work back | Reviewer | Set `in-progress`, untick unmet criteria, and record blocking findings |
 | Review cannot finish | Reviewer | Remain `needs-review` and record the blocker |
-| Final final-review starts | Workflow | Start or resume its attempt and set `needs-review` before dispatching the reviewer |
-| Final final-review fails or the attempt budget is exhausted | Workflow | Set `Mode: hitl` and record the required human action |
+| Final acceptance starts | Workflow | Start or resume its attempt and set `needs-review` before dispatching the reviewer |
+| Final acceptance fails or the attempt budget is exhausted | Workflow | Set `Mode: hitl` and record the required human action |
 
 Implementers may change only their ticket's `Status:`, initial `Base commit:`, `Attempt:`, acceptance-criteria checkboxes, and append-only comments. They cannot mark their own ticket `done`. Reviewers may change only their ticket's `Status:`, checkboxes, and append-only comments. They never edit source code or commit. Neither role edits the spec or another ticket.
 
@@ -105,7 +105,7 @@ Persist every checkpoint before the next agent starts. For tracked local tickets
 
 For intentionally gitignored local tickets, save updates without forcing them into git, and commit source changes normally. If a local ticket is untracked and not ignored, ask the user to commit or ignore it rather than changing their policy. Storage overrides must provide an equivalent durable update before handoff.
 
-For human work, record the action or decision and its evidence in the ticket. Set `done` only when the work is actually complete. To return unfinished work to agents, explicitly set `Mode: afk` and leave `in-progress` for agent repairs. A human who completes repairs must start the next attempt under the same budget rules before handing off as `needs-review`. An unfinished review can remain `needs-review` on its existing attempt. A final-review ticket sent back for repairs stays `in-progress` until the workflow starts its next final review after the approved blockers are cleared.
+For human work, record the action or decision and its evidence in the ticket. Set `done` only when the work is actually complete. To return unfinished work to agents, explicitly set `Mode: afk` and leave `in-progress` for agent repairs. A human who completes repairs must start the next attempt under the same budget rules before handing off as `needs-review`. An unfinished review can remain `needs-review` on its existing attempt. A acceptance ticket sent back for repairs stays `in-progress` until the workflow starts its next final review after the approved blockers are cleared.
 
 Preserve the baseline, attempt history, and findings. An exhausted budget needs an explicitly approved higher limit from the user before another attempt. Resolve the cause of an early stop before resuming; a restart alone is not a resolution.
 
