@@ -2,6 +2,8 @@
 name: to-tickets
 description: Turn a spec into implementation tickets and a final acceptance ticket, or reconcile existing tickets with an approved spec revision. Use when the user wants a spec or plan turned into tickets.
 disable-model-invocation: true
+metadata:
+    opencode/autoinvoke: false
 ---
 
 # To Tickets
@@ -22,11 +24,11 @@ Tickets need a spec. `Covers:` refers to the spec's user story IDs, and `## Veri
 
 If you have not already explored the codebase, do so to understand the current state of the code. Ticket titles and descriptions should use the project's domain glossary vocabulary, and respect ADRs in the area you're touching.
 
-Look for opportunities to prefactor the code to make the implementation easier. "Make the change easy, then make the easy change."
+Look for opportunities to prefactor the code to make the implementation easier and record them as preliminary tickets; do NOT do the work yourself. "Make the change easy, then make the easy change."
 
 ### 3. Draft the tickets
 
-An implementation ticket holds exactly one deliverable: a change that can be checked on its own once it lands. Acceptance criteria check that one deliverable; they are not a todo list. If the title needs "and", or the criteria check unrelated behaviours, split the ticket. Final acceptance is a review gate, not a feature-sized implementation ticket.
+An implementation ticket holds exactly one deliverable: a change that can be checked on its own once it lands. Acceptance criteria are not a todo list, they are high-level requirements for the deliverable. If the title needs "and", or the criteria check unrelated behaviours, split the ticket. Final acceptance is a review gate, not a feature-sized implementation ticket.
 
 Most deliverables are **vertical slices**, also called tracer bullets:
 
@@ -41,7 +43,7 @@ Most deliverables are **vertical slices**, also called tracer bullets:
 
 Give each ticket its **blocking edges**: the other tickets that must complete before it can start. A ticket with no blockers can start immediately.
 
-**Wide refactors are the exception, and their deliverables are horizontal slices.** A **wide refactor** is one mechanical change (rename a column, retype a shared symbol) whose **blast radius** fans across the whole codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green. Don't force it into a tracer bullet; sequence it as **expand-contract**. First expand: add the new form beside the old so nothing breaks. Then migrate the call sites over in batches sized by blast radius (per package, per directory), each batch its own ticket blocked by the expand. Finally contract: delete the old form once no caller remains, in a ticket blocked by every migrate batch. Every batch must pass its own Verification, which works because the old form still exists. If a batch can't, it is too big or the expand step is missing something, so rework the sequence.
+**Wide refactors are the exception, and their deliverables are horizontal slices.** A **wide refactor** is one mechanical change (rename a column, retype a shared symbol) whose **blast radius** fans across a large portion of the codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green. Don't force it into a tracer bullet; sequence it as **expand-contract**. First expand: add the new form beside the old so nothing breaks. Then migrate the call sites over in batches sized by blast radius (per package, per directory), each batch its own ticket blocked by the expand. Finally contract: delete the old form once no caller remains, in a ticket blocked by every migrate batch. Every batch must pass its own Verification, which works because the old form still exists. If a batch can't, it is too big or the expand step is missing something, so rework the sequence.
 
 Then fill in each ticket:
 

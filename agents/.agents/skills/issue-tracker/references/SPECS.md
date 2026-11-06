@@ -2,7 +2,7 @@
 
 ## Revision rules
 
-Each spec has a plain `Revision: 1` line below its title. `to-spec` increments it when the user approves changes to requirements, implementation decisions, or verification, and records the changes in the spec's history. Editorial corrections alone do not need a new revision.
+Each spec has a plain `Revision: <number>` line below its title. Increment it when the user approves changes to requirements, implementation decisions, or verification, and records the changes in the spec's history. Editorial corrections alone do not need a new revision.
 
 ## Template
 
@@ -70,6 +70,6 @@ Any further notes about the feature.
 
 ## Change history
 
-For each approved revision, record its number, the affected user-story IDs, and what changed. Keep earlier entries.
+For each approved revision, record its number, the affected user-story IDs, and what changed. Keep earlier entries. Treat this section as an append-only log.
 
 </spec-template>

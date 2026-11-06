@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: "Review changes, an implementation ticket, or final feature acceptance along separate Standards and Spec axes. Use when reviewing a branch or work in progress, checking an implementation against its ticket, or verifying a complete feature."
+description: Review changes, an implementation ticket, or final feature acceptance along separate Standards and Spec axes. Use when reviewing a branch or work in progress, checking an implementation against its ticket, or verifying a complete feature.
 ---
 
 # Code review
@@ -20,15 +20,15 @@ Load `issue-tracker` when reading issues or specs, requesting storage operations
 | --- | --- |
 | Change review | A supplied fixed point, plus an issue or spec when available. Review the diff and its scoped requirements. |
 | Ticket review | An implementation ticket and its spec. Read `Base commit:` from the ticket and review the entire current ticket implementation, including previous blocking findings. |
-| Feature acceptance | The current acceptance ticket, full spec, and every associated ticket. Read the feature baseline from the acceptance ticket. Check every current story and integration requirement against the current implementation. |
+| Feature acceptance | The current final-review/acceptance ticket, full spec, and every associated ticket. Read the feature baseline from the acceptance ticket. Check every current story and integration requirement against the current implementation. |
 
-Use the caller's requested mode. Otherwise infer feature acceptance from `Kind: acceptance`, ticket review from an implementation ticket with `Base commit:`, and change review for an ordinary fixed-point comparison.
+Use the caller's requested mode. Otherwise infer feature acceptance from `Kind: final-review`, ticket review from an implementation ticket with `Base commit:`, and change review for an ordinary fixed-point comparison.
 
-For ticket review or feature acceptance, request ticket review, baseline, revision-matching, and lifecycle rules from `issue-tracker` before applying them. Reading the actual feature spec does not require its authoring template.
+For ticket review or feature acceptance, request the contract from `issue-tracker` before beginning. Reading the actual feature spec does not require its authoring template.
 
 For discovery in a change review, find the issue from a user-provided path or number, then issue references in commit messages. Use `issue-tracker` to fetch it and its parent spec. Otherwise look for a user-provided spec or a matching spec under `docs/`, `specs/`, or `.scratch/`. If neither exists, ask for them; when the user confirms there are none, skip the Spec axis and report "No spec available."
 
-Read the selected ticket's full comments, not only its latest report. In feature acceptance, also read every associated ticket and require the current acceptance ticket's `Spec revision:` to match the spec's `Revision:`. A previous pass or a set of checked boxes is not evidence that the revised feature works.
+Read the selected ticket's full comments, not only its latest report. In feature acceptance, also read every associated ticket and require the current final-review ticket's `Spec revision:` to match the spec's `Revision:`. A previous pass or a set of checked boxes is not evidence that the revised feature works.
 
 ## 2. Pin the fixed point
 

@@ -26,8 +26,7 @@ This skill takes the current conversation context and codebase understanding and
 
 ## Revising an existing spec
 
-- Pause Ralph before changing its approved scope. Do not edit the spec while an implementer or reviewer is running.
 - Preserve existing user-story IDs. Add new stories at the end, never renumber or reuse IDs, and record changed or withdrawn requirements explicitly rather than silently deleting their history.
-- Follow the tracker's revision contract. Record the approved changes, affected story IDs, and reason under `## Change history`. Preserve previous history.
-- Do not rewrite completed tickets, reset execution metadata, or claim that a previous final review covers the revision. Leave ticket reconciliation to `to-tickets` and tell the user that Ralph must wait for it.
+- Follow the tracker's revision contract. Never overwrite revision history.
+- Do not rewrite completed tickets, reset execution metadata, or claim that a previous final review covers the revision. Ticket reconciliation is not within your responsibilities.
 - If a new requirement contradicts already-started work, make that conflict explicit for the user rather than assuming the implementation should continue unchanged.
