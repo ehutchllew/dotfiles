@@ -35,7 +35,7 @@ Base commit: <commit hash>
 
 - `Status:` is one of `open`, `in-progress`, `needs-review`, `done`.
 - `Mode:` is `afk` when an agent can finish the ticket alone, and `hitl` when it needs a person, such as a manual QA pass, a third-party dashboard, or a product decision.
-- `Kind:` is `implementation` or `acceptance`. A acceptance ticket records the final review of the whole feature, not another implementation task.
+- `Kind:` is `implementation` or `acceptance`. An acceptance ticket records the final review of the whole feature, not another implementation task.
 - `Spec revision:` is required on acceptance tickets and matches the approved spec revision they verify. It is not required on implementation tickets, whose completed history remains intact across revisions.
 - `Attempt:` is a nonnegative integer identifying the current or most recently completed attempt. New tickets start at `0`.
 - `Attempt limit:` is a positive integer limiting complete attempts, normally `2`. A restart does not reset either field. Only a user-approved change may increase the limit.
@@ -105,7 +105,7 @@ Persist every checkpoint before the next agent starts. For tracked local tickets
 
 For intentionally gitignored local tickets, save updates without forcing them into git, and commit source changes normally. If a local ticket is untracked and not ignored, ask the user to commit or ignore it rather than changing their policy. Storage overrides must provide an equivalent durable update before handoff.
 
-For human work, record the action or decision and its evidence in the ticket. Set `done` only when the work is actually complete. To return unfinished work to agents, explicitly set `Mode: afk` and leave `in-progress` for agent repairs. A human who completes repairs must start the next attempt under the same budget rules before handing off as `needs-review`. An unfinished review can remain `needs-review` on its existing attempt. A acceptance ticket sent back for repairs stays `in-progress` until the workflow starts its next final review after the approved blockers are cleared.
+For human work, record the action or decision and its evidence in the ticket. Set `done` only when the work is actually complete. To return unfinished work to agents, explicitly set `Mode: afk` and leave `in-progress` for agent repairs. A human who completes repairs must start the next attempt under the same budget rules before handing off as `needs-review`. An unfinished review can remain `needs-review` on its existing attempt. An acceptance ticket sent back for repairs stays `in-progress` until the workflow starts its next final review after the approved blockers are cleared.
 
 Preserve the baseline, attempt history, and findings. An exhausted budget needs an explicitly approved higher limit from the user before another attempt. Resolve the cause of an early stop before resuming; a restart alone is not a resolution.
 
