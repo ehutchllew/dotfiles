@@ -20,7 +20,7 @@ Load `issue-tracker` when reading issues or specs, requesting storage operations
 | --- | --- |
 | Change review | A supplied fixed point, plus an issue or spec when available. Review the diff and its scoped requirements. |
 | Ticket review | An implementation ticket and its spec. Read `Base commit:` from the ticket and review the entire current ticket implementation, including previous blocking findings. |
-| Feature acceptance | The current acceptance/acceptance ticket, full spec, and every associated ticket. Read the feature baseline from the acceptance ticket. Check every current story and integration requirement against the current implementation. |
+| Feature acceptance | The current final acceptance ticket, full spec, and every associated ticket. Read the feature baseline from the acceptance ticket. Check every current story and integration requirement against the current implementation. |
 
 Use the caller's requested mode. Otherwise infer feature acceptance from `Kind: acceptance`, ticket review from an implementation ticket with `Base commit:`, and change review for an ordinary fixed-point comparison.
 

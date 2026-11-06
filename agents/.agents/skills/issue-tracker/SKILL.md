@@ -16,7 +16,7 @@ Before providing a template, interpreting contract metadata, or changing an arti
 | Spec template, authoring guidelines, user-story IDs, or revision rules | [Spec contract](references/SPECS.md) |
 | Spec requirements for drafting or reconciling a ticket breakdown | Both the spec contract and [ticket contract](references/TICKETS.md) |
 | Ticket template, metadata, authoring, or reconciliation guidelines | Ticket contract |
-| Ticket scheduling, implementation, review, baselines, attempts, final acceptance, persistence, or human hand-back | Ticket contract |
+| Ticket scheduling, implementation, review, baselines, attempts, final acceptance, persistence, recovery investigations, or human hand-back | Ticket contract |
 | Simple document fetch or listing, without interpreting contract metadata or changing state | Storage instructions below; no reference needed |
 
 Read only the references the operation requires. When the task changes, load additional references as needed. Do not ask the caller to choose files, hardcode reference paths into callers, or load every reference by default.
