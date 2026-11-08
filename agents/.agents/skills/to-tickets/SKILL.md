@@ -1,102 +1,90 @@
 ---
 name: to-tickets
-description: Turn a spec into implementation tickets and a final acceptance ticket, or reconcile existing tickets with an approved spec revision. Use when the user wants a spec or plan turned into tickets.
+description: Turn a spec into tickets, or update existing tickets after a spec revision or a failed acceptance review. Use when the user wants a spec or plan turned into tickets.
 disable-model-invocation: true
 metadata:
     opencode/autoinvoke: false
 ---
 
-# To Tickets
+# To tickets
 
-Break a spec into implementation tickets, each with one deliverable and explicit blockers, plus a final acceptance ticket. Reconcile existing work instead of generating duplicate tickets when the spec changes.
+Break a spec into implementation tickets, manual tickets, and one acceptance ticket. When tickets already exist, update them instead of creating duplicates.
 
-## Process
+This skill reads code but changes only tickets, through `issue-tracker`. It never changes source code or the spec.
 
-### 1. Gather context
+Use this skill when:
 
-Load `issue-tracker` and request the spec requirements relevant to ticket breakdown, plus the ticket template and authoring, reconciliation, and final acceptance guidelines. Fetch the spec the user points to, including its revision and history. Read existing tickets and their execution metadata and comments. Also use whatever is already in the conversation.
+- a spec has no tickets yet,
+- a spec revision changed what the tickets must cover, or
+- the current acceptance ticket is `stopped` after a failed review and the user wants repair tickets, with no spec change.
 
-Before changing an existing breakdown, confirm that no one is implementing or reviewing affected tickets.
+## 1. Gather context
 
-Tickets need a spec. `Covers:` refers to the spec's user story IDs, and `## Verification` uses the commands in its Testing decisions. If there is no spec, suggest running `to-spec` first. If the spec's Testing decisions name no commands, ask the user for them.
+1. Load `issue-tracker` and read the spec and ticket formats.
+2. `fetch` the spec. If there is none, suggest `to-spec` and stop.
+3. If the spec's Testing decisions name no commands, ask the user to add them with `to-spec` and stop.
+4. `list tickets`. If tickets exist, `fetch` each one and read it in full, including comments.
+5. If any ticket is `in-progress`, work on this feature may still be running. Ask the user to confirm it has stopped before you change anything.
+6. For a failed acceptance review, read the findings in the acceptance ticket's comments.
 
-### 2. Explore the codebase (optional)
+## 2. Explore the code
 
-If you have not already explored the codebase, do so to understand the current state of the code. Ticket titles and descriptions should use the project's domain glossary vocabulary, and respect ADRs in the area you're touching.
+If you haven't inspected the code that the spec touches, do so. Use the terms in `GLOSSARY.md` and respect relevant ADRs.
 
-Look for opportunities to prefactor the code to make the implementation easier and record them as preliminary tickets; do NOT do the work yourself. "Make the change easy, then make the easy change."
+Look for prefactoring that would make the feature tickets smaller or simpler. Plan each prefactor as its own ticket that comes before the tickets it helps.
 
-### 3. Draft the tickets
+## 3. Draft the tickets
 
-An implementation ticket holds exactly one deliverable: a change that can be checked on its own once it lands. Acceptance criteria are not a todo list, they are high-level requirements for the deliverable. If the title needs "and", or the criteria check unrelated behaviours, split the ticket. Final acceptance is a review gate, not a feature-sized implementation ticket.
+### Implementation tickets
 
-Most deliverables are **vertical slices**, also called tracer bullets:
+- Each ticket holds one deliverable: a change that can be checked on its own once it lands. If the title needs "and", or the criteria check unrelated behaviors, split the ticket.
+- Acceptance criteria state what the deliverable must do. They are not a todo list.
+- Most deliverables are vertical slices:
+  - A slice cuts a narrow path through every layer it needs, such as schema, API, UI, and tests.
+  - A finished slice can be shown working or checked on its own.
+  - A slice fits in one fresh context window.
+- A prefactor keeps behavior the same, changes the code's shape, and leaves tests passing.
 
-<vertical-slice-rules>
+### Wide refactors
 
-- Each slice cuts a narrow but complete path through every layer (schema, API, UI, tests). It is vertical, not a horizontal slice of one layer.
-- A completed slice is demoable or verifiable on its own.
-- Each slice fits in a single fresh context window.
-- Prefactoring comes first, as its own tickets. A prefactor keeps the behaviour the same, gives the code a new shape, and leaves the tests passing.
+A wide refactor is one mechanical change, such as renaming a column, that touches too many call sites to land as one passing slice. Split it into horizontal tickets:
 
-</vertical-slice-rules>
+1. Expand: add the new form beside the old. Nothing breaks.
+2. Migrate: one ticket per batch of call sites, such as per package or directory. Each is blocked by the expand ticket.
+3. Contract: remove the old form. It is blocked by every migrate ticket.
 
-Give each ticket its **blocking edges**: the other tickets that must complete before it can start. A ticket with no blockers can start immediately.
+Each ticket must pass its own Verification. If a batch can't, split it or fix the expand ticket.
 
-**Wide refactors are the exception, and their deliverables are horizontal slices.** A **wide refactor** is one mechanical change (rename a column, retype a shared symbol) whose **blast radius** fans across a large portion of the codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green. Don't force it into a tracer bullet; sequence it as **expand-contract**. First expand: add the new form beside the old so nothing breaks. Then migrate the call sites over in batches sized by blast radius (per package, per directory), each batch its own ticket blocked by the expand. Finally contract: delete the old form once no caller remains, in a ticket blocked by every migrate batch. Every batch must pass its own Verification, which works because the old form still exists. If a batch can't, it is too big or the expand step is missing something, so rework the sequence.
+### Manual tickets
 
-Then fill in each ticket:
+Add a manual ticket for each check in the spec's Testing decisions that only the user can do, and for any product decision or third-party setup the work depends on.
 
-- **Mode**: `hitl` when the ticket needs a person, such as a manual QA pass, a third-party dashboard, or a product decision. Otherwise `afk`. Each check the spec's Testing decisions lists as needing a person belongs in a `hitl` ticket.
-- **Covers**: the spec's user stories this ticket contributes to or verifies. Every current story needs implementation coverage, not just a final acceptance check.
-- **Verification**: the tests or commands that prove each acceptance criterion. Use only commands from the spec's Testing decisions.
-- **Out of scope**: nearby work this ticket must not touch, usually work that belongs to another ticket.
+### Acceptance ticket
 
-Use the tracker's initial metadata for new implementation tickets. Do not invent a `Base commit:` before work starts or reset an existing ticket's base, attempt count, limit, or review history.
+Add one acceptance ticket for the feature.
 
-### Final acceptance and revisions
+### All tickets
 
-Add one current `Kind: acceptance` ticket using the tracker contract. It must depend on every implementation ticket, cover all current stories, and verify feature-level behavior and integration through the spec's commands. Include human checks in explicit `hitl` work before final acceptance, or make the acceptance ticket `hitl` if the final check itself needs a person.
+- Block a ticket only on tickets that must be done before it can start.
+- Number tickets in the order the work should happen.
 
-When reconciling existing tickets:
+## 4. Update existing tickets
 
-- Keep ticket numbers stable and assign new numbers after the highest existing number. Preserve completed tickets and create follow-up work for changed behavior.
-- Propose precise changes to unfinished tickets, including blockers and unmet criteria. Preserve execution metadata and append a comment explaining approved scope changes. If a changed ticket was awaiting review, return it to `in-progress` for implementation against the revised criteria.
-- Do not erase earlier findings, reset budgets, mark unfinished work `done` to remove a blocker, or retire contradictory work without the user's explicit resolution. Name any conflict that prevents a runnable plan.
-- Reuse an unfinished acceptance ticket, preserving its base and attempt history. If final acceptance already passed, append a new acceptance ticket and copy the original feature base. Keep the earlier pass as history.
-- After approval, set the current acceptance ticket's `Spec revision:` to the spec revision being reconciled. Add new blockers for all follow-up work. A failed acceptance ticket remains `hitl` until the user explicitly approves its repair plan and hand-back, including a higher limit if its budget is exhausted.
+Skip this step when the feature has no tickets.
 
-### 4. Quiz the user
+- `edit` unfinished tickets to match the change, and `comment` why. If an implementation ticket in the `review` phase has changed criteria, `send back` with the reason.
+- Add new tickets for changes to `done` work. `comment` on each affected `done` ticket with the new ticket's number and the reason.
+- `cancel` work that no longer applies, only after the user agrees.
+- If the current acceptance ticket is `done`, add a new one. Otherwise, `edit` it to match the new breakdown. If it is `stopped`, `resume` it after its new blockers are published.
+- If a conflict prevents a runnable plan, name it and let the user decide.
 
-Present the proposed breakdown as a numbered list. For each ticket, show:
+## 5. Review with the user
 
-- **Title**: short descriptive name
-- **Kind**: implementation or final acceptance
-- **Mode**: `afk` or `hitl`
-- **Blocked by**: which other tickets (if any) must complete first
-- **Covers**: which user stories it contributes to or verifies
-- **What it delivers**: the change this ticket makes work
+1. Check your plan. Each ticket must follow the rules in step 3. All the tickets together, old and new, must pass the validation checks in the ticket format. Fix any problems you find.
+2. Show the breakdown as a numbered list. For each ticket, show its title, kind, blockers, covered stories, and what it delivers. Show changes to existing tickets apart from new tickets.
+3. List anything you're unsure of, such as a ticket that may hold two deliverables or a check that may need the user.
+4. Ask the user to approve or change the breakdown. Repeat until they approve.
 
-After the list, name any user stories no implementation ticket contributes to. Acceptance coverage alone does not count as implementation coverage. Show changes to existing tickets separately from new tickets.
+## 6. Publish
 
-Ask the user:
-
-- Does the granularity feel right? (too coarse / too fine)
-- Does each implementation ticket hold one deliverable?
-- Are the blocking edges correct: does each ticket only depend on tickets that genuinely gate it?
-- Is each `hitl` ticket really one that needs a person, and is any `afk` ticket missing one?
-- Should any tickets be merged or split further?
-
-Iterate until the user approves the breakdown.
-
-### 5. Publish the tickets
-
-Before publishing, check that every blocker exists, the dependency graph has no cycles, current story IDs are valid and covered, each implementation ticket has one deliverable, and its Verification names commands from the spec. Check that the current final acceptance ticket depends on all implementation work and names the approved spec revision. Resolve invalid structure with the user before publishing.
-
-Publish only the approved additions and edits in the `issue-tracker` format, blockers first. Preserve existing ticket history and record the approved reconciliation with the changes.
-
-Don't close or change the spec or any parent issue.
-
-For local files, offer to commit the approved spec and tickets. Respect an intentional gitignore policy rather than force-adding files.
-
-Avoid specific file paths or code snippets: they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
+Publish the approved changes through `issue-tracker`.

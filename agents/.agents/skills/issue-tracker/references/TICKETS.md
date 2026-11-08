@@ -79,7 +79,11 @@ What the fields mean:
   - Append only. Never edit or delete a comment.
   - Start each comment with the operation's name. On implementation tickets, add the attempt, such as `send back (attempt 2): <findings>`.
 
-Don't include file paths or code. They go stale. The prototype-snippet exception in `SPECS.md` applies here too.
+## Rules
+
+- Never renumber a ticket. Other tickets refer to it by number.
+- Don't edit a `done` or `cancelled` ticket except to add a comment. Changes to finished work go in a new ticket.
+- Don't include file paths or code. They go stale. The prototype-snippet exception in `SPECS.md` applies here too.
 
 ## State operations
 
