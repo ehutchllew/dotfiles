@@ -1,48 +1,43 @@
 ---
 name: issue-tracker
-description: Storage operations and task-based access to spec and ticket templates and guidelines. Load whenever a skill needs to read or write issues or specs.
+description: Stores specs and tickets and defines their formats and operations. Load whenever a skill needs to read or write a spec or ticket.
 ---
 
 # Issue tracker
 
-Callers state what information or operation they need, not which reference file to read. Resolve that request from the current task using the routing below. This skill supplies instructions to the current agent; it does not dispatch a separate tracker agent.
+This skill stores specs and tickets and defines their formats and operations. Read and write specs and tickets only through these operations, never directly from storage. This skill does not decide who runs an operation or when. The agent's task decides that.
 
-## Load the requested information
+## Backend
 
-Before providing a template, interpreting contract metadata, or changing an artifact, read the matching reference:
+1. If `docs/agents/issue-tracker.md` exists, read its `Backend:` line. Otherwise use `local`.
+2. Read `references/backends/<backend>.md` and no other backend file.
+3. If that file doesn't exist, stop and report the unknown backend.
 
-| Requested information or operation | Read |
-| --- | --- |
-| Spec template, authoring guidelines, user-story IDs, or revision rules | [Spec contract](references/SPECS.md) |
-| Spec requirements for drafting or reconciling a ticket breakdown | Both the spec contract and [ticket contract](references/TICKETS.md) |
-| Ticket template, metadata, authoring, or reconciliation guidelines | Ticket contract |
-| Ticket scheduling, implementation, review, baselines, attempts, final acceptance, persistence, recovery investigations, or human hand-back | Ticket contract |
-| Simple document fetch or listing, without interpreting contract metadata or changing state | Storage instructions below; no reference needed |
+## Formats
 
-Read only the references the operation requires. When the task changes, load additional references as needed. Do not ask the caller to choose files, hardcode reference paths into callers, or load every reference by default.
+- For specs, read [SPECS.md](references/SPECS.md).
+- For tickets, read [TICKETS.md](references/TICKETS.md).
 
-Consuming an actual feature spec during implementation or review does not require the spec-authoring template. Ticket revision-matching rules are part of the ticket contract. Any operation that changes a spec or ticket must load its corresponding contract first.
-
-## Per-repo override
-
-If the repo has `docs/agents/issue-tracker.md`, use it for storage locations and operations instead of the default storage instructions below. The requested contracts in this skill's references still apply. If the override cannot preserve them, stop and explain the incompatibility rather than translating statuses or dropping metadata silently.
-
-## Default storage: local markdown
-
-Issues and specs live as markdown files in `.scratch/` at the repo root. Whether `.scratch/` is committed or gitignored is up to the user; don't change it.
-
-### Layout
-
-- One feature per directory: `.scratch/<feature-slug>/`
-- The spec is `.scratch/<feature-slug>/spec.md`
-- Each ticket is its own file at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`. Never combine tickets into one file.
+Read the matching format before you create or edit a document, or when you need to interpret its fields.
 
 ## Operations
 
-- **Publish to the issue tracker**: create the approved spec or ticket files in the configured layout, creating directories as needed. Apply the requested contract before writing.
-- **Fetch a spec or ticket**: read the file at the referenced path. The user will normally pass the path or ticket number directly; if a number is ambiguous across features, ask.
-- **List issues**: scan `.scratch/<feature-slug>/issues/` and read each file's `Status:` line.
-- **List ready tickets**: apply the ticket contract's readiness rules to the current metadata.
-- **Persist a checkpoint**: save the update through the configured storage using the requested contract's persistence and ownership rules.
-- **Comment**: append history in the location defined by the document's contract; do not overwrite earlier entries.
-- **Close a ticket**: follow the ticket lifecycle and record completion evidence before closing it.
+### Storage operations
+
+These work on specs and tickets. Every backend implements them.
+
+| Operation | Result |
+| --- | --- |
+| `fetch` | Returns one spec or ticket. |
+| `list features` | Returns each feature and the location of its spec. |
+| `list tickets` | Returns each ticket in a feature with its number, title, and metadata lines. |
+| `create` | Adds a new spec or ticket and saves it. |
+| `edit` | Changes an existing spec or ticket and saves it. |
+
+If a request matches no document or more than one, ask the user if you can. Otherwise stop and report what you found.
+
+### Ticket state operations
+
+`claim`, `hand off`, `pass`, `send back`, `set feature base`, `start review`, `stop`, `resume`, `complete`, `cancel`, `comment`.
+
+`TICKETS.md` defines what each one changes. Each is a `fetch` followed by an `edit`, so backends don't implement them. Change a ticket's status, phase, attempt, or commits only through one of these.
