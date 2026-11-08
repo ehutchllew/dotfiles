@@ -6,27 +6,26 @@ metadata:
     opencode/autoinvoke: false
 ---
 
-This skill takes the current conversation context and codebase understanding and produces a spec. Don't interview the user; synthesize what you already know.
+# To spec
+
+Turn the current conversation into a new or revised spec. Build it from what has already been discussed. Don't start a new interview. Ask the user only to confirm.
 
 ## Process
 
-1. Load `issue-tracker` and request the spec template, authoring guidelines, and revision rules. If the feature already has a spec, fetch it and its tickets before drafting. Request ticket metadata rules too if needed to interpret their execution state. Revise the existing spec rather than publishing a duplicate. Explore the repo if needed, use the vocabulary in `GLOSSARY.md`, and respect relevant ADRs.
-
-2. If the conversation has a shared-understanding summary from a grilling session, build the spec from it:
+1. Load `issue-tracker` and read the spec format. If the feature already has a spec, `fetch` it and revise it instead of creating a second one.
+2. Use the terms in `GLOSSARY.md` and respect relevant ADRs. Explore the code as needed.
+3. If the conversation has a summary with decisions, assumptions, out-of-scope items, or open risks, build from it:
    - Decisions go into Implementation decisions.
-   - Out of scope goes into Out of scope.
+   - Out-of-scope items go into Out of scope.
    - Open risks go into Further notes.
-   - Reread the Assumptions. If one would change a user story, raise it with the user before writing.
+   - If an assumption would change a user story, confirm it with the user first.
+4. Choose what to test. Test at the feature's seams: public entry points and module boundaries, checking their inputs and outputs. Tie each test to a user story or decision. Don't test private helpers, trivial code, or third-party libraries. Add a focused lower-level test only where it gives clearer failures.
+5. Find the exact commands for tests and other checks, such as typecheck and lint, in the repo: `package.json`, `Makefile`, CI config, and similar. Confirm the testing approach and commands with the user.
+6. Keep the template's default `Attempt limit:` unless the user asks for a different one.
+7. Write the spec. For a new spec, `create` it. For a revision, show the user the proposed changes and `edit` the spec only after they approve.
 
-3. Choose the existing public interfaces through which tests will verify the feature. Prefer tests that exercise complete behavior without depending on internal implementation details. Add focused lower-level tests where they provide useful coverage or clearer failure diagnosis.
+## Revising a spec
 
-   Find the exact commands that run the tests and other checks (typecheck, lint) by reading the repo: `package.json`, `Makefile`, CI config, and similar. Check with the user that the testing approach and commands match their expectations.
-
-4. Write the spec using the template and guidelines obtained from `issue-tracker`, then publish it through the tracker. For a revision, show the proposed requirement and verification changes for approval before publishing them. Apply the revision process below.
-
-## Revising an existing spec
-
-- Preserve existing user-story IDs. Add new stories at the end, never renumber or reuse IDs, and record changed or withdrawn requirements explicitly rather than silently deleting their history.
-- Follow the tracker's revision contract. Never overwrite revision history.
-- Do not rewrite completed tickets, reset execution metadata, or claim that a previous final review covers the revision. Ticket reconciliation is not within your responsibilities.
-- If a new requirement contradicts already-started work, make that conflict explicit for the user rather than assuming the implementation should continue unchanged.
+- Follow the spec format's rules for revisions, story IDs, and change history.
+- Use `list tickets` to see which work has started or finished. If a change contradicts that work, tell the user. Don't assume the work continues unchanged.
+- Don't edit tickets. After you publish a revision, tell the user to run `to-tickets`.

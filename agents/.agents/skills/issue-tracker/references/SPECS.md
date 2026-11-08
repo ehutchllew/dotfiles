@@ -1,75 +1,102 @@
 # Specs
 
-## Revision rules
-
-Each spec has a plain `Revision: <number>` line below its title. Increment it when the user approves changes to requirements, implementation decisions, or verification, and records the changes in the spec's history. Editorial corrections alone do not need a new revision.
-
 ## Template
 
-<spec-template>
+Text in `<...>` is a placeholder. Replace it with real content. The section guidance below the template explains each section.
 
+```markdown
 # <Feature name>
 
 Revision: 1
+Attempt limit: 3
 
 ## Problem statement
 
-The problem that the user is facing, from the user's perspective.
+<the problem, from the user's point of view>
 
 ## Solution
 
-The solution to the problem, from the user's perspective.
+<the solution, from the user's point of view>
 
 ## User stories
 
-A numbered list of user stories. Give each one a fixed ID in the format:
-
-US 1: As an <actor>, I want a <feature>, so that <benefit>
-
-<user-story-example>
-US 1: As a mobile bank customer, I want to see balance on my accounts, so that I can make better informed decisions about my spending
-</user-story-example>
-
-Tickets refer to stories by ID, so never renumber them. Add new stories at the end.
-
-Cover every behaviour the feature needs. Don't add stories nobody asked for.
+US 1: As a <actor>, I want <capability>, so that <benefit>
 
 ## Implementation decisions
 
-A list of implementation decisions that were made. This can include:
-
-- The modules that will be built/modified
-- The interfaces of those modules that will be modified
-- Technical clarifications from the developer
-- Architectural decisions
-- Schema changes
-- API contracts
-- Specific interactions
-
-Don't include specific file paths or code snippets. They may end up being outdated very quickly.
-
-Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it within the relevant decision and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
+- <decision>
 
 ## Testing decisions
 
-A list of testing decisions that were made. Include:
-
-- A description of what makes a good test (only test external behavior, not implementation details)
-- Which modules will be tested
-- Prior art for the tests (i.e. similar types of tests in the codebase)
-- The exact commands that run the tests and other checks (typecheck, lint), as typed in a terminal
-- Checks only a person can do, such as a manual QA pass
+- <decision>
 
 ## Out of scope
 
-A description of the things that are out of scope for this spec.
+- <excluded work>
 
 ## Further notes
 
-Any further notes about the feature.
+<anything else>
 
 ## Change history
 
-For each approved revision, record its number, the affected user-story IDs, and what changed. Keep earlier entries. Treat this section as an append-only log.
+- Revision 1: <summary>
+```
 
-</spec-template>
+## Rules for the whole spec
+
+- Don't include file paths or code. They go stale.
+- Exception: if a prototype produced a snippet that states a decision more precisely than prose, such as a state machine, reducer, schema, or type shape, include it in the matching implementation decision. Keep only the part that carries the decision, and note that it came from a prototype.
+
+## Section guidance
+
+### Metadata
+
+- `Revision:` starts at `1`. Increase it by one when the user approves a change to user stories, implementation decisions, or testing decisions, and add a Change history entry. Editorial fixes don't change the revision.
+- `Attempt limit:` sets how many implementation attempts each ticket gets. It defaults to `3`. Use another positive integer only when the user asks. Changing it doesn't change the revision.
+
+### Problem statement and Solution
+
+- Write both from the user's point of view.
+
+### User stories
+
+- Give each story an ID in the form `US <n>`.
+- Example: `US 1: As a mobile bank customer, I want to see the balance on my accounts, so that I can make better decisions about my spending`
+- Never renumber or reuse an ID. Add new stories at the end.
+- To withdraw a story, keep its ID and replace its text with `Withdrawn in revision <n>.`
+- Cover every behavior the feature needs. Don't add stories nobody asked for.
+
+### Implementation decisions
+
+List the decisions made. These can include:
+
+- modules to build or change, and their interfaces
+- technical clarifications from the developer
+- architectural decisions
+- schema changes
+- API contracts
+- specific interactions
+
+### Testing decisions
+
+List the decisions made. Include:
+
+- what makes a good test: it checks external behavior, not implementation details
+- which modules get tests
+- prior art: similar tests already in the codebase
+- the exact commands that run the tests and other checks, such as typecheck and lint, as typed in a terminal
+- checks only the user can do, such as a manual QA pass
+
+### Out of scope
+
+- List work this spec excludes.
+
+### Further notes
+
+- Add open risks and anything else worth knowing. Omit the section when empty.
+
+### Change history
+
+- Add one entry per revision: its number, the affected story IDs, and what changed.
+- Never edit or delete earlier entries.
