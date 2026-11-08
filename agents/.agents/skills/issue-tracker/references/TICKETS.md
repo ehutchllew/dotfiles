@@ -1,67 +1,157 @@
 # Tickets
 
-## Ticket contract
+## Template
 
-This layout describes the fields, not a ready-to-publish ticket. Omit conditional fields until they apply. The examples below show new tickets before execution begins.
+Text in `<...>` is a placeholder. Include only the metadata lines that apply to the ticket's kind. The Fields table lists them, with their allowed and starting values.
 
-<ticket-contract>
+```markdown
 # <NN>: <title>
 
-Status: open | in-progress | needs-review | done
-Mode: afk | hitl
-Kind: implementation | acceptance
-Attempt: <nonnegative integer, initially 0>
-Attempt limit: <positive integer, normally 2>
-Blocked by: <comma-separated ticket numbers, omit if none>
-Covers: <comma-separated user-story IDs>
-Spec revision: <approved revision, acceptance tickets only>
-Base commit: <full commit SHA, added only during execution>
+Kind: <kind>
+Phase: <phase>
+Status: <status>
+Attempt: <attempt>
+Blocked by: <ticket numbers>
+Covers: <story IDs>
+Spec revision: <spec revision>
 
 ## What to build
 
-<the end-to-end behaviour this ticket makes work, from the user's point of view>
+<the behavior this ticket makes work, from the user's point of view>
 
 ## Acceptance criteria
 
-- [ ] <a criterion a test or command can check>
+- [ ] <a criterion that can be checked>
 
 ## Verification
 
-<the tests or commands that prove each criterion, using commands from the spec's Testing decisions>
+<how to check each criterion>
 
 ## Out of scope
 
 - <nearby work this ticket must not touch>
 
 ## Comments
-</ticket-contract>
+```
 
-- `Status:` is one of `open`, `in-progress`, `needs-review`, `done`.
-- `Mode:` is `afk` when an agent can finish the ticket alone, and `hitl` when it needs a person, such as a manual QA pass, a third-party dashboard, or a product decision.
-- `Kind:` is `implementation` or `acceptance`. An acceptance ticket records the final review of the whole feature, not another implementation task.
-- `Spec revision:` is required on acceptance tickets and matches the approved spec revision they verify. It is not required on implementation tickets, whose completed history remains intact across revisions.
-- `Attempt:` is a nonnegative integer identifying the current or most recently completed attempt. New tickets start at `0`.
-- `Attempt limit:` is a positive integer limiting complete attempts, normally `2`. A restart does not reset either field. Only a user-approved change may increase the limit.
-- `Blocked by:` lists comma-separated ticket numbers, such as `01, 02`. Leave the line out when nothing blocks the ticket. A ticket is unblocked when every ticket it lists is `done`.
-- `Covers:` lists comma-separated user-story IDs, such as `US 1, US 2`, that this ticket contributes to or verifies. It does not claim that a single slice implements the whole story. Prefactoring tickets can contribute through the implementation tickets they unblock.
-- `Base commit:` is added during execution, as described below. Do not publish a placeholder SHA.
-- Write the metadata lines plain, without bold, so a script can match `^Status: `.
-- Comments and conversation history go under `## Comments`, newest last.
+## Fields
 
-### New-ticket examples
+Write metadata lines plain, one per line, directly under the title, so `list tickets` can read them.
 
-These examples assume an approved order-summary spec at revision `1`. `US 1` requires item counts and `US 2` requires order totals. Its Testing decisions name `npm test` for both ticket and feature verification, with no human-only checks. Ticket `02`, not shown, implements order totals.
+| Field | Kinds | Values | Set by |
+| --- | --- | --- | --- |
+| `Kind:` | all | `implementation`, `acceptance`, `manual` | `create` |
+| `Phase:` | implementation | `implement`, `review`. Starts at `implement`. | state operations |
+| `Status:` | all | `open`, `in-progress`, `stopped`, `done`, `cancelled`. Starts at `open`. | state operations |
+| `Attempt:` | implementation | Integer. Starts at `0`. | `claim` |
+| `Blocked by:` | all | Ticket numbers, such as `01, 02`. Omit the line when empty. | `create`, `edit` |
+| `Covers:` | all | Story IDs, such as `US 1, US 2`, or `none` | `create`, `edit` |
+| `Spec revision:` | acceptance | The spec revision this ticket checks | `create`, `edit` |
+| `Base commit:` | implementation, acceptance | Full commit SHA | `claim`, `set feature base` |
+| `Target commit:` | implementation, acceptance | Full commit SHA | `hand off`, `start review` |
 
-New implementation ticket:
+What the fields mean:
+
+- `Kind:`
+  - `implementation` is code work.
+  - `acceptance` is the final review of the whole feature.
+  - `manual` is work only the user can do, such as a manual QA pass, a third-party dashboard, or a product decision.
+- `Covers:` lists the stories a ticket contributes to. A ticket doesn't have to complete a story alone. Prefactor and refactor tickets use `none`.
+- `Base commit:` is where the review range starts. It never changes once set.
+  - Implementation: the commit before the ticket's first attempt.
+  - Acceptance: the commit before the feature's first attempt.
+- `Target commit:` is where the review range ends.
+  - Implementation: the last source commit when the ticket is handed off.
+  - Acceptance: the commit under review when its review starts.
+
+## Sections
+
+- What to build:
+  - Implementation: the behavior this ticket makes work.
+  - Acceptance: "Review the complete feature against the spec."
+  - Manual: the action the user takes.
+- Acceptance criteria: each criterion can be checked on its own.
+- Verification:
+  - Implementation and acceptance: commands from the spec's Testing decisions.
+  - Manual: the steps the user follows and the evidence to record.
+- Out of scope: nearby work this ticket must not touch, usually work that belongs to another ticket.
+- Comments: history, newest last.
+  - Append only. Never edit or delete a comment.
+  - Start each comment with the operation's name. On implementation tickets, add the attempt, such as `send back (attempt 2): <findings>`.
+
+Don't include file paths or code. They go stale. The prototype-snippet exception in `SPECS.md` applies here too.
+
+## State operations
+
+Each operation changes one ticket. `From` and `To` show `Phase/Status` for implementation tickets and `Status` for other kinds. Operations that set a commit take the SHA as input.
+
+| Operation | Kind | From | To | Also |
+| --- | --- | --- | --- | --- |
+| `claim` | implementation | implement/open | implement/in-progress | Add 1 to `Attempt`. Set `Base commit` if missing. |
+| `claim` | implementation | implement/in-progress | no change | Resumes the current attempt. |
+| `hand off` | implementation | implement/in-progress | review/open | Set `Target commit`. Comment with verification results. |
+| `pass` | implementation | review/open | review/done | Comment. |
+| `send back` | implementation | review/open | implement/open | Untick unmet criteria. Comment with findings. |
+| `set feature base` | acceptance | open | no change | Set `Base commit`. Fails if already set. |
+| `start review` | acceptance | open | in-progress | Set `Target commit`. |
+| `start review` | acceptance | in-progress | no change | Resumes the current review. |
+| `pass` | acceptance | in-progress | done | Comment. |
+| `complete` | manual | open | done | Comment with evidence. |
+| `stop` | any | open or in-progress | stopped | Comment with the reason. |
+| `resume` | any | stopped | open | Comment with the resolution. |
+| `cancel` | any | any except done | cancelled | Comment. Remove the ticket from every `Blocked by:` line. |
+| `comment` | any | any | no change | Append under `## Comments`. |
+
+- `stop` and `resume` never change `Phase`.
+- A failed acceptance review uses `stop`.
+
+## Readiness
+
+A ticket is ready when all of these hold:
+
+- `Status:` is `open` or `in-progress`.
+- `Kind:` is not `manual`.
+- Every ticket in `Blocked by:` is `done`.
+
+## Current acceptance ticket
+
+The current acceptance ticket is the highest-numbered acceptance ticket that isn't cancelled. Earlier acceptance tickets are history.
+
+## Validation checks
+
+A feature's tickets are valid when every check below holds.
+
+### Each ticket
+
+1. It has the fields its kind needs, with allowed values.
+2. An implementation ticket in the `review` phase is `open`, `stopped`, or `done`.
+3. An implementation ticket with `Attempt` above `0` has a `Base commit`. One in the `review` phase also has a `Target commit`.
+
+### Blockers
+
+4. Every ticket in a `Blocked by:` line exists and isn't cancelled.
+5. No chain of blockers leads back to its starting ticket, such as `01` blocked by `02` blocked by `03` whic is blocked by `01`.
+
+### The whole feature
+
+6. Every story ID in a `Covers:` line exists in the spec and isn't withdrawn.
+7. Every story that isn't withdrawn is covered by at least one implementation ticket that isn't cancelled.
+8. A current acceptance ticket exists. It covers every story that isn't withdrawn, and its `Spec revision:` matches the spec's `Revision:`.
+9. The current acceptance ticket is blocked by every implementation and manual ticket that isn't cancelled.
+
+## Examples
+
+These examples assume a spec at revision `1` with one story. `US 1` asks for item counts in the order summary. Its Testing decisions name `npm test` and one manual check on a phone.
+
+Implementation ticket:
 
 ```markdown
 # 01: Show order item counts
 
-Status: open
-Mode: afk
 Kind: implementation
+Phase: implement
+Status: open
 Attempt: 0
-Attempt limit: 2
 Covers: US 1
 
 ## What to build
@@ -75,124 +165,71 @@ Show the total item quantity in the order summary.
 
 ## Verification
 
-Run `npm test` to verify item counts through the order summary's public interface.
+Run `npm test`.
 
 ## Out of scope
 
-- Order totals, which belong to ticket 02.
+- Order totals.
 
 ## Comments
 ```
 
-New acceptance ticket:
+Manual ticket:
+
+```markdown
+# 02: Check item counts on a phone
+
+Kind: manual
+Status: open
+Blocked by: 01
+Covers: US 1
+
+## What to build
+
+Check the order summary on a phone.
+
+## Acceptance criteria
+
+- [ ] The item count is readable without zooming.
+
+## Verification
+
+Open the order summary on a phone. Record the device and a screenshot in a comment.
+
+## Out of scope
+
+- Desktop layout.
+
+## Comments
+```
+
+Acceptance ticket:
 
 ```markdown
 # 03: Accept the order summary feature
 
-Status: open
-Mode: afk
 Kind: acceptance
-Attempt: 0
-Attempt limit: 2
+Status: open
 Blocked by: 01, 02
-Covers: US 1, US 2
+Covers: US 1
 Spec revision: 1
 
 ## What to build
 
-Review the complete order summary against the approved spec. This is a review gate, not another implementation task.
+Review the complete feature against the spec.
 
 ## Acceptance criteria
 
-- [ ] Item counts and order totals satisfy US 1 and US 2 together.
-- [ ] All implementation tickets are done and no blocking findings remain.
-- [ ] Feature-level verification passes independently.
+- [ ] Every story in the spec works.
+- [ ] Feature verification passes.
 
 ## Verification
 
-Run `npm test` to verify the complete order summary, including item counts and totals after quantity changes.
+Run `npm test`. Check the evidence on ticket 02.
 
 ## Out of scope
 
-- Implementing repairs or changing the approved spec.
+- Implementing repairs or changing the spec.
 
 ## Comments
 ```
-
-The implementation example omits `Blocked by:` because it has no blockers. Both examples omit `Base commit:` because execution has not started. Initialize those bases through the review-baseline rules below, not by publishing placeholders.
-
-### Spec revision link
-
-The current acceptance ticket has a `Spec revision:` line identifying the revision its approved breakdown and final review cover. `to-tickets` sets this only after the user approves reconciliation.
-
-### Readiness
-
-Ready tickets have `Status: open`, `Mode: afk`, and no unfinished blockers. List them lowest number first. Resumable `in-progress` or `needs-review` work does not need a ready `open` ticket to exist.
-
-### Review baselines
-
-- An implementation ticket's `Base commit:` is the full SHA returned by `git rev-parse HEAD` before its first implementation. The implementer records it when claiming the ticket, before changing source files.
-- The current acceptance ticket's `Base commit:` is the feature's starting commit. The implementation workflow records it before dispatching the first implementation agent. Never initialize it when final review begins.
-- Keep both kinds of base unchanged across repairs, reviews, and restarts. A reviewer reads the base from its ticket ONLY.
-- A baseline is the start of a diff, not a list of changes owned by a ticket. Other tickets may have landed since that base. Ticket reviews must keep findings scoped to their ticket.
-- If implementation has already started and a required base is missing, ask for an explicit recovery baseline. Never substitute the current `HEAD`.
-- Scope changes do not reset a baseline. New follow-up implementation tickets get their own bases when work starts. A replacement acceptance ticket retains the original feature base.
-
-### Final acceptance
-
-The highest-numbered `Kind: acceptance` ticket is the current final acceptance ticket. Earlier completed acceptance tickets remain as history.
-
-The current acceptance ticket must be blocked by every implementation ticket in the feature, including human work, and cover every current user story. Its criteria require the complete feature to work together, all blocking findings to be resolved, and the feature-level verification to pass. Its reviewer reads the full spec and all associated tickets. Ticket checkboxes alone are not evidence of feature acceptance.
-
-Once its blockers are cleared, the agentic workflow sends a `needs-review` acceptance ticket directly to a reviewer. No implementer or baseline-finding agent is needed. A failed final review needs a human-approved repair plan, not an implementer assigned to the whole feature. Keep the findings in the failed acceptance ticket, set `Mode: hitl`, and notify the user.
-
-### Attempts
-
-A ticket attempt includes implementation and its review. Two attempts allow an initial implementation and review, then one repair and review. For an acceptance ticket, an attempt is one final feature review after its blockers are cleared.
-
-- Start attempt `1` when first claiming a ticket. An implementer also sets `Status: in-progress` immediately.
-- Record the start in a new comment beginning `Attempt N: started` and persist it before doing the work.
-- A reviewer finishes an attempt with a comment beginning `Attempt N: review passed` or `Attempt N: review sent back`. Include verification results and any findings below that line.
-- Use the attempt comments to decide whether work starts a new attempt or resumes the current one. The counter alone does not establish this. After a send-back, increment `Attempt:` only when starting the next attempt. An interrupted or early-stopped implementation with no completed review resumes the same attempt. An interrupted review resumes the same attempt too.
-- If a review cannot finish, record `Attempt N: review blocked`, explain why, and keep `Status: needs-review`. A blocked review does not consume another attempt.
-- Before starting another attempt, compare `Attempt:` with `Attempt limit:`. When the budget is exhausted, the workflow sets `Mode: hitl` and records why. Never reject a pending review merely because it is the last allowed attempt.
-- A `needs-review` ticket must have a started attempt with no completed review for that attempt. Repairs after a completed send-back require a new attempt, whether a human or an agent makes them. Never requeue a completed attempt to bypass the limit.
-
-### Lifecycle
-
-| Event | Owner | Result |
-| --- | --- | --- |
-| Implementation starts | Implementer | Set `in-progress`, initialize the base once, and start or resume the attempt |
-| Implementation and its checks finish | Implementer | Set `needs-review` and record verification evidence |
-| Implementer stops early | Implementer | Remain `in-progress` and record the reason |
-| Review passes, including independent verification | Reviewer | Set `done` |
-| Review sends work back | Reviewer | Set `in-progress`, untick unmet criteria, and record blocking findings |
-| Review cannot finish | Reviewer | Remain `needs-review` and record the blocker |
-| Final acceptance starts | Workflow | Start or resume its attempt and set `needs-review` before dispatching the reviewer |
-| Final acceptance fails or the attempt budget is exhausted | Workflow | Set `Mode: hitl` and record the required human action |
-
-Implementers may change only their ticket's `Status:`, initial `Base commit:`, `Attempt:`, acceptance-criteria checkboxes, and append-only comments. They cannot mark their own ticket `done`. Reviewers may change only their ticket's `Status:`, checkboxes, and append-only comments. They never edit source code or commit. Neither role edits the spec or another ticket.
-
-The agentic workflow may persist ticket metadata and comments as this contract requires, but never writes or reviews source code. It changes attempt limits only when the user explicitly approves the new value.
-
-### Persistence and human hand-back
-
-Persist every checkpoint before the next implementer or formal reviewer starts. Require a clean checkout before those dispatches. Recovery investigations below are the only exception to these checkpoint and clean-checkout requirements. For tracked local tickets, implementers commit their initialization before editing source, then commit code and ticket updates before handoff. The workflow commits its own ticket updates and the reviewer's saved ticket edits. Use ticket-prefixed commit subjects and include only the intended files. Reviewers save edits but never commit.
-
-For intentionally gitignored local tickets, save updates without forcing them into git, and commit source changes normally. If a local ticket is untracked and not ignored, ask the user to commit or ignore it rather than changing their policy. Storage overrides must provide an equivalent durable update before handoff.
-
-For human work, record the action or decision and its evidence in the ticket. Set `done` only when the work is actually complete. To return unfinished work to agents, explicitly set `Mode: afk` and leave `in-progress` for agent repairs. A human who completes repairs must start the next attempt under the same budget rules before handing off as `needs-review`. An unfinished review can remain `needs-review` on its existing attempt. An acceptance ticket sent back for repairs stays `in-progress` until the workflow starts its next final review after the approved blockers are cleared.
-
-Preserve the baseline, attempt history, and findings. An exhausted budget needs an explicitly approved higher limit from the user before another attempt. Resolve the cause of an early stop before resuming; a restart alone is not a resolution.
-
-Pause the agentic workflow while the spec or ticket breakdown changes. Preserve completed tickets and append-only execution history. Record which requirements changed and which follow-up tickets address them. Do not mark unfinished work `done` merely to unblock a revised plan.
-
-### Recovery investigations
-
-A missing child response does not establish failure or success. Reread the saved ticket and check git state. If they satisfy the normal handoff contract, handle the saved result through the ordinary lifecycle, including any early-stop or blocked-review rules.
-
-If the handoff is incomplete or inconsistent, pause normal scheduling. The workflow may dispatch one fresh, read-only investigator for that unresolved handoff, even when the checkout is dirty or a checkpoint is missing. This diagnostic dispatch does not advance the lifecycle or start, finish, or consume an attempt.
-
-The investigator may read the spec, tickets, source, git status, history, and diffs. It must not edit any file, commit, run verification commands, repair metadata, infer a missing baseline, or declare a review outcome. It must not retry a denied action or bypass a permission decision. Its report contains evidence, uncertainties, and a recommended recovery action.
-
-Resume normal scheduling only from a valid, persisted handoff and a clean checkout. If the investigation cannot establish that state, report the saved state and recommendation for explicit user-approved recovery. Do not repeatedly dispatch investigators for the same unresolved handoff or treat a diagnosis as a passed review.
