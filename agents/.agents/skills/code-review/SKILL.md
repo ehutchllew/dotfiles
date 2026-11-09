@@ -5,114 +5,167 @@ description: Review changes, an implementation ticket, or final feature acceptan
 
 # Code review
 
-Keep two assessments separate:
+Review code on two separate axes:
 
-- **Standards**: does the changed code conform to documented standards?
-- **Spec**: does the current implementation satisfy the requirements in scope?
+- **Standards**: does the changed code follow the repo's documented standards?
+- **Spec**: does the code do what the requirements in scope ask?
 
-Use fresh, parallel subagents for the two axes when supported. If nested subagents are unavailable, review the axes sequentially yourself and keep the findings separate. Do not describe that fallback as independent-context review.
+This skill reports findings and verification results. It doesn't decide whether the work passes. That's the caller's job. It never edits files, commits, or writes specs or tickets.
 
-## 1. Identify the mode and inputs
+Use fresh, read-only subagents for the two axes, in parallel, when available. Otherwise review the axes one after the other yourself and keep their findings separate. Don't call that fallback an independent review.
 
-Load `issue-tracker` when reading issues or specs, requesting storage operations for simple fetches. Explicit paths supplied by the caller take precedence over discovery; do not ask for inputs already provided.
+## 1. Inputs
 
-| Mode | Inputs and scope |
+The caller may supply any of these. Use what's supplied and don't ask for it again.
+
+| Input | Meaning |
 | --- | --- |
-| Change review | A supplied fixed point, plus an issue or spec when available. Review the diff and its scoped requirements. |
-| Ticket review | An implementation ticket and its spec. Read `Base commit:` from the ticket and review the entire current ticket implementation, including previous blocking findings. |
-| Feature acceptance | The current final acceptance ticket, full spec, and every associated ticket. Read the feature baseline from the acceptance ticket. Check every current story and integration requirement against the current implementation. |
+| mode | Change review, ticket review, or feature acceptance. |
+| range | The base commit and the target commit. |
+| feature | The feature whose spec holds the requirements. |
+| ticket | A ticket number in that feature. |
+| verification commands | Commands to run instead of the ones the mode names. |
+| earlier blocking findings | Findings from earlier reviews of the same work. |
 
-Use the caller's requested mode. Otherwise infer feature acceptance from `Kind: acceptance`, ticket review from an implementation ticket with `Base commit:`, and change review for an ordinary fixed-point comparison.
+Load `issue-tracker` to read specs and tickets, and read them only through its operations. If the caller gives a ticket and no range, read the ticket's `Base commit:` and `Target commit:`.
 
-For ticket review or feature acceptance, request the contract from `issue-tracker` before beginning. Reading the actual feature spec does not require its authoring template.
+### Choose the mode
 
-For discovery in a change review, find the issue from a user-provided path or number, then issue references in commit messages. Use `issue-tracker` to fetch it and its parent spec. Otherwise look for a user-provided spec or a matching spec under `docs/`, `specs/`, or `.scratch/`. If neither exists, ask for them; when the user confirms there are none, skip the Spec axis and report "No spec available."
+If the caller names no mode:
 
-Read the selected ticket's full comments, not only its latest report. In feature acceptance, also read every associated ticket and require the current acceptance ticket's `Spec revision:` to match the spec's `Revision:`. A previous pass or a set of checked boxes is not evidence that the revised feature works.
+- An acceptance ticket means feature acceptance.
+- An implementation ticket with a `Target commit:` means ticket review.
+- Anything else means change review.
 
-## 2. Pin the fixed point
+### Modes
 
-For ticket review and feature acceptance, the selected ticket's `Base commit:` is authoritative. Never replace a missing base with `HEAD`, reconstruct it from commit subjects, or use a different ticket's base. Stop for explicit recovery if the field is missing or resolves to a different commit than a caller-supplied fixed point.
+| Mode | Range | Code to review | Requirements | Verification commands |
+| --- | --- | --- | --- | --- |
+| Change review | The caller's base. The target defaults to the working tree. | The diff. | A spec or ticket, if one is available. | The caller's, if any. |
+| Ticket review | The ticket's `Base commit:` to `Target commit:`. | Commits in the range whose subject starts with `<NN>: `, plus the code at the target. | The ticket and the spec. | The ticket's Verification section, or the spec's Testing decisions if it has none. |
+| Feature acceptance | The acceptance ticket's `Base commit:` to `Target commit:`. | The whole range. | The current spec. | The acceptance ticket's Verification section and the spec's Testing decisions. |
 
-For a change review, use the fixed point the user supplied. If none was supplied, ask for it.
+In a change review with no requirements supplied:
 
-Confirm the reference resolves with `git rev-parse --verify <fixed-point>^{commit}` before starting any review. A persisted ticket base must also be an ancestor of `HEAD`, checked with `git merge-base --is-ancestor <base> HEAD`. If not, stop for recovery rather than silently comparing against another merge-base.
+1. Look for ticket numbers at the start of commit subjects in the range. `fetch` those tickets and their spec.
+2. If there are none, ask the user for a feature or ticket.
+3. If the user says there is none, skip the Spec axis and report "No spec available."
 
-Capture `git diff <fixed-point>...HEAD` and `git log <fixed-point>..HEAD --oneline` once. The ticket baseline remains unchanged across repairs and restarts, so the review includes earlier implementation attempts. Keep ticket findings scoped to the selected ticket even if unrelated changes also fall within the range. Feature acceptance deliberately covers the whole feature diff.
+If the caller supplied no earlier blocking findings, take them from the ticket's `send back` comments in a ticket review, ignoring any made before its last `revise`. In feature acceptance, take them from the `stop` comments on the current and earlier acceptance tickets.
 
-Check `git status --short`. Ralph handoffs require a clean checkout before review; unexpected changes need recovery, not an expanded review scope. For standalone change reviews, include relevant uncommitted changes using `git diff $(git merge-base <fixed-point> HEAD)` and list relevant untracked files for the reviewers to read. Leave unrelated changes out and say so in the report.
+## 2. Pin the range
 
-An empty diff ends an ordinary change review with "No changes to review." It does not prevent ticket or feature acceptance against the current implementation. Report an empty Standards diff and continue the requirements and verification checks.
+1. Resolve each end with `git rev-parse --verify <ref>^{commit}`. If one doesn't resolve, stop and report it.
+2. Check `git merge-base --is-ancestor <base> <target>`. If the base isn't an ancestor, stop and report it.
+3. If a ticket is missing `Base commit:` or `Target commit:`, stop and report it. Never substitute `HEAD`, another ticket's commit, or a guess.
+4. Collect the code to review:
+   - Change review: `git diff <base>...<target>`. When the target is the working tree, use `git diff $(git merge-base <base> HEAD)` and list relevant untracked files. Leave out unrelated changes and say so in the report.
+   - Ticket review: list the commits with `git log --format=%H --grep='^<NN>: ' <base>..<target>`, then read each with `git show`. An empty list isn't a finding by itself. Review the code at the target either way.
+   - Feature acceptance: `git diff <base>..<target>` and `git log --oneline <base>..<target>`.
+5. An empty diff ends a change review with "No changes to review." It doesn't end a ticket review or feature acceptance.
 
-## 3. Independently verify ticket or feature behavior
+## 3. Verify
 
-In ticket review, run the ticket's `## Verification` commands, or the spec's Testing decisions commands if the ticket has none. In feature acceptance, run the full feature-level commands from the spec and the acceptance ticket. Read the commands and required evidence in associated human-work tickets too.
+1. In ticket review and feature acceptance, check `git status --short` first. If the checkout has changes, report verification as `blocked` and list the changes.
+2. Run the mode's verification commands yourself, even when someone reports they passed. Record each command and its result.
+3. In feature acceptance, read the evidence on every `done` manual ticket. Don't perform a manual check yourself.
+4. Don't change source, tests, snapshots, or requirements to make a check pass. If a command changes files, leave the changes and report them.
 
-Run the commands yourself even when an implementer reported success. Record the exact commands and results. Do not assume a targeted ticket test proves cross-ticket integration. Confirm any required manual checks have explicit human evidence; do not claim to have performed a manual check yourself.
+Report one verification status:
 
-Missing commands, unavailable human evidence, or an environment that prevents verification block completion. A completed command that demonstrates unmet behavior is a finding. Do not change source, tests, snapshots, or the requirements to make checks pass. Unexpected repository changes from verification need recovery; never discard them. Pass the results to the two review axes so they need not repeat the same commands.
+| Status | When |
+| --- | --- |
+| `passed` | Every command ran and succeeded, and every required piece of manual evidence exists. |
+| `failed` | A command ran and failed. Each failure is also a blocking finding. |
+| `blocked` | There are no commands, a command couldn't run, manual evidence is missing, or the checkout had changes. |
+| `not run` | Change review only, when the caller gave no commands. |
 
-For ordinary change reviews, report any checks you ran or that were unavailable without inventing a verification policy.
+Give the results to both axes so they don't rerun the commands.
 
-## 4. Identify standards sources
+## 4. Find standards sources
 
-Find the repo's documented coding rules. Include `CODING_STANDARDS.md` and `CONTRIBUTING.md` whenever present.
+Read these, in order, when present:
 
-The Standards axis always also reads [references/smell-baseline.md](references/smell-baseline.md). Its baseline smells are judgement calls, never hard violations, and documented repo rules override them.
+1. `CODING_STANDARDS.md`
+2. `CONTRIBUTING.md`
+3. Other documented coding rules in the repo.
+
+The Standards axis also reads [references/smell-baseline.md](references/smell-baseline.md). Documented repo rules override it.
 
 ## 5. Review the two axes
 
-Start fresh read-only subagents together in the foreground when possible. Otherwise use the sequential fallback described above. End each subagent prompt with:
+Start both subagents together. End each prompt with:
 
-> Perform this review directly. Do not load the `code-review` skill, spawn sub-agents, or modify any files.
+> Perform this review directly. Do not load the `code-review` skill, spawn subagents, or modify any files.
 
-Give both reviewers the selected mode, fixed point, diff command, commit list, relevant paths, previous blocking findings, and independent verification results. Pass paths rather than copied documents when those paths are available.
+Give both the mode, the range, the code-to-review commands or commit list, the feature and ticket numbers, earlier blocking findings, and the verification results. They read specs and tickets through `issue-tracker`.
 
 ### Standards prompt
 
-Include every standards-source path and the absolute path to this skill's `references/smell-baseline.md`, with instructions to read them.
-
-Ask for documented-rule violations and baseline smells, citing the file, hunk, and rule. Distinguish hard violations from judgement calls. Skip anything tooling enforces. In ticket mode, exclude changes belonging only to other tickets. In feature acceptance, assess the full feature diff. Recheck earlier blocking Standards findings even when the latest repair did not touch their code. Keep the report under 400 words.
-
-### Spec prompt
-
-Include the issue and spec paths when available. For feature acceptance, also include all associated ticket paths.
+Include the path of every standards source and the absolute path of `references/smell-baseline.md`, and tell the subagent to read them.
 
 Ask for:
 
-- Missing or partial requirements in scope.
-- Behavior that was not requested. Do not include unused abstractions or parameters, which belong to Standards.
-- Incorrect behavior or contradictions with the requirements.
-- Unresolved earlier blocking findings and failed verification that demonstrates unmet behavior.
+- Violations of documented rules. These are hard violations.
+- Baseline smells. These are judgement calls.
+- Earlier blocking Standards findings that are still present, even if the latest change didn't touch that code.
 
-The implementation ticket sets the scope in ticket mode. `Covers:` connects it to user stories but does not make one slice responsible for other tickets' deliverables. Read the current implementation beyond changed lines when needed to establish whether the ticket works. A clean repair diff alone cannot establish that an earlier omission was fixed.
+Cite the file, the hunk, and the rule for each finding. Skip anything tooling enforces. In a ticket review, review only the ticket's commits. Keep the report under 400 words.
 
-In feature acceptance, the complete current spec sets the scope, not the last implementation ticket or just the acceptance ticket's checklist. Check that all current stories work together, approved scope changes are reflected, no unfinished implementation or unresolved blocker remains, and required human evidence exists. Inspect current code and tests even when relevant behavior predates the latest diff. Do not treat ticket statuses as proof of correctness.
+### Spec prompt
 
-Quote the issue or spec requirement for each finding and cite the relevant implementation. Keep the report under 400 words. Skip this axis only in a change review with neither issue nor spec.
+Ask for:
 
-## 6. Aggregate
+- Requirements in scope that are missing or partly done.
+- Behavior nobody asked for. Unused abstractions and parameters belong to Standards, not here.
+- Behavior that is wrong or contradicts the requirements.
+- Earlier blocking findings that are still unresolved.
+- Failed verification that shows unmet behavior.
 
-Present the two reports verbatim or lightly cleaned. Do not merge or rerank their findings. Use this template:
+Scope by mode:
+
+- Ticket review: the ticket sets the scope. `Covers:` links it to stories but doesn't make it responsible for other tickets' work. Read the code at the target beyond the changed lines when that's needed to tell whether the ticket works.
+- Feature acceptance: the whole current spec sets the scope. Check that all stories work together. Read current code and tests even when they predate the range. Don't treat ticket statuses as proof. Read tickets only for manual evidence, and report ticket problems as not blocking.
+
+Quote the requirement and cite the code for each finding. Keep the report under 400 words.
+
+## 6. Mark each finding
+
+| Finding | Blocking |
+| --- | --- |
+| A hard violation of a documented standard | yes |
+| Missing, partial, wrong, or unrequested behavior in scope | yes |
+| An earlier blocking finding that is still unresolved | yes |
+| A failed verification command | yes |
+| A baseline smell or other judgement call | no |
+| A ticket problem found during feature acceptance | no |
+
+Blocked verification isn't a finding. It shows only in the verification status.
+
+## 7. Report
+
+Present the two axis reports as written, lightly cleaned. Don't merge, rerank, or weigh them against each other. Use this template:
 
 ```markdown
-Reviewed `<fixed-point>...HEAD` in <change review | ticket review | feature acceptance> mode.
+Reviewed `<base>..<target>` in <change review | ticket review | feature acceptance> mode.
 
 ## Verification
 
-<commands, results, required human evidence, and any blocker; or "Not run.">
+Status: <passed | failed | blocked | not run>
+
+<each command and its result, manual evidence checked, and the reason if blocked>
 
 ## Standards
 
-<Standards report>
+- Blocking: <finding>
+- Not blocking: <finding>
 
 ## Spec
 
-<Spec report, or "No spec available.">
+- Blocking: <finding>
+- Not blocking: <finding>
 
-**Summary:** Standards: <n> findings, worst: <issue or "none">. Spec: <n> findings, worst: <issue or "none">. Verification: <passed | failed | blocked | not run>.
+<or "No spec available.">
+
+Summary: Standards <n> blocking, <n> not blocking. Spec <n> blocking, <n> not blocking. Verification <status>.
 ```
-
-Do not pick a single winner across axes. Following standards cannot compensate for implementing the wrong thing, and satisfying requirements cannot compensate for a hard standards violation.
-
-In Ralph, return these assessments to the reviewer that loaded this skill. That reviewer saves its ticket outcome using `issue-tracker`. The two axis subagents remain read-only. A pass requires successful independent verification, no hard Standards violation, and no missing, wrong, or unrequested behavior in scope. Blocked verification is not a pass.
