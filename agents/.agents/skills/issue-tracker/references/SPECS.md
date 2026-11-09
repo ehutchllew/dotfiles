@@ -46,14 +46,16 @@ US 1: As a <actor>, I want <capability>, so that <benefit>
 ## Rules for the whole spec
 
 - Don't include file paths or code. They go stale.
-- Exception: if a prototype produced a snippet that states a decision more precisely than prose, such as a state machine, reducer, schema, or type shape, include it in the matching implementation decision. Keep only the part that carries the decision, and note that it came from a prototype.
+- Name modules, but don't give their paths. Describe interfaces by their inputs and outputs.
+- Write commands exactly as typed in a terminal.
+- If a prototype produced a snippet that states a decision more precisely than prose, such as a state machine, reducer, schema, or type shape, include it in the matching implementation decision. Keep only the part that carries the decision, and note that it came from a prototype.
 
 ## Section guidance
 
 ### Metadata
 
-- `Revision:` starts at `1`. Increase it by one when the user approves a change to user stories, implementation decisions, or testing decisions, and add a Change history entry. Editorial fixes don't change the revision.
-- `Attempt limit:` sets how many implementation attempts each ticket gets. It defaults to `3`. Use another positive integer only when the user asks. Changing it doesn't change the revision.
+- `Revision:` starts at `1`. Increase it by one when the user approves a change to User stories, Implementation decisions, Testing decisions, or Out of scope, and add a Change history entry. Editorial fixes don't change the revision.
+- `Attempt limit:` sets how many implementation attempts each ticket gets. It defaults to `3`. If the line is missing, the limit is `3`. Use another positive integer only when the user asks. Changing it doesn't change the revision.
 
 ### Problem statement and Solution
 
@@ -72,7 +74,7 @@ US 1: As a <actor>, I want <capability>, so that <benefit>
 List the decisions made. These can include:
 
 - modules to build or change, and their interfaces
-- technical clarifications from the developer
+- technical clarifications from the user
 - architectural decisions
 - schema changes
 - API contracts
@@ -82,10 +84,9 @@ List the decisions made. These can include:
 
 List the decisions made. Include:
 
-- what makes a good test: it checks external behavior, not implementation details
 - which modules get tests
 - prior art: similar tests already in the codebase
-- the exact commands that run the tests and other checks, such as typecheck and lint, as typed in a terminal
+- the exact commands that run the tests and other checks, such as typecheck and lint
 - checks only the user can do, such as a manual QA pass
 
 ### Out of scope

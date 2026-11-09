@@ -36,14 +36,14 @@ Spec revision: <spec revision>
 
 ## Fields
 
-Write metadata lines plain, one per line, directly under the title, so `list tickets` can read them.
+Write metadata lines plain, one per line, directly under the title, so `list tickets` can read them. Operations add `Base commit:` and `Target commit:` after the last metadata line.
 
 | Field | Kinds | Values | Set by |
 | --- | --- | --- | --- |
 | `Kind:` | all | `implementation`, `acceptance`, `manual` | `create` |
 | `Phase:` | implementation | `implement`, `review`. Starts at `implement`. | state operations |
 | `Status:` | all | `open`, `in-progress`, `stopped`, `done`, `cancelled`. Starts at `open`. | state operations |
-| `Attempt:` | implementation | Integer. Starts at `0`. | `claim` |
+| `Attempt:` | implementation | Integer. Starts at `0`. | `claim`, `revise` |
 | `Blocked by:` | all | Ticket numbers, such as `01, 02`. Omit the line when empty. | `create`, `edit` |
 | `Covers:` | all | Story IDs, such as `US 1, US 2`, or `none` | `create`, `edit` |
 | `Spec revision:` | acceptance | The spec revision this ticket checks | `create`, `edit` |
@@ -83,7 +83,7 @@ What the fields mean:
 
 - Never renumber a ticket. Other tickets refer to it by number.
 - Don't edit a `done` or `cancelled` ticket except to add a comment. Changes to finished work go in a new ticket.
-- Don't include file paths or code. They go stale. The prototype-snippet exception in `SPECS.md` applies here too.
+- Follow the rules for file paths, code, and commands in `SPECS.md`.
 
 ## State operations
 
@@ -103,10 +103,13 @@ Each operation changes one ticket. `From` and `To` show `Phase/Status` for imple
 | `complete` | manual | open | done | Comment with evidence. |
 | `stop` | any | open or in-progress | stopped | Comment with the reason. |
 | `resume` | any | stopped | open | Comment with the resolution. |
+| `revise` | implementation | any phase, open, in-progress, or stopped | implement/open | Set `Attempt` to `0`. Untick every criterion. Comment with the reason. |
+| `revise` | acceptance | open, in-progress, or stopped | open | Untick every criterion. Comment with the reason. |
 | `cancel` | any | any except done | cancelled | Comment. Remove the ticket from every `Blocked by:` line. |
 | `comment` | any | any | no change | Append under `## Comments`. |
 
 - `stop` and `resume` never change `Phase`.
+- `revise` keeps `Base commit` and the old `Target commit`. The next `hand off` or `start review` replaces `Target commit`.
 - A failed acceptance review uses `stop`.
 
 ## Readiness
@@ -114,7 +117,6 @@ Each operation changes one ticket. `From` and `To` show `Phase/Status` for imple
 A ticket is ready when all of these hold:
 
 - `Status:` is `open` or `in-progress`.
-- `Kind:` is not `manual`.
 - Every ticket in `Blocked by:` is `done`.
 
 ## Current acceptance ticket
@@ -134,14 +136,16 @@ A feature's tickets are valid when every check below holds.
 ### Blockers
 
 4. Every ticket in a `Blocked by:` line exists and isn't cancelled.
-5. No chain of blockers leads back to its starting ticket, such as `01` blocked by `02` blocked by `03` whic is blocked by `01`.
+5. No chain of blockers leads back to its starting ticket, such as `01` blocked by `02` blocked by `03` which is blocked by `01`.
+
+6. An `in-progress` acceptance ticket has every blocker `done`.
 
 ### The whole feature
 
-6. Every story ID in a `Covers:` line exists in the spec and isn't withdrawn.
-7. Every story that isn't withdrawn is covered by at least one implementation ticket that isn't cancelled.
-8. A current acceptance ticket exists. It covers every story that isn't withdrawn, and its `Spec revision:` matches the spec's `Revision:`.
-9. The current acceptance ticket is blocked by every implementation and manual ticket that isn't cancelled.
+7. Every story ID in a `Covers:` line exists in the spec and isn't withdrawn.
+8. Every story that isn't withdrawn is covered by at least one implementation ticket that isn't cancelled.
+9. A current acceptance ticket exists. It covers every story that isn't withdrawn, and its `Spec revision:` matches the spec's `Revision:`.
+10. The current acceptance ticket is blocked by every implementation and manual ticket that isn't cancelled.
 
 ## Examples
 

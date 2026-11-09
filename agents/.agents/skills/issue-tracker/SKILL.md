@@ -34,10 +34,10 @@ These work on specs and tickets. Every backend implements them.
 | `create` | Adds a new spec or ticket and saves it. |
 | `edit` | Changes an existing spec or ticket and saves it. |
 
-If a request matches no document or more than one, ask the user if you can. Otherwise stop and report what you found.
+If a request matches no document or more than one, and you're a subagent, stop and report what you found. Otherwise ask the user.
 
 ### Ticket state operations
 
-`claim`, `hand off`, `pass`, `send back`, `set feature base`, `start review`, `stop`, `resume`, `complete`, `cancel`, `comment`.
+`claim`, `hand off`, `pass`, `send back`, `set feature base`, `start review`, `stop`, `resume`, `revise`, `complete`, `cancel`, `comment`.
 
 `TICKETS.md` defines what each one changes. Each is a `fetch` followed by an `edit`, so backends don't implement them. Change a ticket's status, phase, attempt, or commits only through one of these.

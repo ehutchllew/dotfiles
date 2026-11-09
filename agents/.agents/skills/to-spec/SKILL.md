@@ -8,7 +8,7 @@ metadata:
 
 # To spec
 
-Turn the current conversation into a new or revised spec. Build it from what has already been discussed. Don't start a new interview. Ask the user only to confirm.
+Turn the current conversation into a new or revised spec. Build it from what has already been discussed. Don't start a new interview. Ask the user only to confirm the testing approach and commands and, for a revision, the proposed changes.
 
 ## Process
 

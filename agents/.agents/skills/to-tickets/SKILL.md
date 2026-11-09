@@ -25,7 +25,7 @@ Use this skill when:
 3. If the spec's Testing decisions name no commands, ask the user to add them with `to-spec` and stop.
 4. `list tickets`. If tickets exist, `fetch` each one and read it in full, including comments.
 5. If any ticket is `in-progress`, work on this feature may still be running. Ask the user to confirm it has stopped before you change anything.
-6. For a failed acceptance review, read the findings in the acceptance ticket's comments.
+6. For a failed acceptance review, read the acceptance ticket's `stop` comment. Treat it as a failed review only if the comment lists findings. If it says verification was blocked, report that to the user and stop.
 
 ## 2. Explore the code
 
@@ -42,7 +42,6 @@ Look for prefactoring that would make the feature tickets smaller or simpler. Pl
 - Most deliverables are vertical slices:
   - A slice cuts a narrow path through every layer it needs, such as schema, API, UI, and tests.
   - A finished slice can be shown working or checked on its own.
-  - A slice fits in one fresh context window.
 - A prefactor keeps behavior the same, changes the code's shape, and leaves tests passing.
 
 ### Wide refactors
@@ -66,16 +65,16 @@ Add one acceptance ticket for the feature.
 ### All tickets
 
 - Block a ticket only on tickets that must be done before it can start.
-- Number tickets in the order the work should happen.
+- Blockers define work order. If new work must come before an unfinished ticket, add it to that ticket's `Blocked by:`.
 
 ## 4. Update existing tickets
 
 Skip this step when the feature has no tickets.
 
-- `edit` unfinished tickets to match the change, and `comment` why. If an implementation ticket in the `review` phase has changed criteria, `send back` with the reason.
+- `revise` every unfinished ticket you change, with the reason. Edit its content first. This applies in any phase or status, including `in-progress` and `stopped`.
 - Add new tickets for changes to `done` work. `comment` on each affected `done` ticket with the new ticket's number and the reason.
-- `cancel` work that no longer applies, only after the user agrees.
-- If the current acceptance ticket is `done`, add a new one. Otherwise, `edit` it to match the new breakdown. If it is `stopped`, `resume` it after its new blockers are published.
+- `cancel` work that no longer applies.
+- If the current acceptance ticket is `done`, add a new one. Otherwise, edit it to match the new breakdown and `revise` it after its new blockers are published.
 - If a conflict prevents a runnable plan, name it and let the user decide.
 
 ## 5. Review with the user
