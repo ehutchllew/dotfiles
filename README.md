@@ -176,6 +176,39 @@ press `<leader> + ?`
 
 To exit out of a pane, window, or session simply type `exit` at the terminal command line.
 
+## Agent Skills Workflow
+
+The `agents` package holds agent skills. Running `stow agents` links them into `~/.agents/skills/`.
+
+These skills take a feature from an idea to a pull request. Each skill does one job, and you run each one yourself:
+
+1. `grilling` or `grill-with-docs`: interview until every design decision is settled. `grill-with-docs` also updates `GLOSSARY.md` and ADRs as terms and decisions settle.
+2. `to-spec`: turn the conversation into a spec.
+3. `to-tickets`: break the spec into implementation, manual, and acceptance tickets.
+4. `ralph`: run a loop over the tickets. Fresh subagents implement and review each ticket, then a final review checks the whole feature.
+5. `pr`: write the PR title and body. You push and open the PR.
+
+Other entry points:
+- `to-standards`: write `CODING_STANDARDS.md`. Run it once per repo, before the first spec. `to-spec` and `code-review` read it.
+- `code-review`: review a branch, a ticket, or a whole feature on its own, outside a loop.
+- `to-spec` on an existing spec: revise it or change its attempt limit. Run `to-tickets` after a revision.
+- `to-tickets` after a failed acceptance review: add repair tickets without changing the spec.
+
+Supporting skills:
+- `issue-tracker`: stores specs and tickets and defines their operations. Specs and tickets live in `.scratch/<feature>/` by default.
+- `domain-modeling`: maintains `GLOSSARY.md` and ADRs.
+- `unslop`: rules for plain prose.
+
+When `ralph` stops, its report says why. Ask any agent to run ticket operations such as `resume` and `complete` through `issue-tracker`, then run `ralph` again.
+
+| Stopped because | Do this |
+|---|---|
+| A ticket reached the attempt limit | Raise the limit with `to-spec` and `resume` the ticket, or rework it with `to-tickets`, which resets its attempts. |
+| A ticket got stuck or its verification was blocked | Fix the cause, then `resume` the ticket. |
+| The acceptance review failed | Run `to-tickets` for repair tickets. |
+| A manual ticket is open | Do the work, then `complete` the ticket with evidence. |
+| Setup failed | Follow the report. Usually this means fixing the tickets with `to-tickets` or `to-spec`, or cleaning up the checkout. |
+
 ## Custom Functions
 
 ### Recursively Remove
