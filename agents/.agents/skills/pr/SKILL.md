@@ -1,15 +1,31 @@
 ---
 name: pr
-description: Use when writing a PR body.
+description: Write a pull request title and body for the current branch. Use when the user asks for a PR or PR body.
 disable-model-invocation: true
 metadata:
     opencode/autoinvoke: false
 ---
 
-Use this template for writing the PR body:
+# PR
+
+Write a title and body for a pull request from the current branch. Don't push, and don't open the pull request. The user does both.
+
+## Inputs
+
+1. Use the base branch the user names, or the repo's default branch.
+2. Read `git log <base>..HEAD` and `git diff <base>...HEAD`.
+3. If the user names a feature, load `issue-tracker`. Fetch the spec, the current acceptance ticket, and its manual tickets. If the acceptance ticket isn't `done`, say so at the top of your reply.
+
+## Output
+
+Reply with a title, then the body in a fenced `markdown` block so the user can copy it. If the body contains code blocks, use four backticks for the outer fence. Keep the title under 70 characters and start it with a verb.
+
+Use this template for the body:
 
 ```markdown
 ## Summary
+
+<one to three sentences on what this PR changes and why>
 
 <diagram, diff-sketch, or tree>
 
@@ -24,9 +40,7 @@ Use this template for writing the PR body:
 
 <optional: description>
 
-**Blast Radius:** <one-word description>
-
-<optional: potential ramifications of merge>
+**Blast Radius:** <one or two sentences on what the change affects>
 ```
 
 ## Sections
@@ -35,7 +49,9 @@ Skip all preambles and keep prose brief. Use the user's domain language from `GL
 
 ### Summary
 
-Pick the smallest view that makes the key point clear.
+Start with one to three sentences on what the PR changes and why it exists. The title already names the change, so lead with why. With a feature, take the why from the spec's Problem statement.
+
+Then pick the smallest view that makes the key point clear. Add another view only when it shows something the first one doesn't.
 
 - Show logic or an algorithm as pseudocode:
 
@@ -148,20 +164,20 @@ function expandSkill(command: string): string {
 
 #### Guidance
 
-Place each visual next to the short text it supports. Keep only the calls, files, props, states, and boundaries needed to answer the user's current question or the options to resolve the current discussion point.
-
-You may use one of these, you may use several, it is unlikely you will use all of them. Use your judgement and don't overwhelm the user.
+Place each visual next to the short text it supports. Keep only the calls, files, props, states, and boundaries a reviewer needs to understand the change.
 
 ### Evidence
 
 Concrete evidence that the change works. Show a before and after.
 
-Screenshots are S-tier - when the environment is set up for it and the change is visual.
+Screenshots are S-tier when the environment supports them and the change is visual.
 
 Execution-based evidence is A-tier. Test results, console output. Show the exact test that now fails and passes, using pseudocode.
+
+With a feature, use the verification results in the acceptance ticket's comments and the evidence on its manual tickets.
 
 ### Merge Danger
 
 Describe whether it's a one-way or two-way door. You can walk back through two-way doors, but not one-way doors. A PR that is cheap to roll back is lower risk. Changes that involve destructive actions or hard-to-reverse decisions are one-way doors.
 
-The blast radius is the potential impact or scope of the changes introduced by this PR. Consider all possibilities. Examples are layout shift, breakages for consumers, mobile responsiveness, etc.
+The blast radius is what the change can affect if it's wrong. Name it in one or two sentences. Consider every part of the system it touches, such as layout shift, breakage for consumers, or mobile responsiveness.
