@@ -15,7 +15,7 @@ Smell baseline: <absolute path to the code-review skill's references/smell-basel
 Verification results: <status, and each command and its result>
 
 1. Read every standards source and the smell baseline.
-2. Collect earlier blocking Standards findings from the Context and, if there is a ticket, from its comments. Load issue-tracker to read the ticket.
+2. Collect earlier blocking Standards findings from the Context and, if there is a ticket, from its comments. Load issue-tracker to read the ticket. Ignore findings recorded before the ticket's last `revise`.
 3. Read the code to review.
 4. Report each finding with one of these categories:
    - hard violation: the code breaks a documented rule.

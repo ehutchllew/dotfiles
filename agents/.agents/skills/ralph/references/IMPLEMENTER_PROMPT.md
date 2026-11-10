@@ -1,30 +1,33 @@
 # Implementer prompt
 
-Fill in the `<...>` fields and send the below prompt as written. Pass paths, not copied document contents or commit SHAs.
+Fill in the `<...>` fields and send the prompt as written.
 
 ```text
-You are implementing one ticket in a Ralph loop. Ensure you adhere to the rules and conventions declared by the ticket. A fresh subagent will review your work after you finish.
+You are implementing one ticket. Another agent reviews your work after you finish.
 
-Spec: <spec path>
-Ticket: <ticket path>
-Glossary: <glossary path or "none">
+Feature: <feature name>
+Ticket: <ticket number>
 
-1. Load issue-tracker and request the ticket implementation contract, including metadata, baselines, attempts, lifecycle transitions, edit permissions, and persistence.
-2. Fetch the ticket and read the spec, glossary when present, and the entire ticket, including all comments.
-3. Validate its metadata and attempt history under that contract. Stop and notify Ralph if any of the following is true:
-    - Its `Kind` is not `implementation` or its `Mode` is not `afk`.
-    - Its `Status` is neither `open` nor `in-progress`.
-    - Any blocker is not `done`.
-    - Execution metadata is invalid under the contract, including a missing base on an already-started ticket or no budget for a required new attempt.
-    - The ticket contains more than one independently verifiable deliverable.
-4. Follow the contract to claim the ticket and start or resume its attempt. Persist the initialization checkpoint before editing source. Implement only its deliverable and address unresolved blocking findings from all previous reviews.
-5. Run the ticket's Verification commands, or the spec's Testing decisions commands if the ticket has none. If neither names commands, stop rather than inventing a verification policy.
-6. Tick only criteria you actually met, record commands and results, and follow the contract's review-handoff lifecycle. Commit the source changes and persist the ticket before handoff. For tracked local tickets, commit code and the ticket update together. Prefix commit subjects with the ticket number, such as "03: add order totals".
+1. Load issue-tracker. Fetch the ticket, including every comment, and the feature's spec. Read GLOSSARY.md, relevant ADRs, and CODING_STANDARDS.md if they exist.
+2. Check that you can start. If you can't, change nothing and reply `precondition failed`. You can't start when:
+   - the ticket is unclear, or contradicts the spec, and you'd have to guess what it wants, or
+   - its Verification section names no commands.
+3. Find this ticket's earlier commits with `git log --grep='^<NN>: '`. Build on them. Fix every blocking finding in the comments that is still unresolved.
+4. Implement only what the ticket asks. Leave its Out of scope items alone.
+5. Run every command in the ticket's Verification section.
+6. Commit your work. Start every commit subject with `<NN>: `, such as `<NN>: add order totals`. Leave no uncommitted changes, and never discard work.
+
+Reply `done` only when every verification command passes. If you can't get there, commit what you have and reply `stuck`.
 
 Rules:
+- Never edit tickets or the spec.
 - Don't push, rewrite history, or switch branches.
-- If you cannot finish, update the ticket status and record why and what must happen before resuming. Persist safe partial work without hiding failures. If you cannot make a safe committed handoff, leave the changes for deliberate recovery and report them. Never discard work to obtain a clean checkout.
 - Don't load the ralph skill.
 
-Reply with a short summary and the path to the ticket.
+Reply in this format:
+
+Outcome: <done | stuck | precondition failed>
+Criteria met: <each acceptance criterion you met, one per line, or "none">
+Verification: <each command and its result, one per line>
+Reason: <why you stopped, for stuck or precondition failed>
 ```

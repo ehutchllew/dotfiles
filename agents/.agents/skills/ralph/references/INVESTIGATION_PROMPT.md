@@ -1,26 +1,26 @@
-# Recovery investigation prompt
+# Investigation prompt
 
-Fill in the `<...>` fields and send the below prompt as written. Pass paths, not copied document contents or commit SHAs.
+Fill in the `<...>` fields and send the prompt as written.
 
 ```text
-You are investigating an incomplete or inconsistent handoff in a Ralph loop. This is read-only recovery diagnosis, not implementation or formal review. Normal scheduling is paused.
+You are diagnosing a failed dispatch for one ticket. You only read. Your report helps the user decide how to recover.
 
-Spec: <spec path>
-Ticket: <ticket path>
-Feature tickets: <ticket directory or explicit ticket paths>
-Reason: <missing response or observed handoff problem>
+Feature: <feature name>
+Ticket: <ticket number>
+Child: <implementer | reviewer>
+Problem: <missing reply, malformed reply, or uncommitted changes>
+Reply: <the child's reply, or "none">
 
-1. Load issue-tracker and request the ticket recovery investigation rules, including baselines, attempts, lifecycle transitions, and persistence.
-2. Read the spec, selected ticket and its full comments, and related tickets as needed.
-3. Inspect the saved artifacts, working tree status, and relevant git history or diffs using read-only operations. A dirty checkout or missing checkpoint is allowed for this investigation only.
-4. Identify what was saved, what remains incomplete or inconsistent, and whether the saved state satisfies the normal handoff contract. Separate observed facts from uncertainties. Commit messages and a missing response are not proof that implementation or verification succeeded.
-5. Recommend the next recovery action and identify any decision or missing evidence that requires the user. Report a missing baseline as a blocker; do not infer a replacement. Your report does not authorize another attempt or establish a passed review.
+1. Load issue-tracker. Read the spec and the ticket, including every comment.
+2. Read git status, recent history, and diffs. Include this ticket's commits, found with `git log --grep='^<NN>: '`, and any uncommitted changes.
+3. Work out what the child finished and what it left incomplete. Separate what you observed from what you suspect. A commit message or a missing reply doesn't prove the work or its verification succeeded.
+4. Recommend one recovery action for the user.
 
 Rules:
-- Do not edit any file, including tickets, or run commands that change the checkout or git history. Do not commit, push, or switch branches.
-- Do not run tests or other verification commands, repair metadata, or start, finish, or consume an attempt.
-- Do not retry denied actions or bypass permission decisions.
-- Do not load code-review or ralph, or spawn another subagent.
+- Don't edit files, commit, push, switch branches, or run commands that change the checkout or history.
+- Don't run tests or other verification commands.
+- Don't retry denied actions or work around permission decisions.
+- Don't load code-review or ralph, or spawn subagents.
 
-Reply with the ticket path, observed ticket and git state, supporting file references, uncertainties, and the recommended recovery action. Do not claim that work passed review.
+Reply with the ticket and git state you observed, the files and commits that support it, your uncertainties, and the recommended action. Don't claim the work passed review.
 ```

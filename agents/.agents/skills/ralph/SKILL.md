@@ -5,98 +5,132 @@ description: Run a resumable Ralph loop from a feature's spec and tickets. Dispa
 
 # Ralph
 
-You are the **orchestrator**. Read the feature spec and its associated tickets, pick the next ticket and role, construct a prompt with file paths, and dispatch a fresh subagent. Then reread the saved result and repeat. You never write or review source code, repair a subagent's work, audit code diffs, or run verification commands yourself.
+You are the orchestrator. You pick the next ticket, dispatch a fresh subagent to work on it, and record the result on the ticket. Then you repeat.
 
-The spec defines the approved feature requirements. The `issue-tracker` ticket contract owns metadata, immutable baselines, lifecycle transitions, attempt budgets, persistence, and recovery. Follow those contracts rather than inventing additional transitions.
+You make every ticket write, through `issue-tracker` operations, and commit the ticket files. You never edit source code, read diffs, or run verification commands. Children do that.
 
-Ralph has no authoritative in-context execution state. The spec, tickets, and git must explain every next action after a restart. Do not use a loop-start SHA, session-local retry counters, or an earlier subagent report as the source of truth.
+Keep no state in your conversation. The spec, the tickets, and git must explain every next step, so a restarted loop picks up where the last one stopped. Reread the spec and `list tickets` before every pick.
+
+## Roles
+
+| Role | Does | Never |
+| --- | --- | --- |
+| orchestrator | Runs `set feature base`, `claim`, `hand off`, `start review`, `pass`, `send back`, `stop`, and `comment`. Ticks criteria. Commits ticket files. | Edits source, reads diffs, runs verification. |
+| implementer | Edits and commits source for one ticket. | Writes tickets or the spec. |
+| reviewer | Runs `code-review` on one ticket. | Edits files or commits. |
+| investigator | Reads the ticket and git to diagnose a failed dispatch. | Edits files, commits, or runs verification. |
+| user | Everything else: `resume`, `complete`, `cancel`, and changes through `to-spec` and `to-tickets`. | |
+
+No role pushes, rewrites history, or switches branches.
 
 ## Setup
 
-1. Load `issue-tracker` and request the ticket scheduling, execution, attempts, baselines, persistence, recovery investigation, and human hand-back rules.
-2. Request the spec and tickets from the `issue-tracker`. If the user did not provide the feature name to work on, ask the user for it, then request them. Verify with the user that you've requested the correct files.
-3. Read the spec and every ticket's title and metadata. Read a selected ticket's full comments before dispatch.
-4. Require `git status --short` to be empty before an implementation or formal-review handoff. An incomplete prior handoff follows the recovery rules below; never discard changes. On the default branch, ask the user for a feature branch or worktree rather than switching yourself.
-5. Find the current final acceptance ticket using the tracker contract. Require its `Spec revision:` to match the spec's `Revision:`. If the gate or revision metadata is missing or mismatched, ask the user to reconcile with `to-spec` or `to-tickets`. Do not create a gate or guess missing execution metadata yourself.
-6. If the current acceptance ticket has no `Base commit:`, record the feature base before any implementation begins and persist it. Copy an earlier acceptance ticket's recorded feature base when one exists. If any implementation has already started and no feature base was recorded, stop for an explicit recovery baseline.
-
-Tell the user which work is runnable and the stored attempt limits. An existing `in-progress` or `needs-review` ticket is valid resumable work; do not require a ready `open` ticket.
+1. Load `issue-tracker`. If the user didn't name the feature, ask for it.
+2. Fetch the spec and `list tickets`.
+3. Run the ticket validation checks. If any fails, report it, suggest `to-tickets` or `to-spec`, and stop.
+4. If any ticket is `stopped`, report it with its last comment and stop.
+5. If you're on the repo's default branch, ask the user for a feature branch or worktree. Don't switch yourself.
+6. Check `git status --short`. If only ticket files changed, they're unsaved orchestrator writes, so commit them. If spec or ticket files are untracked and not ignored, ask the user to commit or ignore them. If anything else changed, report it and stop. Never discard changes.
+7. If the current acceptance ticket has no `Base commit:`, `set feature base`:
+   - Copy the `Base commit:` of the previous acceptance ticket if it has one.
+   - Otherwise, if no implementation ticket has `Attempt` above 0, use `HEAD`.
+   - Otherwise, ask the user for the feature's starting commit and stop.
 
 ## The loop
 
-Dispatch only one immediate child at a time, in the foreground. A reviewer may use separate Standards and Spec subagents when supported.
+Dispatch one child at a time and wait for it to finish.
 
-### 1. Pick the ticket and role
+### 1. Pick
 
-Reread the current spec and ticket state before each dispatch. Stop for reconciliation if the spec's `Revision` and the latest acceptance ticket's `Spec revision` do not match. Consider only unblocked tickets with `Mode: afk`, excluding historical acceptance tickets. Take the first match, lowest ticket number first:
+Consider only ready tickets, as `TICKETS.md` defines them. Skip `manual` tickets and acceptance tickets that aren't current. Take the first match, lowest ticket number first within each step:
 
-1. A `needs-review` ticket goes to a **reviewer** subagent.
-2. An `open` or `in-progress` implementation ticket goes to an **implementer** subagent.
-3. The current/latest `acceptance` ticket goes directly to a **reviewer** subagent once every implementation ticket is `done`. Follow the tracker lifecycle to persist its review-ready checkpoint before dispatch.
+1. An implementation ticket in `review/open` goes to a reviewer.
+2. An implementation ticket in `implement/open` or `implement/in-progress` goes to an implementer. If it's `open` and its `Attempt` has reached the spec's `Attempt limit:`, `stop` it with "attempt limit reached" instead.
+3. The current acceptance ticket goes to a reviewer.
 
-Check the selected ticket's metadata and comments against the shared contract. Apply its start-or-resume and attempt-budget rules before dispatch; do not decide eligibility from the counter alone. Follow its human hand-back rules when the budget is exhausted, then consider other work.
+If nothing matches, stop the loop.
 
-If the current acceptance ticket is already `done` but unfinished implementation work exists, stop for a revised acceptance ticket. If its blockers omit feature work, stop for reconciliation. Report missing fields, unknown blockers, or dependency cycles when they prevent selection; do not silently repair them or treat them as completion.
+### 2. Dispatch
 
-### 2. Start a fresh subagent
+Before an implementer, `claim` the ticket with `HEAD` as the base. Before an acceptance reviewer, `start review` with `HEAD` as the target. Commit the ticket, then dispatch.
 
-Require a clean checkout for implementation and formal review. Only a read-only recovery investigation may use the exception described below.
+Give each child the feature name and ticket number. Children read the spec and tickets through `issue-tracker`. Never pass paths or pasted markdown.
 
-Implementers need editing, shell, and commit access. Reviewers need reading, shell access for independent verification, permission to save their ticket edits, and nested subagents when supported. Reviewers must not edit source or commit. Name the child after its role, ticket and attempt, such as `implement 03 1` or `review 03 1`.
+| Child | Prompt | Name |
+| --- | --- | --- |
+| implementer | [IMPLEMENTER_PROMPT.md](references/IMPLEMENTER_PROMPT.md) | `implement <NN> <attempt>` |
+| reviewer | [REVIEWER_PROMPT.md](references/REVIEWER_PROMPT.md) | `review <NN> <attempt>`, or `review <NN>` for acceptance |
+| investigator | [INVESTIGATION_PROMPT.md](references/INVESTIGATION_PROMPT.md) | `investigate <NN> <attempt>` |
 
-Each type of subagent receives a specific prompt:
+Implementers need edit, shell, and commit access. Reviewers need read and shell access, and subagents when available.
 
-- For **reviewer** subagents, fill in the [reviewer prompt](references/REVIEWER_PROMPT.md).
-- For **implementer** subagents, fill in the [implementer prompt](references/IMPLEMENTER_PROMPT.md).
+### 3. Record the result
 
-Pass the spec and selected ticket paths, the feature's ticket directory or explicit paths for a reviewer, and a glossary path when present. Pass paths, not copied document contents or commit SHAs. Each agent reads the saved files; a reviewer reads the baseline only from its selected ticket.
+If the reply is missing or doesn't match the prompt's format, or `git status --short` isn't empty, follow [Recovery](#recovery).
 
-### 3. Check the result
+After an implementer:
 
-Read the summary, then reread the selected ticket through the tracker. The saved ticket, not the response, is authoritative. Check only the handoff contract, not code quality or commit contents:
+| Reply | Operations |
+| --- | --- |
+| `done` | Tick the criteria it met. `hand off` with `HEAD` as the target and its verification results. |
+| `stuck` | `stop` with its reason. |
+| `precondition failed` | `stop` with its reason. |
 
-- After an implementer, require a clean checkout and either `needs-review` with recorded verification or `in-progress` with an early-stop reason. An implementer cannot finish its own review.
-- After a reviewer, require `done` or `in-progress` with the matching attempt's review record, or `needs-review` with a blocked-review record. The only permitted outstanding local change is the selected ticket. Persist the reviewer's edits under the tracker's persistence rules before another normal dispatch.
-- On a review send-back at the attempt limit, set `Mode: hitl` and record the exhausted budget. On any final acceptance send-back, set `Mode: hitl` and request an approved repair plan. Persist these updates with the review result.
-- Before another implementation or formal-review dispatch, require `git status --short` to be empty. Intentionally ignored tickets are saved through the tracker without forcing them into git.
+After a reviewer, check these in order and apply the first match:
 
-Independent verification belongs to the reviewer. Do not rerun tests, count commits, reconstruct commit ranges, or inspect source diffs to validate the report.
+| Review result | Implementation ticket | Acceptance ticket |
+| --- | --- | --- |
+| Verification `blocked` | `stop` with the reason. | `stop` with the reason. |
+| Any blocking finding | `send back` with the findings. Untick the unmet criteria. | `stop` with the findings. |
+| Otherwise | `pass` with the verification status. | `pass` with the verification status. Tick every criterion. |
 
-### 4. Handle failures
+Then `comment` each not-blocking finding, starting with `Not blocking:`.
 
-An implementation send-back with remaining budget is ordinary work for the next fresh implementer. An exhausted or human-owned ticket stays blocked while unrelated runnable work may continue.
+Commit the ticket files. Any `stop` ends the loop.
 
-On an early stop, blocked review, denied command, missing baseline, invalid handoff, or unresolved scope decision, pause normal scheduling and report the saved state. Do not automatically retry the blocked work. An interrupted invocation follows the tracker's recovery and attempt rules rather than receiving a new budget.
+## Commits
 
-If a child response is missing or its saved handoff is incomplete or inconsistent:
+- Implementers start source commit subjects with the ticket number, such as `03: add order totals`.
+- You commit ticket files with the subject `tickets: <operation> <NN>`. The different prefix keeps ticket commits out of a ticket's review.
+- Commit only the files your operations changed. If ticket files aren't tracked by git, skip the commit.
+- Require a clean checkout before every dispatch.
 
-1. Reread the ticket and check git state. If they satisfy the normal handoff contract, handle the saved result through the result and failure rules above, even without a response.
-2. Otherwise, follow the tracker's recovery investigation rules. You may dispatch one fresh, read-only subagent using the [investigation prompt](references/INVESTIGATION_PROMPT.md), named for the ticket and recorded attempt, such as `investigate 03 1`. Keep normal scheduling paused.
-3. The investigation may inspect a dirty checkout or missing checkpoint, but it never edits files, runs verification, or changes the attempt. Do not use the formal reviewer prompt or load `code-review` for this task.
-4. Treat the returned report as a diagnosis, not a review outcome. Resume only from a valid, persisted handoff and a clean checkout. If the state remains incomplete or inconsistent, report the evidence and recommended action for explicit user-approved recovery. Do not repeatedly investigate the same unresolved handoff.
+## Recovery
 
-Pause while the user revises the spec or breakdown. Resume only from their persisted, approved changes and the tracker human hand-back rules.
+Recover when a child's reply is missing or malformed, or when the checkout isn't clean after a child.
+
+1. Don't retry the child and don't discard any changes.
+2. Dispatch one investigator for the ticket.
+3. `stop` the ticket with the problem and the investigator's recommended action. If the checkout had other changes, leave the ticket change uncommitted too.
+4. Stop the loop.
+
+Never treat the investigator's report as a review result.
 
 ## Stopping
 
-Stop when:
+Stop the loop when:
 
-- the current final acceptance ticket and all implementation tickets are `done`,
-- no work can be selected because it needs a human, has exhausted its budget, or is blocked, or
-- a handoff or recovery problem requires stopping.
+- the current acceptance ticket is `done`,
+- you applied any `stop`,
+- nothing matches in step 1, or
+- setup fails.
 
-If final acceptance already passed, report it without rerunning the review. Do not confuse completed implementation tickets with a passed feature review.
-
-Then report to the user with this template:
+Report with this template:
 
 ```markdown
-Ralph stopped: <feature accepted | waiting on human work | blocked tickets | recovery needed>.
+Ralph stopped: <feature accepted | ticket stopped | waiting on the user | setup failed>.
 
-| Ticket | Kind | Status | Mode | Attempt / limit | Notes |
+| Ticket | Kind | Phase | Status | Attempt / limit | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 01 | implementation | done | afk | 1 / 2 | |
-| 02 | implementation | in-progress | hitl | 2 / 2 | <reason> |
-| 03 | acceptance | open | afk | 0 / 2 | blocked by 02 |
+| 01 | implementation | review | done | 1 / 3 | |
+| 02 | manual | | open | | waiting on the user |
+| 03 | acceptance | | open | | blocked by 02 |
 
-<When work remains: the saved blocker and the explicit action needed to resume.>
+<What the user needs to do before the next run.>
 ```
+
+Typical next steps:
+
+- A stopped ticket: resolve the cause, then `resume` it.
+- A failed acceptance review: run `to-tickets` for repair tickets.
+- An open manual ticket: do the work, then `complete` it with evidence.

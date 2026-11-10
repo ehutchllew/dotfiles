@@ -46,7 +46,9 @@ An empty diff ends a change review with "No changes to review." In the other mod
 
 ## 3. Verify
 
-1. Verification runs on the working tree. If the target is a commit and the working tree has uncommitted changes, report verification as `blocked` and list the changes.
+1. Verification runs on the working tree, so the working tree must hold the code under review:
+   - If the target is the working tree, run there.
+   - If the target is a commit, run only when `git status --short` prints nothing and `git diff --name-only <target> HEAD` lists nothing, or only spec and ticket files. Otherwise report verification as `blocked` and list what differs.
 2. Run the verification commands yourself, even when someone reports they passed. Record each command and its result.
 3. In feature acceptance, read the evidence on manual tickets. Don't perform a manual check yourself.
 
@@ -56,7 +58,7 @@ Report one verification status:
 | --- | --- |
 | `passed` | Every command ran and succeeded, and every required piece of manual evidence exists. |
 | `failed` | A command ran and failed. |
-| `blocked` | There are no commands, a command couldn't run, manual evidence is missing, or the working tree had changes. |
+| `blocked` | There are no commands, a command couldn't run, manual evidence is missing, or the working tree doesn't hold the target's code. |
 | `not run` | Change review only, when there are no commands. |
 
 ## 4. Find standards sources
