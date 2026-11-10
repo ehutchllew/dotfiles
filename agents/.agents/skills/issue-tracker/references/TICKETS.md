@@ -43,7 +43,7 @@ Write metadata lines plain, one per line, directly under the title, so `list tic
 | `Kind:` | all | `implementation`, `acceptance`, `manual` | `create` |
 | `Phase:` | implementation | `implement`, `review`. Starts at `implement`. | state operations |
 | `Status:` | all | `open`, `in-progress`, `stopped`, `done`, `cancelled`. Starts at `open`. | state operations |
-| `Attempt:` | implementation | Integer. Starts at `0`. | `claim`, `revise` |
+| `Attempt:` | implementation | Integer. Starts at `0`. | `claim`, `revise`, `reset attempts` |
 | `Blocked by:` | all | Ticket numbers, such as `01, 02`. Omit the line when empty. | `create`, `edit` |
 | `Covers:` | all | Story IDs, such as `US 1, US 2`, or `none` | `create`, `edit` |
 | `Spec revision:` | acceptance | The spec revision this ticket checks | `create`, `edit` |
@@ -103,6 +103,7 @@ Each operation changes one ticket. `From` and `To` show `Phase/Status` for imple
 | `complete` | manual | open | done | Comment with evidence. |
 | `stop` | any | open or in-progress | stopped | Comment with the reason. |
 | `resume` | any | stopped | open | Comment with the resolution. |
+| `reset attempts` | implementation | implement/stopped | implement/open | Set `Attempt` to `0`. Comment with the reason. |
 | `revise` | implementation | any phase, open, in-progress, or stopped | implement/open | Set `Attempt` to `0`. Untick every criterion. Comment with the reason. |
 | `revise` | acceptance | open, in-progress, or stopped | open | Untick every criterion. Comment with the reason. |
 | `cancel` | any | any except done | cancelled | Comment. Remove the ticket from every `Blocked by:` line. |

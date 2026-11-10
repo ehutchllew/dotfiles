@@ -15,11 +15,11 @@ Keep no state in your conversation. The spec, the tickets, and git must explain 
 
 | Role | Does | Never |
 | --- | --- | --- |
-| orchestrator | Runs `set feature base`, `claim`, `hand off`, `start review`, `pass`, `send back`, `stop`, and `comment`. Ticks criteria. Commits ticket files. | Edits source, reads diffs, runs verification. |
+| orchestrator | Runs `set feature base`, `claim`, `hand off`, `start review`, `pass`, `send back`, `stop`, and `comment`. Ticks criteria. Commits ticket files. | Edits source, reads diffs, runs verification, or runs the user's operations. |
 | implementer | Edits and commits source for one ticket. | Writes tickets or the spec. |
 | reviewer | Runs `code-review` on one ticket. | Edits files or commits. |
 | investigator | Reads the ticket and git to diagnose a failed dispatch. | Edits files, commits, or runs verification. |
-| user | Everything else: `resume`, `complete`, `cancel`, and changes through `to-spec` and `to-tickets`. | |
+| user | `resume`, `reset attempts`, `revise`, `complete`, `cancel`, and changes through `to-spec` and `to-tickets`. | |
 
 No role pushes, rewrites history, or switches branches.
 
@@ -129,8 +129,10 @@ Ralph stopped: <feature accepted | ticket stopped | waiting on the user | setup 
 <What the user needs to do before the next run.>
 ```
 
-Typical next steps:
+Next steps for the user. Put the matching ones in the report, and never take them yourself:
 
-- A stopped ticket: resolve the cause, then `resume` it.
+- A stopped ticket: resolve the cause, then `resume` it. If it stopped on its last attempt, use `reset attempts` instead of `resume`.
+- A ticket that hit the attempt limit: `reset attempts`, or rework it with `to-tickets`.
+- A `precondition failed` stop: rework the ticket with `to-tickets`.
 - A failed acceptance review: run `to-tickets` for repair tickets.
 - An open manual ticket: do the work, then `complete` it with evidence.

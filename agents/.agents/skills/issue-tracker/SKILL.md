@@ -38,6 +38,6 @@ If a request matches no document or more than one, and you're a subagent, stop a
 
 ### Ticket state operations
 
-`claim`, `hand off`, `pass`, `send back`, `set feature base`, `start review`, `stop`, `resume`, `revise`, `complete`, `cancel`, `comment`.
+`claim`, `hand off`, `pass`, `send back`, `set feature base`, `start review`, `stop`, `resume`, `reset attempts`, `revise`, `complete`, `cancel`, `comment`.
 
 `TICKETS.md` defines what each one changes. Each is a `fetch` followed by an `edit`, so backends don't implement them. Change a ticket's status, phase, attempt, or commits only through one of these.

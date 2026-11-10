@@ -199,15 +199,20 @@ Supporting skills:
 - `domain-modeling`: maintains `GLOSSARY.md` and ADRs.
 - `unslop`: rules for plain prose.
 
-When `ralph` stops, its report says why. Ask any agent to run ticket operations such as `resume` and `complete` through `issue-tracker`, then run `ralph` again.
+When `ralph` stops, its report says why. Ask any agent to run ticket operations such as `resume`, `reset attempts`, and `complete` through `issue-tracker`, then run `ralph` again.
 
 | Stopped because | Do this |
 |---|---|
-| A ticket reached the attempt limit | Raise the limit with `to-spec` and `resume` the ticket, or rework it with `to-tickets`, which resets its attempts. |
-| A ticket got stuck or its verification was blocked | Fix the cause, then `resume` the ticket. |
+| A ticket reached the attempt limit | `reset attempts` on the ticket, or rework it with `to-tickets`. |
+| A ticket got stuck | Fix the cause, then `resume` the ticket. |
+| A ticket's implementer couldn't start | Rework the ticket with `to-tickets`. |
+| A review's verification was blocked | Fix the environment, then `resume` the ticket. |
+| The loop needed recovery | Follow the recommendation in the ticket's last comment, then `resume` the ticket. |
 | The acceptance review failed | Run `to-tickets` for repair tickets. |
 | A manual ticket is open | Do the work, then `complete` the ticket with evidence. |
 | Setup failed | Follow the report. Usually this means fixing the tickets with `to-tickets` or `to-spec`, or cleaning up the checkout. |
+
+Resuming an implementation ticket in the implement phase starts a new attempt. If the ticket stopped on its last attempt, `ralph` stops it again right away. Use `reset attempts` instead of `resume` for that ticket. The spec's `Attempt limit:` applies to every ticket, so change it only when you want a different budget for all of them.
 
 ## Custom Functions
 

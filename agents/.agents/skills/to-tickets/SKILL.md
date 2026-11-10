@@ -1,6 +1,6 @@
 ---
 name: to-tickets
-description: Turn a spec into tickets, or update existing tickets after a spec revision or a failed acceptance review. Use when the user wants a spec or plan turned into tickets.
+description: Turn a spec into tickets, or update existing tickets after a spec revision, a failed acceptance review, or a stopped implementation ticket. Use when the user wants a spec or plan turned into tickets.
 disable-model-invocation: true
 metadata:
     opencode/autoinvoke: false
@@ -15,8 +15,9 @@ This skill reads code but changes only tickets, through `issue-tracker`. It neve
 Use this skill when:
 
 - a spec has no tickets yet,
-- a spec revision changed what the tickets must cover, or
-- the current acceptance ticket is `stopped` after a failed review and the user wants repair tickets, with no spec change.
+- a spec revision changed what the tickets must cover,
+- the current acceptance ticket is `stopped` after a failed review and the user wants repair tickets, with no spec change, or
+- an implementation ticket is `stopped` and the user wants it reworked or split.
 
 ## 1. Gather context
 
@@ -26,6 +27,7 @@ Use this skill when:
 4. `list tickets`. If tickets exist, `fetch` each one and read it in full, including comments.
 5. If any ticket is `in-progress`, work on this feature may still be running. Ask the user to confirm it has stopped before you change anything.
 6. For a failed acceptance review, read the acceptance ticket's `stop` comment. Treat it as a failed review only if the comment lists findings. If it says verification was blocked, report that to the user and stop.
+7. For a stopped implementation ticket, read its comments to learn why each attempt failed. Use that to decide how to rework or split it.
 
 ## 2. Explore the code
 
