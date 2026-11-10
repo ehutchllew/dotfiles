@@ -19,7 +19,7 @@ Turn the current conversation into a new or revised spec. Build it from what has
    - Out-of-scope items go into Out of scope.
    - Open risks go into Further notes.
    - If an assumption would change a user story, confirm it with the user first.
-4. Choose what to test. Test at the feature's seams: public entry points and module boundaries, checking their inputs and outputs. Tie each test to a user story or decision. Don't test private helpers, trivial code, or third-party libraries. Add a focused lower-level test only where it gives clearer failures.
+4. Choose what to test. Follow the Testing section of `CODING_STANDARDS.md`, and tie each test to a user story or decision. If the file or its Testing section is missing, suggest `to-standards` and stop.
 5. Find the exact commands for tests and other checks, such as typecheck and lint, in the repo: `package.json`, `Makefile`, CI config, and similar. Confirm the testing approach and commands with the user.
 6. Keep the template's default `Attempt limit:` unless the user asks for a different one.
 7. Write the spec. For a new spec, `create` it. For a revision, show the user the proposed changes and `edit` the spec only after they approve.
