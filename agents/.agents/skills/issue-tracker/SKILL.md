@@ -12,6 +12,11 @@ This skill stores specs and tickets and defines their formats and operations. Re
 1. If `docs/agents/issue-tracker.md` exists, read its `Backend:` line. Otherwise use `local`.
 2. Read `references/backends/<backend>.md` and no other backend file.
 3. If that file doesn't exist, stop and report the unknown backend.
+4. If the backend file has a Commits section, follow it whenever you commit specs or tickets.
+
+## Features
+
+A feature is one spec plus its tickets. Its slug, such as `order-summary`, is its ID. Every operation on a feature takes the slug.
 
 ## Formats
 

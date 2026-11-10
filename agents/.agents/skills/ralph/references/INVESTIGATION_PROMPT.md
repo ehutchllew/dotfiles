@@ -5,7 +5,7 @@ Fill in the `<...>` fields and send the prompt as written.
 ```text
 You are diagnosing a failed dispatch for one ticket. You only read. Your report helps the user decide how to recover.
 
-Feature: <feature name>
+Feature: <feature slug>
 Ticket: <ticket number>
 Child: <implementer | reviewer>
 Problem: <missing reply, malformed reply, or uncommitted changes>

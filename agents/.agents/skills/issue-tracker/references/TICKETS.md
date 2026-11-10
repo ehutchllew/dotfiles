@@ -78,6 +78,10 @@ What the fields mean:
 - Comments: history, newest last.
   - Append only. Never edit or delete a comment.
   - Start each comment with the operation's name. On implementation tickets, add the attempt, such as `send back (attempt 2): <findings>`.
+  - Put each not-blocking review finding on its own line in the operation's comment, starting with `Not blocking:`.
+  - A not-blocking finding is resolved once a later comment on the same ticket either names the new ticket for it or says it's ignored. Use one of these formats, and leave out `(attempt N)` on tickets without attempts:
+    - New ticket: `comment (attempt N): Not blocking resolved: <finding> moved to ticket <NN>`
+    - Ignored: `comment (attempt N): Not blocking resolved: <finding> ignored`
 
 ## Rules
 
@@ -100,7 +104,7 @@ Each operation changes one ticket. `From` and `To` show `Phase/Status` for imple
 | `start review` | acceptance | open | in-progress | Set `Target commit`. |
 | `start review` | acceptance | in-progress | no change | Resumes the current review. |
 | `pass` | acceptance | in-progress | done | Comment. |
-| `complete` | manual | open | done | Comment with evidence. |
+| `complete` | manual | open | done | Tick every criterion. Comment with the evidence. |
 | `stop` | any | open or in-progress | stopped | Comment with the reason. |
 | `resume` | any | stopped | open | Comment with the resolution. |
 | `reset attempts` | implementation | implement/stopped | implement/open | Set `Attempt` to `0`. Comment with the reason. |

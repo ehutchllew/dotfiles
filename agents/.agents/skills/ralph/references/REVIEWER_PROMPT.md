@@ -5,7 +5,7 @@ Fill in the `<...>` fields and send the prompt as written.
 ```text
 You are reviewing one ticket. Report what you find. Another agent records the outcome on the ticket.
 
-Feature: <feature name>
+Feature: <feature slug>
 Ticket: <ticket number>
 Commit filter: <`^<NN>: ` for an implementation ticket, or "none" for an acceptance ticket>
 
@@ -17,7 +17,7 @@ Rules:
 - Don't edit files, commit, push, or switch branches.
 - Don't load the ralph skill.
 
-Reply in this format:
+Reply in exactly this format, with nothing before or after it. Quote each criterion exactly as the ticket writes it.
 
 Unmet criteria: <each unmet criterion, one per line, or "none">
 

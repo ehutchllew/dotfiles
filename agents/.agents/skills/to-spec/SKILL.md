@@ -12,7 +12,7 @@ Turn the current conversation into a new or revised spec. Build it from what has
 
 ## Process
 
-1. Load `issue-tracker` and read the spec format. If the feature already has a spec, `fetch` it and revise it instead of creating a second one.
+1. Load `issue-tracker` and read the spec format. If the feature already has a spec, `fetch` it and revise it instead of creating a second one. For a new feature, use the slug the user gave, or choose a short one such as `order-summary`.
 2. Use the terms in `GLOSSARY.md` and respect relevant ADRs. Explore the code as needed.
 3. If the conversation has a summary with decisions, assumptions, out-of-scope items, or open risks, build from it:
    - Decisions go into Implementation decisions.
@@ -20,9 +20,12 @@ Turn the current conversation into a new or revised spec. Build it from what has
    - Open risks go into Further notes.
    - If an assumption would change a user story, confirm it with the user first.
 4. Choose what to test. Follow the Testing section of `CODING_STANDARDS.md`, and tie each test to a user story or decision. If the file or its Testing section is missing, suggest `to-standards` and stop.
-5. Find the exact commands for tests and other checks, such as typecheck and lint, in the repo: `package.json`, `Makefile`, CI config, and similar. Confirm the testing approach and commands with the user.
+5. Collect the commands for Testing decisions:
+   - Copy every command in the Checks section of `CODING_STANDARDS.md`.
+   - Find the commands that run the tests in the repo: `package.json`, `Makefile`, CI config, and similar.
+   - Confirm the testing approach and commands with the user.
 6. Keep the template's default `Attempt limit:` unless the user asks for a different one.
-7. Write the spec. For a new spec, `create` it. For a revision, show the user the proposed changes and `edit` the spec only after they approve.
+7. Write the spec. For a new spec, `create` it. For a revision, show the user the proposed changes and `edit` the spec only after they approve. Then commit the spec as the `issue-tracker` backend says.
 
 ## Revising a spec
 

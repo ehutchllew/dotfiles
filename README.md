@@ -193,6 +193,7 @@ Other entry points:
 - `code-review`: review a branch, a ticket, or a whole feature on its own, outside a loop.
 - `to-spec` on an existing spec: revise it or change its attempt limit. Run `to-tickets` after a revision.
 - `to-tickets` after a failed acceptance review: add repair tickets without changing the spec.
+- `to-tickets` when not-blocking review findings are unresolved: turn each into a ticket or ignore it.
 
 Supporting skills:
 - `issue-tracker`: stores specs and tickets and defines their operations. Specs and tickets live in `.scratch/<feature>/` by default.
@@ -209,7 +210,8 @@ When `ralph` stops, its report says why. Ask any agent to run ticket operations 
 | A review's verification was blocked | Fix the environment, then `resume` the ticket. |
 | The loop needed recovery | Follow the recommendation in the ticket's last comment, then `resume` the ticket. |
 | The acceptance review failed | Run `to-tickets` for repair tickets. |
-| A manual ticket is open | Do the work, then `complete` the ticket with evidence. |
+| Not-blocking findings need a decision | Run `to-tickets` to turn each into a ticket or ignore it. |
+| A manual ticket is open | Do the work, then run `ralph` again and give it the evidence. |
 | Setup failed | Follow the report. Usually this means fixing the tickets with `to-tickets` or `to-spec`, or cleaning up the checkout. |
 
 Resuming an implementation ticket in the implement phase starts a new attempt. If the ticket stopped on its last attempt, `ralph` stops it again right away. Use `reset attempts` instead of `resume` for that ticket. The spec's `Attempt limit:` applies to every ticket, so change it only when you want a different budget for all of them.

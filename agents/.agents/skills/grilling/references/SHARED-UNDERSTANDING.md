@@ -1,6 +1,6 @@
 # Shared-understanding summary
 
-Use this template to close a session when the user or a calling skill asks for a written record of the outcome:
+Use this template to close every session:
 
 ```markdown
 ## Shared understanding

@@ -12,8 +12,8 @@ Write a title and body for a pull request from the current branch. Don't push, a
 
 ## Inputs
 
-1. Use the base branch the user names, or the repo's default branch.
-2. Read `git log <base>..HEAD` and `git diff <base>...HEAD`.
+1. Use the base and target the user names. Otherwise use the repo's default branch as the base and `HEAD` as the target.
+2. Read `git log <base>..<target>` and `git diff <base>...<target>`.
 3. If the user names a feature, load `issue-tracker`. Fetch the spec, the current acceptance ticket, and its manual tickets. If the acceptance ticket isn't `done`, say so at the top of your reply.
 
 ## Output
@@ -27,7 +27,7 @@ Use this template for the body:
 
 <one to three sentences on what this PR changes and why>
 
-<diagram, diff-sketch, or tree>
+<optional: diagram, diff-sketch, or tree>
 
 ## Evidence
 
@@ -51,7 +51,9 @@ Skip all preambles and keep prose brief. Use the user's domain language from `GL
 
 Start with one to three sentences on what the PR changes and why it exists. The title already names the change, so lead with why. With a feature, take the why from the spec's Problem statement.
 
-Then pick the smallest view that makes the key point clear. Add another view only when it shows something the first one doesn't.
+Add a visual only when the sentences don't make the change clear. Then pick the smallest view that makes the key point clear. Add another view only when it shows something the first one doesn't.
+
+The views below are examples, not a checklist. Use one only when the change needs it, or pick another form that fits better.
 
 - Show logic or an algorithm as pseudocode:
 

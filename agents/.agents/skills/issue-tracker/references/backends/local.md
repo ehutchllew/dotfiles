@@ -26,4 +26,15 @@ Specs and tickets are markdown files under `.scratch/` at the repo root.
 | `create` | Write a new file and create directories as needed. A new ticket takes the next unused number. |
 | `edit` | Rewrite the file in place. |
 
-Don't change whether `.scratch/` is tracked or ignored by git. Committing these files is up to the caller.
+## Commits
+
+Committing these files is up to the caller. Don't change whether `.scratch/` is tracked or ignored by git. If git ignores the files, skip the commit.
+
+Commit only the files you changed, with one of these subjects:
+
+| Change | Subject |
+| --- | --- |
+| Create a spec | `spec: create <feature-slug>` |
+| Edit a spec | `spec: revise <feature-slug>` |
+| One ticket operation | `tickets: <operation> <NN>` |
+| Several ticket operations | `tickets: multiple`, with one `<operation> <NN>` line per operation in the body |

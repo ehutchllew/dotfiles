@@ -47,7 +47,7 @@ US 1: As a <actor>, I want <capability>, so that <benefit>
 
 - Don't include file paths or code. They go stale.
 - Name modules, but don't give their paths. Describe interfaces by their inputs and outputs.
-- Write commands exactly as typed in a terminal.
+- Write a command exactly as typed in a terminal when it names no module path, such as `go test ./...`. Otherwise describe it by the module it runs and its arguments, such as "run the `ordersummary` command with `-code SAVE10`".
 - If a prototype produced a snippet that states a decision more precisely than prose, such as a state machine, reducer, schema, or type shape, include it in the matching implementation decision. Keep only the part that carries the decision, and note that it came from a prototype.
 
 ## Section guidance
