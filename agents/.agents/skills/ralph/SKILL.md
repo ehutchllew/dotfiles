@@ -25,7 +25,7 @@ No role pushes, rewrites history, or switches branches.
 
 ## Setup
 
-1. Load `issue-tracker`. If the user didn't name the feature, ask for it.
+1. Load `issue-tracker`. If the user didn't provide the feature id or feature name, ask for it.
 2. Fetch the spec and `list tickets`.
 3. Run the ticket validation checks. If any fails, report it, suggest `to-tickets` or `to-spec`, and stop.
 4. If any ticket is `stopped`, report it with its last comment and stop.
