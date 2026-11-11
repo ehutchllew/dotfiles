@@ -1,4 +1,3 @@
 opencode-beta
 yay
-yay-debug
 zen-browser-bin

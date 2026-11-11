@@ -14,6 +14,7 @@ alias gfp="git fetch && git pull"
 alias gph="git push -u origin HEAD"
 alias gg="lazygit"
 alias gpp="git log --all --decorate --oneline --graph"
+alias gs="git status"
 
 # List
 alias l="eza -lahF --icons --git-ignore"
@@ -28,6 +29,3 @@ alias dub="du -b"
 alias dus="du -sb"
 # Calc human readable bytes
 alias duh="du -sbh"
-
-# File Manipulation
-alias cb="xclip -selection 'clipboard' -i"
