@@ -77,17 +77,19 @@ What the fields mean:
 - Out of scope: nearby work this ticket must not touch, usually work that belongs to another ticket.
 - Comments: history, newest last.
   - Append only. Never edit or delete a comment.
-  - Start each comment with the operation's name. On implementation tickets, add the attempt, such as `send back (attempt 2): <findings>`.
-  - Put each not-blocking review finding on its own line in the operation's comment, starting with `Not blocking:`.
-  - A not-blocking finding is resolved once a later comment on the same ticket either names the new ticket for it or says it's ignored. Use one of these formats, and leave out `(attempt N)` on tickets without attempts:
-    - New ticket: `comment (attempt N): Not blocking resolved: <finding> moved to ticket <NN>`
-    - Ignored: `comment (attempt N): Not blocking resolved: <finding> ignored`
+  - Start each comment with the operation's name on its own line. On implementation tickets, add the attempt, such as `send back (attempt 2):`. A `comment` that only resolves not-blocking findings takes no attempt.
+  - List the details below that line, one item per label, such as unmet criteria, findings, and verification. The comments example below shows the shape.
+  - Put each not-blocking review finding in its own item, starting with `Not blocking:`.
+  - A not-blocking finding is resolved once a later comment on the same ticket has an item for it in one of these formats:
+    - New ticket: `Not blocking resolved: <finding>. Moved to ticket <NN>.`
+    - Ignored: `Not blocking resolved: <finding>. Ignored.`
+    - Fixed: `Not blocking resolved: <finding>. Fixed.` A later review found it gone from the code.
 
 ## Rules
 
 - Never renumber a ticket. Other tickets refer to it by number.
 - Don't edit a `done` or `cancelled` ticket except to add a comment. Changes to finished work go in a new ticket.
-- Follow the rules for file paths, code, and commands in `SPECS.md`.
+- Follow the rules for file paths, code, and commands in `SPECS.md`. They don't apply to comments.
 
 ## State operations
 
@@ -245,4 +247,22 @@ Run `npm test`. Check the evidence on ticket 02.
 - Implementing repairs or changing the spec.
 
 ## Comments
+```
+
+Comments on ticket 01 after a send back and a pass:
+
+```markdown
+## Comments
+
+send back (attempt 1):
+- Unmet criteria: "An empty order shows an item count of zero."
+- Blocking (missing): an empty order shows no item count line.
+- Verification:
+  - `npm test` passed.
+- Not blocking: the local `n` doesn't say it holds the item count.
+
+pass (attempt 2):
+- Verification:
+  - `npm test` passed.
+- Not blocking resolved: the local `n` doesn't say it holds the item count. Fixed.
 ```

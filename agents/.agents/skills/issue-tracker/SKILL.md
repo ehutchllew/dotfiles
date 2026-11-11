@@ -25,6 +25,10 @@ A feature is one spec plus its tickets. Its slug, such as `order-summary`, is it
 
 Read the matching format before you create or edit a document, or when you need to interpret its fields.
 
+## Secrets
+
+Before you write a spec or ticket, replace secrets, such as API keys, tokens, passwords, and private keys, with `[REDACTED]`. This includes command output, evidence, and review findings in comments.
+
 ## Operations
 
 ### Storage operations

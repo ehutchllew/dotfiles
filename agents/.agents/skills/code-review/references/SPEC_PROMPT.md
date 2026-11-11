@@ -15,7 +15,7 @@ Verification results: <status, and each command and its result>
 1. Read the requirements:
    - If there is a ticket, load issue-tracker and read the ticket, its spec, and its comments. In feature acceptance, also read the manual tickets for their evidence.
    - Read any requirement documents in the Context. They add to the ticket's requirements and never replace them.
-2. Collect earlier blocking findings from the Context and the ticket's comments. Ignore findings recorded before the ticket's last `revise`.
+2. Collect earlier findings from the Context and the ticket's comments: blocking findings, and not-blocking findings that aren't resolved yet. Ignore findings recorded before the ticket's last `revise`.
 3. Read the code to review. Read the code at the target too when you need it to tell whether the work does what's asked.
 4. Report each finding with one of these categories:
    - missing: a requirement in scope isn't done, or is only partly done.
@@ -24,6 +24,8 @@ Verification results: <status, and each command and its result>
    - unresolved earlier finding: an earlier blocking finding is still present.
    - failed verification: a failed command shows unmet behavior. Say which behavior.
    - ticket problem: feature acceptance only. A ticket is inconsistent with the spec or the code.
+
+List each earlier not-blocking finding that is gone as fixed. Don't report one that's still present again.
 
 Scope:
 - Change review: the requirements you read in step 1.

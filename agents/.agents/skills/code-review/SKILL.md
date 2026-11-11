@@ -86,7 +86,7 @@ Each axis labels its findings with a category. Mark them:
 | smell | no |
 | ticket problem | no |
 
-Blocked verification isn't a finding. It shows only in the verification status.
+Blocked verification isn't a finding. It shows only in the verification status. A fixed earlier finding isn't a finding either. Report it on a `Fixed:` line.
 
 ## 7. Report
 
@@ -105,11 +105,13 @@ Status: <passed | failed | blocked | not run>
 
 - Blocking (<category>): <finding>
 - Not blocking (<category>): <finding>
+- Fixed: <earlier not-blocking finding>
 
 ## Spec
 
 - Blocking (<category>): <finding>
 - Not blocking (<category>): <finding>
+- Fixed: <earlier not-blocking finding>
 
 <or "No spec available.">
 

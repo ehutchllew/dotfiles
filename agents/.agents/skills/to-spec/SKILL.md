@@ -17,6 +17,7 @@ Turn the current conversation into a new or revised spec. Build it from what has
 3. If the conversation has a summary with decisions, assumptions, out-of-scope items, or open risks, build from it:
    - Decisions go into Implementation decisions.
    - Out-of-scope items go into Out of scope.
+   - Assumptions go into Assumptions.
    - Open risks go into Further notes.
    - If an assumption would change a user story, confirm it with the user first.
 4. Choose what to test. Follow the Testing section of `CODING_STANDARDS.md`, and tie each test to a user story or decision. If the file or its Testing section is missing, suggest `to-standards` and stop.

@@ -41,6 +41,8 @@ When multiple contexts exist, infer which one the current topic relates to. If u
 
 Create files lazily: only when you have something to write. If no `GLOSSARY.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
 
+Replace secrets, such as API keys, tokens, passwords, and private keys, with `[REDACTED]` in anything you write to these files.
+
 ## During the session
 
 ### Challenge against the glossary

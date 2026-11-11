@@ -10,7 +10,7 @@ metadata:
 
 Write the repo's coding and testing rules to `CODING_STANDARDS.md` at the repo root. The file holds only rules that tooling doesn't enforce, plus the commands that run the tooling. Each rule is mandatory, so leave out soft preferences.
 
-This skill reads code but changes only `CODING_STANDARDS.md`.
+This skill reads code but changes only `CODING_STANDARDS.md`. Replace secrets, such as API keys, tokens, passwords, and private keys, with `[REDACTED]` in anything you write to it.
 
 ## Process
 
@@ -31,6 +31,7 @@ This skill reads code but changes only `CODING_STANDARDS.md`.
    - Write only rules the code or tests already follow, or the user states. Don't invent preferences.
    - When the code or tests follow two patterns for the same thing, don't pick one. List both as a question for the user.
    - Write one rule per line. Add a short example only when the rule is unclear without one.
+   - Write each rule so a reviewer can tell whether a given line breaks it. Name what it applies to, such as exported fields or every identifier, when the code doesn't make that obvious.
    - Group rules under topic headings.
    - Put every rule about tests in one `## Testing` section, and always include it.
 5. If neither the docs nor the tests show any testing rules, propose these for the Testing section:

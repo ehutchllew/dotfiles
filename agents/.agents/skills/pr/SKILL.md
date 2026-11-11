@@ -18,7 +18,7 @@ Write a title and body for a pull request from the current branch. Don't push, a
 
 ## Output
 
-Reply with a title, then the body in a fenced `markdown` block so the user can copy it. If the body contains code blocks, use four backticks for the outer fence. Keep the title under 70 characters and start it with a verb.
+Reply with a title, then the body in a fenced `markdown` block so the user can copy it. If the body contains code blocks, use four backticks for the outer fence. Keep the title under 70 characters and start it with a verb. Replace secrets, such as API keys, tokens, passwords, and private keys, with `[REDACTED]`, including in evidence and command output.
 
 Use this template for the body:
 

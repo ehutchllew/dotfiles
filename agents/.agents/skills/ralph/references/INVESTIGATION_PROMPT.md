@@ -12,7 +12,7 @@ Problem: <missing reply, malformed reply, or uncommitted changes>
 Reply: <the child's reply, or "none">
 
 1. Load issue-tracker. Read the spec and the ticket, including every comment.
-2. Read git status, recent history, and diffs. Include this ticket's commits, found with `git log --grep='^<NN>: '`, and any uncommitted changes.
+2. Read git status, recent history, and diffs. Include this ticket's commits, found with `git log --grep='^<NN>: ' BASE..HEAD` where BASE is the ticket's `Base commit:`, and any uncommitted changes.
 3. Work out what the child finished and what it left incomplete. Separate what you observed from what you suspect. A commit message or a missing reply doesn't prove the work or its verification succeeded.
 4. Recommend one recovery action for the user.
 

@@ -32,7 +32,7 @@ No role pushes, rewrites history, or switches branches.
 5. If you're on the repo's default branch, ask the user for a feature branch or worktree. Don't switch yourself.
 6. Check `git status --short`. If only ticket files changed, they're unsaved orchestrator writes. Commit them with the subject `tickets: multiple` and one `unsaved <NN>` line per changed ticket in the body. If spec or ticket files are untracked and not ignored, ask the user to commit or ignore them. If anything else changed, report it and stop. Never discard changes.
 7. If the current acceptance ticket has no `Base commit:`, `set feature base`:
-   - Copy the `Base commit:` of the previous acceptance ticket if it has one.
+   - Copy the `Base commit:` of this feature's most recent earlier acceptance ticket, if it has one.
    - Otherwise, if no implementation ticket has `Attempt` above 0, use `HEAD`.
    - Otherwise, ask the user for the feature's starting commit and stop.
 
@@ -46,7 +46,7 @@ Consider only ready tickets, as `TICKETS.md` defines them. Skip acceptance ticke
 
 1. An implementation ticket in `review/open` goes to a reviewer.
 2. An implementation ticket in `implement/open` or `implement/in-progress` goes to an implementer. If it's `open` and its `Attempt` has reached the spec's `Attempt limit:`, `stop` it with "attempt limit reached" instead.
-3. The current acceptance ticket goes to a reviewer. If it's `open` and any ticket has an unresolved not-blocking finding, as `TICKETS.md` defines it, stop the loop instead.
+3. The current acceptance ticket goes to a reviewer. If it's `open` and any implementation ticket has an unresolved not-blocking finding, as `TICKETS.md` defines it, first ask the user whether to ignore each one. For each ignored finding, `comment` the ignored resolution on its ticket, and commit. If the user keeps any finding, stop the loop instead, so they can make a ticket for it with `to-tickets`.
 4. A `manual` ticket: show the user its `What to build` and `Verification` sections, and ask for the evidence. If the user gives it, `complete` the ticket with that evidence, commit, and pick again. Otherwise, stop the loop.
 
 If nothing matches, stop the loop.
@@ -87,7 +87,7 @@ After a reviewer, check these in order and apply the first match:
 | Any unmet criterion or blocking finding | `send back` with the unmet criteria and the findings. Untick the unmet criteria. | `stop` with the unmet criteria and the findings. |
 | Otherwise | `pass`. | `pass`. Tick every criterion. |
 
-Put each not-blocking finding on its own `Not blocking:` line in that operation's comment.
+In that operation's comment, put each not-blocking finding in its own `Not blocking:` item. Put each finding the reviewer listed as fixed in its own `Not blocking resolved: <finding>. Fixed.` item.
 
 Commit the ticket files. Any `stop` ends the loop.
 
@@ -114,10 +114,12 @@ Stop the loop when:
 
 - the current acceptance ticket is `done`,
 - you applied any `stop`,
-- an acceptance review would start while a not-blocking finding is unresolved,
+- the user keeps a not-blocking finding before an acceptance review,
 - the user has no evidence for a manual ticket,
 - nothing matches in step 1, or
 - setup fails.
+
+If the feature is accepted with unresolved not-blocking findings, ask the user whether to ignore each one before you report, as in pick step 3.
 
 Report with this template:
 
@@ -139,5 +141,5 @@ Next steps for the user. Put the matching ones in the report, and never take the
 - A ticket that hit the attempt limit: `reset attempts`, or rework it with `to-tickets`.
 - A `precondition failed` stop: rework the ticket with `to-tickets`.
 - A failed acceptance review: run `to-tickets` for repair tickets.
-- Unresolved not-blocking findings: run `to-tickets` to make tickets for them or ignore them.
+- Not-blocking findings the user kept: run `to-tickets` to make tickets for them. List each finding in the report.
 - An open manual ticket: do the work, then run `ralph` again and give the evidence.
