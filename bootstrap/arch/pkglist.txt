@@ -13,6 +13,7 @@ imv
 jq
 kitty
 lazygit
+libreoffice-fresh
 mako
 man-db
 mangohud
@@ -35,6 +36,7 @@ stow
 tmux
 tree-sitter-cli
 ttf-jetbrains-mono-nerd
+unzip
 waybar
 xdg-desktop-portal-hyprland
 zsh
