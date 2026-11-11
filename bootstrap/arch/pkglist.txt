@@ -1,4 +1,6 @@
 bat
+bluez
+bluez-utils
 btop
 discord
 dmidecode
