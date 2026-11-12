@@ -5,7 +5,7 @@ description: Rules for plain, non-AI-sounding prose. Load before writing or edit
 
 # Unslop
 
-Write or edit text without AI patterns. When writing, follow the patterns below as you go. When editing, scan for them, then rewrite. Preserve meaning and match the intended tone.
+Write or edit text using plain, simple English without AI patterns. When writing, follow the patterns below as you go. When editing, scan for them, then rewrite. Write concisely, but preserve meaning and match the intended tone.
 
 ## Patterns to detect and fix
 
