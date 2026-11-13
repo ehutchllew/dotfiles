@@ -41,7 +41,7 @@ Look for prefactoring that would make the feature tickets smaller or simpler. Pl
 
 ### Implementation tickets
 
-- Each ticket holds one deliverable: a change that can be checked on its own once it lands. If the title needs "and", or the criteria check unrelated behaviors, split the ticket.
+- Each ticket holds one deliverable: a change that can be checked on its own once it lands. Treat "and" in the title as a cue to check for unrelated deliverables, not an automatic split.
 - Acceptance criteria state what the deliverable must do. They are not a todo list.
 - Most deliverables are vertical slices:
   - A slice cuts a narrow path through every layer it needs, such as schema, API, UI, and tests.

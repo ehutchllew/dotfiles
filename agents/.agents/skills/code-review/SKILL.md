@@ -90,7 +90,7 @@ Blocked verification isn't a finding. It shows only in the verification status. 
 
 ## 7. Report
 
-Present the two axis reports as written, lightly cleaned. Don't merge, rerank, or weigh them against each other. Use this template:
+Keep Standards and Spec separate. Check that findings are supported, remove duplicates, and explain priorities or conflicts in the summary. Use this template:
 
 ```markdown
 Reviewed `<base>..<target>` in <change review | ticket review | feature acceptance> mode.
@@ -116,4 +116,6 @@ Status: <passed | failed | blocked | not run>
 <or "No spec available.">
 
 Summary: Standards <n> blocking, <n> not blocking. Spec <n> blocking, <n> not blocking. Verification <status>.
+
+<Key priorities or conflicts, if any.>
 ```
