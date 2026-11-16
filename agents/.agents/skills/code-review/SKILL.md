@@ -12,7 +12,7 @@ Review code on two separate axes:
 
 This skill reports findings and verification results. It never edits files, commits, or writes specs or tickets.
 
-Review each axis in a fresh, read-only subagent, both in parallel, when subagents are available. Otherwise review the axes one after the other yourself, keep their findings separate, and note in the report that one agent reviewed both.
+Perform both axes yourself, using shared inputs and verification results. Don't spawn subagents.
 
 ## 1. Gather inputs
 
@@ -26,6 +26,8 @@ Use what the caller supplies. Infer the rest, and ask only for what you can't in
 | Context | Anything else to use, such as requirement documents, commands to run, or findings from an earlier review | With a ticket, use its spec, its Verification section, and its comments. Without one, look for ticket references in the commit messages, then ask for requirements. If there are none, skip the Spec axis. |
 
 Context only adds to what a ticket provides. It never replaces the ticket's requirements or commands.
+
+Read any requirement documents in Context. With a ticket, fetch it, its spec, and its comments.
 
 The ticket decides the mode:
 
@@ -69,28 +71,48 @@ Read these, in order, when present:
 2. `CONTRIBUTING.md`
 3. Other documented coding rules in the repo.
 
+Also read the [smell baseline](references/smell-baseline.md).
+
 ## 5. Review the two axes
 
-Fill in [STANDARDS_PROMPT.md](references/STANDARDS_PROMPT.md) and [SPEC_PROMPT.md](references/SPEC_PROMPT.md), and send one to each subagent. If you review the axes yourself, follow the same prompts.
+Collect earlier blocking findings and unresolved not-blocking findings from Context and ticket comments. Ignore findings recorded before the ticket's last `revise`. Recheck blocking findings even if the latest change didn't touch their code.
+
+Report earlier not-blocking findings that are now gone as `Fixed:`. Don't repeat those still present.
+
+### Standards
+
+Review only the changed code and earlier blocking Standards findings. Documented repo rules override the smell baseline. Skip anything tooling enforces. Cite the file, hunk, and rule for each finding.
+
+### Spec
+
+Check the requirements for the current mode:
+
+- Change review: the available requirements.
+- Ticket review: the ticket. Its covered stories don't make it responsible for other tickets' work.
+- Feature acceptance: the whole current spec. Check that all stories work together. Read code and tests even when they predate the range. Read other tickets only for manual evidence, and don't treat ticket statuses as proof.
+
+Read the code at the target when needed to judge behavior. Quote the requirement and cite the code for each finding. Unused abstractions and parameters belong to Standards, not unrequested behavior.
 
 ## 6. Mark each finding
 
-Each axis labels its findings with a category. Mark them:
+Label each finding with a category:
 
-| Category | Blocking |
-| --- | --- |
-| hard violation | yes |
-| missing, wrong, or unrequested behavior | yes |
-| unresolved earlier finding | yes |
-| failed verification | yes |
-| smell | no |
-| ticket problem | no |
+| Category | Blocking | Meaning |
+| --- | --- | --- |
+| hard violation | yes | Code breaks a documented rule. |
+| missing | yes | A requirement in scope is missing or partly done. |
+| wrong | yes | Behavior is incorrect or contradicts the requirements. |
+| unrequested | yes | Behavior nobody asked for. |
+| unresolved earlier finding | yes | An earlier blocking finding is still present. |
+| failed verification | yes | A failed command shows unmet behavior. Name the behavior. |
+| smell | no | Code matches a smell in the baseline. |
+| ticket problem | no | Feature acceptance only. A ticket is inconsistent with the spec or code. |
 
-Blocked verification isn't a finding. It shows only in the verification status. A fixed earlier finding isn't a finding either. Report it on a `Fixed:` line.
+Blocked verification isn't a finding. It shows only in the verification status.
 
 ## 7. Report
 
-Keep Standards and Spec separate. Check that findings are supported, remove duplicates, and explain priorities or conflicts in the summary. Use this template:
+Keep Standards and Spec separate. Check that findings are supported, remove duplicates, and explain priorities or conflicts in the summary. Keep each axis report under 400 words. Use this template:
 
 ```markdown
 Reviewed `<base>..<target>` in <change review | ticket review | feature acceptance> mode.
