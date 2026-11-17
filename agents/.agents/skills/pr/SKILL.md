@@ -14,7 +14,7 @@ Write a title and body for a pull request from the current branch. Don't push, a
 
 1. Use the base and target the user names. Otherwise use the repo's default branch as the base and `HEAD` as the target.
 2. Read `git log <base>..<target>` and `git diff <base>...<target>`.
-3. If the user names a feature, load `issue-tracker`. Fetch the spec, the current acceptance ticket, and its manual tickets. If the acceptance ticket isn't `done`, say so at the top of your reply.
+3. If the user names a feature, load `issue-tracker` and use it to read the spec, compact feature status, the current acceptance ticket, and the manual tickets needed for evidence. If the acceptance ticket isn't `done`, say so at the top of your reply.
 
 ## Output
 

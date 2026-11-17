@@ -16,7 +16,7 @@ Perform both axes yourself, using shared inputs and verification results. Don't 
 
 ## 1. Gather inputs
 
-Use what the caller supplies. Infer the rest, and ask only for what you can't infer. Load `issue-tracker` to read specs and tickets.
+Use what the caller supplies. Infer the rest, and ask only for what you can't infer. Load `issue-tracker` to read specs and tickets. With a ticket, read it and its spec. For feature acceptance, also read the manual tickets needed for evidence.
 
 | Input | Values | If not supplied |
 | --- | --- | --- |
@@ -26,8 +26,6 @@ Use what the caller supplies. Infer the rest, and ask only for what you can't in
 | Context | Anything else to use, such as requirement documents, commands to run, or findings from an earlier review | With a ticket, use its spec, its Verification section, and its comments. Without one, look for ticket references in the commit messages, then ask for requirements. If there are none, skip the Spec axis. |
 
 Context only adds to what a ticket provides. It never replaces the ticket's requirements or commands.
-
-Read any requirement documents in Context. With a ticket, fetch it, its spec, and its comments.
 
 The ticket decides the mode:
 

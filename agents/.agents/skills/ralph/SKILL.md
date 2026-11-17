@@ -9,31 +9,30 @@ You are the orchestrator. You pick the next ticket, dispatch a fresh subagent to
 
 You make every ticket write, through `issue-tracker` operations, and commit the ticket files. You never edit source code, read diffs, or run verification commands. Children do that.
 
-Keep no state in your conversation. The spec, the tickets, and git must explain every next step, so a restarted loop picks up where the last one stopped. Reread the spec and `list tickets` before every pick.
+The spec, the tickets, and git hold the loop's state. They must explain every next step, so a restarted loop picks up where the last one stopped. Don't decide a next step from what you remember of earlier picks. Fetch _compact_ feature status before every pick and act on its reply. You can reuse a ticket body you already read while its hash in the status reply is unchanged. After a restart or a compacted context, read it again.
 
 ## Roles
 
 | Role | Does | Never |
 | --- | --- | --- |
-| orchestrator | Runs `set feature base`, `claim`, `hand off`, `start review`, `pass`, `send back`, `stop`, and `comment`. Runs `complete` with evidence the user gives. Ticks criteria. Commits ticket files. | Edits source, reads diffs, runs verification, or runs the user's other operations unless the user asks. |
+| orchestrator | Runs `set-feature-base`, `claim`, `hand-off`, `start-review`, `pass`, `send-back`, `stop`, and `comment`. Runs `complete` with evidence the user gives. Commits ticket files. | Edits source, reads diffs, runs verification, or runs the user's other operations unless the user asks. |
 | implementer | Edits and commits source for one ticket. | Writes tickets or the spec. |
 | reviewer | Runs `code-review` on one ticket. | Edits files or commits. |
 | investigator | Reads the ticket and git to diagnose a failed dispatch. | Edits files, commits, or runs verification. |
-| user | `resume`, `reset attempts`, `revise`, `complete`, `cancel`, and changes through `to-spec` and `to-tickets`. Gives evidence for manual tickets. | |
+| user | `resume`, `reset-attempts`, `revise`, `complete`, `cancel`, and changes through `to-spec` and `to-tickets`. Gives evidence for manual tickets. | |
 
 No role pushes, rewrites history, or switches branches.
 
 ## Setup
 
 1. Load `issue-tracker`. If the user didn't provide the feature id or feature name, ask for it.
-2. Fetch the spec and `list tickets`.
-3. Run the ticket validation checks. If any fails, report it, suggest `to-tickets` or `to-spec`, and stop.
-4. If any ticket is `stopped`, report it with its last comment and stop.
-5. If you're on the repo's default branch, ask the user for a feature branch or worktree. Don't switch yourself.
-6. Check `git status --short`. If only ticket files changed, they're unsaved orchestrator writes. Commit them with the subject `tickets: multiple` and one `unsaved <NN>` line per changed ticket in the body. If spec or ticket files are untracked and not ignored, ask the user to commit or ignore them. If anything else changed, report it and stop. Never discard changes.
-7. If the current acceptance ticket has no `Base commit:`, `set feature base`:
-   - Copy the `Base commit:` of this feature's most recent earlier acceptance ticket, if it has one.
-   - Otherwise, if no implementation ticket has `Attempt` above 0, use `HEAD`.
+2. Fetch compact feature status. If it fails or is invalid, report the errors, suggest `to-tickets` or `to-spec`, and stop. Never treat a failed or invalid status as an empty queue.
+3. If any ticket is `stopped`, report it with its latest comment and stop.
+4. If you're on the repo's default branch, ask the user for a feature branch or worktree. Don't switch yourself.
+5. Check `git status --short`. If only ticket files changed, they're unsaved orchestrator writes. Commit them with the subject `tickets: multiple` and one `unsaved <NN>` line per changed ticket in the body. If spec or ticket files are untracked and not ignored, ask the user to commit or ignore them. If anything else changed, report it and stop. Never discard changes.
+6. If the current acceptance ticket has no base commit, use `set-feature-base`:
+   - Use the earlier acceptance base reported in the status, if present.
+   - Otherwise, if no implementation ticket has an attempt count above 0, use `HEAD`.
    - Otherwise, ask the user for the feature's starting commit and stop.
 
 ## The loop
@@ -42,20 +41,20 @@ Dispatch one child at a time and wait for it to finish.
 
 ### 1. Pick
 
-Consider only ready tickets, as `TICKETS.md` defines them. Skip acceptance tickets that aren't current. Take the first match, lowest ticket number first within each step:
+Consider only ready tickets. Skip acceptance tickets other than the current one. Take the first match, lowest ticket number first within each step:
 
 1. An implementation ticket in `review/open` goes to a reviewer.
-2. An implementation ticket in `implement/open` or `implement/in-progress` goes to an implementer. If it's `open` and its `Attempt` has reached the spec's `Attempt limit:`, `stop` it with "attempt limit reached" instead.
-3. The current acceptance ticket goes to a reviewer. If it's `open` and any implementation ticket has an unresolved not-blocking finding, as `TICKETS.md` defines it, first ask the user whether to ignore each one. For each ignored finding, `comment` the ignored resolution on its ticket, and commit. If the user keeps any finding, stop the loop instead, so they can make a ticket for it with `to-tickets`.
-4. A `manual` ticket: show the user its `What to build` and `Verification` sections, and ask for the evidence. If the user gives it, `complete` the ticket with that evidence, commit, and pick again. Otherwise, stop the loop.
+2. An implementation ticket in `implement/open` or `implement/in-progress` goes to an implementer. If it's `open` and its attempt count has reached the feature's attempt limit, `stop` it with the reason "attempt limit reached" instead.
+3. The current acceptance ticket goes to a reviewer. If it's `open` and the status lists unresolved not-blocking findings from implementation tickets, first ask the user whether to ignore each one. For each ignored finding, use `comment` on its ticket to resolve it as ignored, and commit. If the user keeps any finding, stop the loop instead, so they can make a ticket for it with `to-tickets`.
+4. A `manual` ticket: read it, show the user its What to build and Verification sections, and ask for the evidence. If the user gives it, `complete` the ticket with that evidence, commit, and pick again. Otherwise, stop the loop.
 
 If nothing matches, stop the loop.
 
 ### 2. Dispatch
 
-Before an implementer, `claim` the ticket with `HEAD` as the base. Before an acceptance reviewer, `start review` with `HEAD` as the target. Commit the ticket, then dispatch.
+Before an implementer, `claim` the ticket, using `HEAD` for a missing base commit. Before an acceptance reviewer, `start-review` with `HEAD` as the target commit. Commit the ticket, then dispatch.
 
-Give each child the feature slug and ticket number. Children read the spec and tickets through `issue-tracker`. Never pass paths or pasted markdown.
+Give each child the feature slug and ticket number. Children read the spec and tickets through `issue-tracker`. Never pass paths, hashes, or pasted markdown.
 
 | Child | Prompt | Name |
 | --- | --- | --- |
@@ -63,19 +62,24 @@ Give each child the feature slug and ticket number. Children read the spec and t
 | reviewer | [REVIEWER_PROMPT.md](references/REVIEWER_PROMPT.md) | `review <NN> <attempt>`, or `review <NN>` for acceptance |
 | investigator | [INVESTIGATION_PROMPT.md](references/INVESTIGATION_PROMPT.md) | `investigate <NN> <attempt>` |
 
-Implementers need edit, shell, and commit access. Reviewers need read and shell access, and subagents when available.
+Implementers need edit, shell, and commit access. Reviewers need read and shell access.
 
 ### 3. Record the result
 
 If the reply is missing or doesn't match the prompt's format, or `git status --short` isn't empty, follow [Recovery](#recovery).
 
-Every comment you write from a child's reply lists each verification command and its result. For acceptance, also list the manual evidence the reviewer checked.
+Record each result with one operation, including:
+
+- Each verification command and its result.
+- For acceptance, the manual evidence the reviewer checked.
+- Each not-blocking finding in the review report.
+- Each finding the reviewer listed under Fixed findings, resolved as fixed.
 
 After an implementer:
 
-| Reply | Operations |
+| Reply | Operation |
 | --- | --- |
-| `ready for review` | Tick the criteria it quoted. `hand off` with `HEAD` as the target. |
+| `ready for review` | `hand-off` with `HEAD` as the target commit, the criteria it reported as met, and its verification results. |
 | `stuck` | `stop` with its reason. |
 | `precondition failed` | `stop` with its reason. |
 
@@ -84,17 +88,17 @@ After a reviewer, check these in order and apply the first match:
 | Review result | Implementation ticket | Acceptance ticket |
 | --- | --- | --- |
 | Verification `blocked` | `stop` with the reason. | `stop` with the reason. |
-| Any unmet criterion or blocking finding | `send back` with the unmet criteria and the findings. Untick the unmet criteria. | `stop` with the unmet criteria and the findings. |
-| Otherwise | `pass`. | `pass`. Tick every criterion. |
-
-In that operation's comment, put each not-blocking finding in its own `Not blocking:` item. Put each finding the reviewer listed as fixed in its own `Not blocking resolved: <finding>. Fixed.` item.
+| Any unmet criterion or blocking finding | `send-back` with the unmet criteria and each blocking finding as written in the report. | `stop` with the reason "acceptance review failed", the unmet criteria, and the findings. |
+| Otherwise | `pass`. | `pass` and mark every acceptance criterion met. |
 
 Commit the ticket files. Any `stop` ends the loop.
+
+If an operation fails, report its error and stop the loop. Never edit ticket files to work around an error.
 
 ## Commits
 
 - Implementers start source commit subjects with the ticket number, such as `03: add order totals`.
-- You commit ticket files as the `issue-tracker` backend says. Their subjects don't start with a ticket number, which keeps them out of a ticket's review.
+- Commit tracker changes as `issue-tracker` directs.
 - Require a clean checkout before every dispatch.
 
 ## Recovery
@@ -121,7 +125,7 @@ Stop the loop when:
 
 If the feature is accepted with unresolved not-blocking findings, ask the user whether to ignore each one before you report, as in pick step 3.
 
-Report with this template:
+Fetch the final compact feature status and use it to build this report:
 
 ```markdown
 Ralph stopped: <feature accepted | ticket stopped | findings need a decision | waiting on the user | setup failed>.
@@ -137,8 +141,8 @@ Ralph stopped: <feature accepted | ticket stopped | findings need a decision | w
 
 Next steps for the user. Put the matching ones in the report, and never take them yourself:
 
-- A stopped ticket: resolve the cause, then `resume` it. If it stopped on its last attempt, use `reset attempts` instead of `resume`.
-- A ticket that hit the attempt limit: `reset attempts`, or rework it with `to-tickets`.
+- A stopped ticket: resolve the cause, then `resume` it. If it stopped on its last attempt, use `reset-attempts` instead of `resume`.
+- A ticket that hit the attempt limit: `reset-attempts`, or rework it with `to-tickets`.
 - A `precondition failed` stop: rework the ticket with `to-tickets`.
 - A failed acceptance review: run `to-tickets` for repair tickets.
 - Not-blocking findings the user kept: run `to-tickets` to make tickets for them. List each finding in the report.

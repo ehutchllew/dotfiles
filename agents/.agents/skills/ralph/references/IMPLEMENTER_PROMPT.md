@@ -8,7 +8,7 @@ You are implementing one ticket. Another agent reviews your work after you finis
 Feature: <feature slug>
 Ticket: <ticket number>
 
-1. Load issue-tracker. Fetch the ticket, including every comment, and the feature's spec. Read GLOSSARY.md, relevant ADRs, and CODING_STANDARDS.md if they exist.
+1. Load issue-tracker and use it to read the ticket and its spec, including the ticket's current comments. Read GLOSSARY.md, relevant ADRs, and CODING_STANDARDS.md if they exist.
 2. Check that you can start. If you can't, change nothing and reply `precondition failed`. You can't start when:
    - the ticket is unclear, or contradicts the spec, and you'd have to guess what it wants, or
    - its Verification section names no commands.
@@ -20,7 +20,7 @@ Ticket: <ticket number>
 Reply `ready for review` only when you met every acceptance criterion and every verification command passes. If you can't get there, commit what you have and reply `stuck`.
 
 Rules:
-- Never edit tickets or the spec.
+- Never edit tickets or the spec. Use issue-tracker only to read.
 - Never commit secrets, such as API keys, tokens, passwords, or private keys, in code or commit messages.
 - Don't push, rewrite history, or switch branches.
 - Don't load the ralph skill.

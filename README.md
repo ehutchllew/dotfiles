@@ -180,6 +180,16 @@ To exit out of a pane, window, or session simply type `exit` at the terminal com
 
 The `agents` package holds agent skills. Running `stow agents` links them into `~/.agents/skills/`.
 
+The skills read and write specs and tickets through the `issue-tracker` CLI in `tools/issue-tracker/`. `stow agents` doesn't build it. Install it once, and again after pulling changes to that directory:
+
+```sh
+mkdir -p ~/.local/bin
+cd tools/issue-tracker
+GOBIN="$HOME/.local/bin" go install ./cmd/issue-tracker
+```
+
+`~/.local/bin` joins `PATH` in new shells once the directory exists. See `tools/issue-tracker/README.md` for the commands, the document formats, and the ticket states.
+
 These skills take a feature from an idea to a pull request. Each skill does one job, and you run each one yourself:
 
 1. `grilling` or `grill-with-docs`: interview until every design decision is settled. `grill-with-docs` also updates `GLOSSARY.md` and ADRs as terms and decisions settle.
@@ -196,15 +206,22 @@ Other entry points:
 - `to-tickets` when not-blocking review findings are unresolved: turn each into a ticket or ignore it. `ralph` asks whether to ignore each one first, so you usually run this only for findings you kept.
 
 Supporting skills:
-- `issue-tracker`: stores specs and tickets and defines their operations. Specs and tickets live in `.scratch/<feature>/` by default.
+- `issue-tracker`: tells agents how to use the `issue-tracker` CLI. Specs and tickets live in `.scratch/<feature>/` by default.
 - `domain-modeling`: maintains `GLOSSARY.md` and ADRs.
 - `unslop`: rules for plain prose.
 
-When `ralph` stops, its report says why. Ask any agent to run ticket operations such as `resume`, `reset attempts`, and `complete` through `issue-tracker`, then run `ralph` again.
+When `ralph` stops, its report says why. Run ticket operations such as `resume`, `reset-attempts`, and `complete` with the CLI, or ask any agent to, then run `ralph` again. For example:
+
+```sh
+issue-tracker status order-summary              # each ticket's state and hash
+issue-tracker ticket resume order-summary 03 --if-match <hash> --input - <<'EOF'
+{"reason": "Restarted the test database."}
+EOF
+```
 
 | Stopped because | Do this |
 |---|---|
-| A ticket reached the attempt limit | `reset attempts` on the ticket, or rework it with `to-tickets`. |
+| A ticket reached the attempt limit | `reset-attempts` on the ticket, or rework it with `to-tickets`. |
 | A ticket got stuck | Fix the cause, then `resume` the ticket. |
 | A ticket's implementer couldn't start | Rework the ticket with `to-tickets`. |
 | A review's verification was blocked | Fix the environment, then `resume` the ticket. |
@@ -214,7 +231,7 @@ When `ralph` stops, its report says why. Ask any agent to run ticket operations 
 | A manual ticket is open | Do the work, then run `ralph` again and give it the evidence. |
 | Setup failed | Follow the report. Usually this means fixing the tickets with `to-tickets` or `to-spec`, or cleaning up the checkout. |
 
-Resuming an implementation ticket in the implement phase starts a new attempt. If the ticket stopped on its last attempt, `ralph` stops it again right away. Use `reset attempts` instead of `resume` for that ticket. The spec's `Attempt limit:` applies to every ticket, so change it only when you want a different budget for all of them.
+Resuming an implementation ticket in the implement phase starts a new attempt. If the ticket stopped on its last attempt, `ralph` stops it again right away. Use `reset-attempts` instead of `resume` for that ticket. The spec's `Attempt limit:` applies to every ticket, so change it only when you want a different budget for all of them.
 
 ## Custom Functions
 
