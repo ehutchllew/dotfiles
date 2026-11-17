@@ -3,6 +3,7 @@ package tracker
 import (
 	"github.com/ehutchllew/dotfiles/tools/issue-tracker/internal/apperr"
 	"github.com/ehutchllew/dotfiles/tools/issue-tracker/internal/doc"
+	"github.com/ehutchllew/dotfiles/tools/issue-tracker/internal/store"
 )
 
 // FeatureEntry is one row of `feature list`.
@@ -25,7 +26,7 @@ func (tr *Tracker) ListFeatures() ([]FeatureEntry, error) {
 		if err != nil {
 			return nil, err
 		}
-		b, err := tr.Store.Read(specPath(id))
+		b, err := tr.Store.Read(store.SpecPath(id))
 		unlock()
 		if err != nil {
 			e.Error = err.Error()
@@ -217,9 +218,9 @@ func (tr *Tracker) SpecGet(id, ifChanged string) (*DocResult, error) {
 		return nil, err
 	}
 	defer unlock()
-	b, err := tr.Store.Read(specPath(id))
+	b, err := tr.Store.Read(store.SpecPath(id))
 	if e, ok := err.(*apperr.Error); ok && e.Code == "not_found" {
-		return nil, apperr.New("feature_not_found", "feature %q has no spec at %s", id, specPath(id))
+		return nil, apperr.New("feature_not_found", "feature %q has no spec at %s", id, store.SpecPath(id))
 	}
 	if err != nil {
 		return nil, err
@@ -231,7 +232,7 @@ func (tr *Tracker) SpecGet(id, ifChanged string) (*DocResult, error) {
 	}
 	sp := doc.ParseSpec(b)
 	body := string(b)
-	out.Path = specPath(id)
+	out.Path = store.SpecPath(id)
 	out.Revision = sp.Revision
 	out.AttemptLimit = sp.AttemptLimit
 	out.Problems = sp.Problems

@@ -3,6 +3,7 @@ package doc
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -378,8 +379,8 @@ func ParseResolution(text string) (finding, how string, ok bool) {
 		return strings.TrimSpace(m[1]), "moved", true
 	}
 	for _, suffix := range []string{"Fixed.", "Ignored."} {
-		if strings.HasSuffix(text, suffix) {
-			return strings.TrimSpace(strings.TrimSuffix(text, suffix)), strings.ToLower(strings.TrimSuffix(suffix, ".")), true
+		if before, found := strings.CutSuffix(text, suffix); found {
+			return strings.TrimSpace(before), strings.ToLower(strings.TrimSuffix(suffix, ".")), true
 		}
 	}
 	return "", "", false
@@ -421,8 +422,8 @@ func (t *Ticket) UnresolvedNotBlocking() []string {
 
 // LastReviseComment returns the index of the last `revise` comment, or -1.
 func (t *Ticket) LastReviseComment() int {
-	for i := len(t.Comments) - 1; i >= 0; i-- {
-		if t.Comments[i].Op == "revise" {
+	for i, c := range slices.Backward(t.Comments) {
+		if c.Op == "revise" {
 			return i
 		}
 	}
@@ -466,7 +467,7 @@ func safeIndex(m []string, i int) string {
 
 func splitList(v string) []string {
 	var out []string
-	for _, part := range strings.Split(v, ",") {
+	for part := range strings.SplitSeq(v, ",") {
 		if p := strings.TrimSpace(part); p != "" {
 			out = append(out, p)
 		}
@@ -475,10 +476,5 @@ func splitList(v string) []string {
 }
 
 func oneOf(v string, options ...string) bool {
-	for _, o := range options {
-		if v == o {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(options, v)
 }

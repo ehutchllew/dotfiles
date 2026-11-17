@@ -2,6 +2,8 @@ package tracker
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"sort"
 	"strings"
 
@@ -54,7 +56,7 @@ func (f *Feature) Validate(full bool) []doc.Problem {
 			}
 		}
 	}
-	for _, cycle := range f.cycles(nil) {
+	for _, cycle := range f.cycles() {
 		add("blocker_cycle", cycle[0], "blockers form a cycle: %s", strings.Join(cycle, " -> "))
 	}
 	for _, t := range f.Tickets {
@@ -174,9 +176,16 @@ func checkNoRegressions(before, after *Feature) error {
 	}
 	var added []doc.Problem
 	for _, p := range after.Validate(false) {
-		if !had[p.Code+"|"+p.Ticket] {
-			added = append(added, p)
+		// The ticket a cycle is reported on depends on the search order,
+		// which an unrelated edit can change, so cycles are compared by
+		// their edges below.
+		if p.Code == "blocker_cycle" || had[p.Code+"|"+p.Ticket] {
+			continue
 		}
+		added = append(added, p)
+	}
+	if cycle := newCycle(before.blockerEdges(), after.blockerEdges()); cycle != nil {
+		added = append(added, doc.Problem{Code: "blocker_cycle", Ticket: cycle[0], Message: "blockers form a cycle: " + strings.Join(cycle, " -> ")})
 	}
 	if len(added) == 0 {
 		return nil
@@ -188,21 +197,67 @@ func checkNoRegressions(before, after *Feature) error {
 	return apperr.New("would_invalidate", "the change would break validation: %s", msg).With("problems", added)
 }
 
-// cycles returns each blocker cycle once. override replaces one ticket's
-// blockers, so edits can be checked before they are written.
-func (f *Feature) cycles(override map[int][]int) [][]string {
+// blockerEdges maps each ticket number to the tickets that block it.
+func (f *Feature) blockerEdges() map[int][]int {
 	edges := map[int][]int{}
 	for _, t := range f.Tickets {
 		edges[t.FileNumber] = t.BlockedBy
 	}
-	for n, b := range override {
-		edges[n] = b
+	return edges
+}
+
+// newCycle returns a blocker cycle in after that uses an edge before
+// doesn't have, as ticket IDs that start and end with the same ticket. It
+// returns nil when every cycle in after already existed in before.
+func newCycle(before, after map[int][]int) []string {
+	for _, n := range slices.Sorted(maps.Keys(after)) {
+		for _, m := range after[n] {
+			if m == n || slices.Contains(before[n], m) {
+				continue
+			}
+			if path := blockerPath(after, m, n); path != nil {
+				ids := []string{doc.TicketID(n)}
+				for _, p := range path {
+					ids = append(ids, doc.TicketID(p))
+				}
+				return ids
+			}
+		}
 	}
-	nodes := make([]int, 0, len(edges))
-	for n := range edges {
-		nodes = append(nodes, n)
+	return nil
+}
+
+// blockerPath returns the shortest chain of blockers from one ticket to
+// another, including both ends, or nil when there is none.
+func blockerPath(edges map[int][]int, from, to int) []int {
+	prev := map[int]int{from: from}
+	queue := []int{from}
+	for len(queue) > 0 {
+		n := queue[0]
+		queue = queue[1:]
+		if n == to {
+			path := []int{n}
+			for n != from {
+				n = prev[n]
+				path = append(path, n)
+			}
+			slices.Reverse(path)
+			return path
+		}
+		for _, m := range edges[n] {
+			if _, seen := prev[m]; !seen {
+				prev[m] = n
+				queue = append(queue, m)
+			}
+		}
 	}
-	sort.Ints(nodes)
+	return nil
+}
+
+// cycles returns each blocker cycle once.
+func (f *Feature) cycles() [][]string {
+	edges := f.blockerEdges()
+	nodes := slices.Sorted(maps.Keys(edges))
 
 	const (
 		white = iota
@@ -228,9 +283,9 @@ func (f *Feature) cycles(override map[int][]int) [][]string {
 				}
 			case grey:
 				var cyc []int
-				for i := len(stack) - 1; i >= 0; i-- {
-					cyc = append([]int{stack[i]}, cyc...)
-					if stack[i] == m {
+				for _, s := range slices.Backward(stack) {
+					cyc = append([]int{s}, cyc...)
+					if s == m {
 						break
 					}
 				}

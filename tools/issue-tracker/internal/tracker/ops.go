@@ -249,7 +249,7 @@ func (a *applier) run() error {
 			return err
 		}
 		if t.Base == "" {
-			sha, err := a.commit(true)
+			sha, err := a.commit()
 			if err != nil {
 				return err
 			}
@@ -264,7 +264,7 @@ func (a *applier) run() error {
 		if !impl || t.Phase != doc.PhaseImplement || t.Status != doc.StatusInProgress {
 			return invalidTransition(a.op, t, "an implementation ticket in implement/in-progress")
 		}
-		sha, err := a.commit(true)
+		sha, err := a.commit()
 		if err != nil {
 			return err
 		}
@@ -317,7 +317,7 @@ func (a *applier) run() error {
 		if t.Base != "" {
 			return apperr.New("base_already_set", "ticket %s already has base commit %s, which never changes", t.ID(), t.Base)
 		}
-		sha, err := a.commit(true)
+		sha, err := a.commit()
 		if err != nil {
 			return err
 		}
@@ -344,7 +344,7 @@ func (a *applier) run() error {
 		if err := a.requireBlockersDone(); err != nil {
 			return err
 		}
-		sha, err := a.commit(true)
+		sha, err := a.commit()
 		if err != nil {
 			return err
 		}
@@ -448,12 +448,9 @@ func (a *applier) setMeta(key, value string) {
 	a.t.Reparse()
 }
 
-func (a *applier) commit(required bool) (string, error) {
+func (a *applier) commit() (string, error) {
 	if a.in.Commit == "" {
-		if required {
-			return "", apperr.Usage("invalid_input", "%s needs `commit` (or --commit), such as HEAD or a full SHA", a.op)
-		}
-		return "", nil
+		return "", apperr.Usage("invalid_input", "%s needs `commit` (or --commit), such as HEAD or a full SHA", a.op)
 	}
 	return a.tr.Store.ResolveCommit(a.in.Commit)
 }

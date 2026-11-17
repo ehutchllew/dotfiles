@@ -74,84 +74,114 @@ func TestValidation(t *testing.T) {
 			if s.Valid == (len(c.want) > 0) {
 				t.Fatalf("valid=%v with errors %+v", s.Valid, s.Errors)
 			}
-			has := func(errs []problem, w string) bool {
-				for _, e := range errs {
-					if e.Code == w || e.Ticket+":"+e.Code == w {
-						return true
-					}
+			checkProblems(t, "status", s.Errors, c.want, c.absent)
+
+			full := r.run("", "validate", co)
+			if len(c.want) == 0 {
+				if full.code != 0 {
+					t.Fatalf("validate: exit %d: %s", full.code, full.raw)
 				}
-				return false
-			}
-			for _, w := range c.want {
-				if !has(s.Errors, w) {
-					t.Fatalf("missing %s in %+v", w, s.Errors)
-				}
-			}
-			for _, a := range c.absent {
-				if has(s.Errors, a) {
-					t.Fatalf("unexpected %s in %+v", a, s.Errors)
-				}
+			} else {
+				checkProblems(t, "validate", validationErrors(t, full, "full"), c.want, c.absent)
 			}
 
-			res := r.run("", "validate", co)
-			if (res.code == 0) != (len(c.want) == 0) {
-				t.Fatalf("validate exit %d: %s", res.code, res.raw)
-			}
 			draft := r.run("", "validate", co, "--draft")
-			var draftErrs []problem
-			if draft.code != 0 {
-				e := draft.err(t)
-				for _, p := range e.Details["errors"].([]any) {
-					m := p.(map[string]any)
-					ticket, _ := m["ticket"].(string)
-					draftErrs = append(draftErrs, problem{Code: m["code"].(string), Ticket: ticket})
+			if len(c.want) == 0 || c.full {
+				if draft.code != 0 {
+					t.Fatalf("validate --draft must pass: exit %d: %s", draft.code, draft.raw)
 				}
-			}
-			for _, w := range c.want {
-				if has(draftErrs, w) == c.full {
-					t.Fatalf("draft validation: %s present=%v, want %v", w, !c.full, !c.full)
-				}
+			} else {
+				checkProblems(t, "validate --draft", validationErrors(t, draft, "draft"), c.want, c.absent)
 			}
 		})
+	}
+}
+
+// validationErrors decodes a validation_failed reply and checks its mode.
+func validationErrors(t *testing.T, res result, mode string) []problem {
+	t.Helper()
+	out := decode[struct {
+		Error struct {
+			Code    string `json:"code"`
+			Details struct {
+				Errors []problem `json:"errors"`
+				Mode   string    `json:"mode"`
+			} `json:"details"`
+		} `json:"error"`
+	}](t, res)
+	if res.code != 1 || out.Error.Code != "validation_failed" || out.Error.Details.Mode != mode {
+		t.Fatalf("want a %s validation failure, got exit %d: %s", mode, res.code, res.raw)
+	}
+	return out.Error.Details.Errors
+}
+
+// checkProblems checks that errs has every wanted problem and none of the
+// absent ones. Each is "code" or "ticket:code".
+func checkProblems(t *testing.T, what string, errs []problem, want, absent []string) {
+	t.Helper()
+	has := func(w string) bool {
+		for _, e := range errs {
+			if e.Code == w || e.Ticket+":"+e.Code == w {
+				return true
+			}
+		}
+		return false
+	}
+	for _, w := range want {
+		if !has(w) {
+			t.Errorf("%s: missing %s in %+v", what, w, errs)
+		}
+	}
+	for _, a := range absent {
+		if has(a) {
+			t.Errorf("%s: unexpected %s in %+v", what, a, errs)
+		}
 	}
 }
 
 func TestAmbiguousAndMissingDocuments(t *testing.T) {
 	r := newRepo(t, co)
 	r.write(".scratch/checkout/issues/01-copy.md", r.read(r.ticket(co, "01").Path))
-	e := r.fails("ambiguous_ticket", "", "ticket", "get", co, "01")
+	e := r.fails(1, "ambiguous_ticket", "", "ticket", "get", co, "01")
 	if len(e.Details["paths"].([]any)) != 2 {
 		t.Fatalf("details: %+v", e.Details)
 	}
-	r.fails("ambiguous_ticket", "", "ticket", "claim", co, "01", "--if-match", "x", "--commit", shaA)
-	r.fails("ticket_not_found", "", "ticket", "get", co, "09")
-	r.fails("feature_not_found", "", "status", "missing")
-	r.fails("feature_not_found", "", "spec", "get", "missing")
+	r.fails(1, "ambiguous_ticket", "", "ticket", "claim", co, "01", "--if-match", "x", "--commit", shaA)
+	r.fails(1, "ticket_not_found", "", "ticket", "get", co, "09")
+	r.fails(1, "feature_not_found", "", "status", "missing")
+	r.fails(1, "feature_not_found", "", "spec", "get", "missing")
 }
 
 func TestUnsafePaths(t *testing.T) {
 	r := newRepo(t, co)
 	outside := t.TempDir()
-	os.WriteFile(filepath.Join(outside, "spec.md"), []byte("# Outside\n"), 0o644)
+	if err := os.WriteFile(filepath.Join(outside, "spec.md"), []byte("# Outside\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
 
-	os.Symlink(outside, filepath.Join(r.root, ".scratch", "linked"))
-	r.fails("unsafe_path", "", "spec", "get", "linked")
-	r.fails("unsafe_path", `{"attempt_limit":4}`, "spec", "edit", "linked", "--if-match", "x", "--input", "-")
+	if err := os.Symlink(outside, filepath.Join(r.root, ".scratch", "linked")); err != nil {
+		t.Fatal(err)
+	}
+	r.fails(1, "unsafe_path", "", "spec", "get", "linked")
+	r.fails(1, "unsafe_path", `{"attempt_limit":4}`, "spec", "edit", "linked", "--if-match", "x", "--input", "-")
 
-	os.MkdirAll(filepath.Join(r.root, ".scratch", "filelink"), 0o755)
-	os.Symlink(filepath.Join(outside, "spec.md"), filepath.Join(r.root, ".scratch", "filelink", "spec.md"))
-	r.fails("unsafe_path", "", "status", "filelink")
-	if b, _ := os.ReadFile(filepath.Join(outside, "spec.md")); string(b) != "# Outside\n" {
-		t.Fatal("wrote through a symlink")
+	if err := os.MkdirAll(filepath.Join(r.root, ".scratch", "filelink"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(filepath.Join(outside, "spec.md"), filepath.Join(r.root, ".scratch", "filelink", "spec.md")); err != nil {
+		t.Fatal(err)
+	}
+	r.fails(1, "unsafe_path", "", "status", "filelink")
+	if b, err := os.ReadFile(filepath.Join(outside, "spec.md")); err != nil || string(b) != "# Outside\n" {
+		t.Fatalf("wrote through a symlink: %q %v", b, err)
 	}
 
 	for _, id := range []string{"../etc", ".hidden", "a/b", "a..b"} {
-		r.fails("invalid_feature_id", "", "status", id)
+		r.fails(2, "invalid_feature_id", "", "status", id)
 	}
-	var list struct {
+	list := okReply[struct {
 		Features []struct{ Feature string } `json:"features"`
-	}
-	r.ok(&list, "", "feature", "list")
+	}](r, "", "feature", "list")
 	if len(list.Features) != 1 || list.Features[0].Feature != co {
 		t.Fatalf("feature list must skip symlinked features: %+v", list)
 	}

@@ -16,17 +16,15 @@ func TestDocumentedExamplesAreUsable(t *testing.T) {
 	if !s.Tickets[0].Ready || s.Tickets[1].Ready || s.Tickets[2].Ready {
 		t.Fatalf("readiness: %+v", s.Tickets)
 	}
-	var features struct {
+	features := okReply[struct {
 		Features []struct{ Feature, Title string } `json:"features"`
-	}
-	r.ok(&features, "", "feature", "list")
+	}](r, "", "feature", "list")
 	if len(features.Features) != 1 || features.Features[0].Title != "Order summary" {
 		t.Fatalf("features: %+v", features)
 	}
 	// Reads return the file bytes unchanged.
-	var spec, tk docReply
-	r.ok(&spec, "", "spec", "get", orders)
-	r.ok(&tk, "", "ticket", "get", orders, "1")
+	spec := okReply[docReply](r, "", "spec", "get", orders)
+	tk := okReply[docReply](r, "", "ticket", "get", orders, "1")
 	if *spec.Body != r.read(".scratch/order-summary/spec.md") || *tk.Body != r.read(r.ticket(orders, "01").Path) {
 		t.Fatal("a read changed the document bytes")
 	}
@@ -105,9 +103,7 @@ func TestCRLFDocumentsKeepTheirLineEndings(t *testing.T) {
 	crlf := strings.ReplaceAll(r.read(path), "\n", "\r\n")
 	r.write(path, crlf)
 
-	var d docReply
-	r.ok(&d, "", "ticket", "get", orders, "01")
-	if *d.Body != crlf {
+	if d := okReply[docReply](r, "", "ticket", "get", orders, "01"); *d.Body != crlf {
 		t.Fatal("ticket get changed CRLF bytes")
 	}
 	r.op(orders, "01", "claim", `{"commit":"`+shaA+`"}`)
@@ -160,8 +156,29 @@ func TestCommentRendering(t *testing.T) {
 		t.Fatalf("status: %+v", s)
 	}
 	golden(t, "comments/01-show-counts.md", r.read(r.ticket("checkout", "01").Path))
+}
 
-	// A fence in one value can't swallow the rest of the ticket.
-	r.opFails("invalid_input", "checkout", "01", "comment", `{"notes":["`+"```"+`text\nunclosed"]}`)
-	r.opFails("unknown_finding", "checkout", "01", "comment", `{"resolved":[{"finding":"Rename n","resolution":"fixed"}]}`)
+// TestCommentInputRejected checks comment input that would break the
+// ticket or resolve a finding the ticket doesn't have open.
+func TestCommentInputRejected(t *testing.T) {
+	for _, c := range []struct {
+		name  string
+		input string
+		exit  int
+		err   string
+	}{
+		// A fence in one value can't swallow the rest of the ticket.
+		{"unclosed fence", `{"notes":["` + "```" + `text\nunclosed"]}`, 2, "invalid_input"},
+		{"finding text that doesn't match", `{"resolved":[{"finding":"Rename n","resolution":"fixed"}]}`, 1, "unknown_finding"},
+		{"finding already resolved", `{"resolved":[{"finding":"Split the long function.","resolution":"fixed"}]}`, 1, "unknown_finding"},
+		{"unknown resolution", `{"resolved":[{"finding":"Rename ` + "`n`" + `.","resolution":"deleted"}]}`, 2, "invalid_input"},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			r := newRepo(t, co)
+			r.setMeta(co, "01", "Phase", "review", "Attempt", "1", "Base commit", shaA, "Target commit", shaB)
+			r.op(co, "01", "send-back", `{"findings":["Blocking (wrong): x."],"not_blocking":["Rename `+"`n`"+`.","Split the long function."]}`)
+			r.op(co, "01", "comment", `{"resolved":[{"finding":"Split the long function.","resolution":"fixed"}]}`)
+			r.opFails(c.exit, c.err, co, "01", "comment", c.input)
+		})
+	}
 }

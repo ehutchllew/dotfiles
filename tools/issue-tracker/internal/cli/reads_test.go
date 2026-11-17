@@ -5,39 +5,57 @@ import (
 	"testing"
 )
 
-func TestConditionalReads(t *testing.T) {
+func TestConditionalSpecRead(t *testing.T) {
 	r := newRepo(t, co)
-	var first, again docReply
-	r.ok(&first, "", "spec", "get", co)
+	first := okReply[docReply](r, "", "spec", "get", co)
 	if first.Body == nil || first.Revision != 1 {
 		t.Fatalf("cold read: %+v", first)
 	}
-	r.ok(&again, "", "spec", "get", co, "--if-changed", first.Hash)
-	if !again.Unchanged || again.Body != nil || again.Hash != first.Hash {
+	if again := okReply[docReply](r, "", "spec", "get", co, "--if-changed", first.Hash); !again.Unchanged || again.Body != nil || again.Hash != first.Hash {
 		t.Fatalf("conditional read: %+v", again)
 	}
+	// Reads leave no "last read" state: a read without a hash has a body.
+	if again := okReply[docReply](r, "", "spec", "get", co); again.Unchanged || again.Body == nil {
+		t.Fatalf("cold read after a conditional read: %+v", again)
+	}
+}
 
-	// A ticket write leaves the spec hash alone.
-	r.op(co, "01", "claim", commit(shaA))
-	if r.ok(&again, "", "spec", "get", co, "--if-changed", first.Hash); !again.Unchanged {
-		t.Fatal("a ticket write changed the spec hash")
-	}
-	// An attempt-limit change keeps the revision but changes the hash.
-	r.ok(nil, `{"attempt_limit":5}`, "spec", "edit", co, "--if-match", first.Hash, "--input", "-")
-	if r.ok(&again, "", "spec", "get", co, "--if-changed", first.Hash); again.Unchanged || again.Body == nil || again.Revision != 1 || again.AttemptLimit != 5 {
-		t.Fatalf("after an attempt-limit change: %+v", again)
-	}
-	// A hand edit to a ticket changes its hash.
+func TestConditionalTicketRead(t *testing.T) {
+	r := newRepo(t, co)
 	tk := r.ticket(co, "02")
+	if d := okReply[docReply](r, "", "ticket", "get", co, "02", "--if-changed", tk.Hash); !d.Unchanged || d.Body != nil || d.Hash != tk.Hash {
+		t.Fatalf("conditional read: %+v", d)
+	}
+	// A hand edit changes the hash.
 	r.edit(tk.Path, "## Comments\n", "## Comments\n\nA hand-written note.\n")
-	var d docReply
-	if r.ok(&d, "", "ticket", "get", co, "02", "--if-changed", tk.Hash); d.Unchanged || d.Body == nil || d.Hash == tk.Hash {
+	if d := okReply[docReply](r, "", "ticket", "get", co, "02", "--if-changed", tk.Hash); d.Unchanged || d.Body == nil || d.Hash == tk.Hash {
 		t.Fatalf("after a hand edit: %+v", d)
 	}
-	// Reads leave no "last read" state: a read without a hash always has a body.
-	r.ok(&d, "", "ticket", "get", co, "02")
-	if d.Body == nil {
-		t.Fatal("a cold read had no body")
+}
+
+// TestHashesArePerDocument checks that a write changes only the hash of the
+// document it writes, and that the spec hash follows its bytes rather than
+// its revision.
+func TestHashesArePerDocument(t *testing.T) {
+	r := newRepo(t, co)
+	spec := r.specHash(co)
+	other := r.ticket(co, "02").Hash
+
+	r.op(co, "01", "claim", commit(shaA))
+	if d := okReply[docReply](r, "", "spec", "get", co, "--if-changed", spec); !d.Unchanged {
+		t.Fatal("a ticket write changed the spec hash")
+	}
+	if r.ticket(co, "02").Hash != other {
+		t.Fatal("a write to ticket 01 changed the hash of ticket 02")
+	}
+
+	ticket := r.ticket(co, "01").Hash
+	r.ok(`{"attempt_limit":5}`, "spec", "edit", co, "--if-match", spec, "--input", "-")
+	if d := okReply[docReply](r, "", "spec", "get", co, "--if-changed", spec); d.Unchanged || d.Body == nil || d.Revision != 1 || d.AttemptLimit != 5 {
+		t.Fatalf("an attempt-limit change must change the hash but not the revision: %+v", d)
+	}
+	if d := okReply[docReply](r, "", "ticket", "get", co, "01", "--if-changed", ticket); !d.Unchanged {
+		t.Fatal("a spec write changed a ticket hash")
 	}
 }
 
@@ -48,12 +66,11 @@ func TestTicketHistory(t *testing.T) {
 	r.op(co, "01", "revise", `{"reason":"Spec revision 2."}`)
 	r.op(co, "01", "claim", commit(shaB))
 
-	var cur, full docReply
-	r.ok(&cur, "", "ticket", "get", co, "01")
+	cur := okReply[docReply](r, "", "ticket", "get", co, "01")
 	if cur.History != "current" || cur.OmittedComments != 1 || strings.Contains(*cur.Body, "Blocking (missing): old.") || !strings.Contains(*cur.Body, "revise (attempt 1):") {
 		t.Fatalf("current history: %+v\n%s", cur, *cur.Body)
 	}
-	r.ok(&full, "", "ticket", "get", co, "01", "--full")
+	full := okReply[docReply](r, "", "ticket", "get", co, "01", "--full")
 	if *full.Body != r.read(cur.Path) || full.Hash != cur.Hash || full.History != "full" {
 		t.Fatal("--full must return the file bytes")
 	}
@@ -89,37 +106,12 @@ func TestReadsChangeNothing(t *testing.T) {
 		{"ticket", "get", co, "01", "--full", "--if-changed", h},
 		{"help"},
 	} {
-		r.ok(nil, "", args...)
+		r.ok("", args...)
 	}
 	// Writes that change nothing write nothing.
 	r.op(co, "01", "claim", commit(shaB))
-	r.ok(nil, `{"title":"Show counts"}`, "ticket", "edit", co, "01", "--if-match", h, "--input", "-")
+	r.ok(`{"title":"Show counts"}`, "ticket", "edit", co, "01", "--if-match", h, "--input", "-")
 	if after := snapshot(t, r.root); after != before {
 		t.Fatalf("the checkout changed:\nbefore:\n%s\nafter:\n%s", before, after)
-	}
-}
-
-func TestCancelUpdatesOtherTickets(t *testing.T) {
-	r := newRepo(t, co)
-	w := r.op(co, "02", "cancel", `{"reason":"Not needed."}`)
-	if len(w.Changed) != 2 || w.Hashes["04"] != r.ticket(co, "04").Hash || w.CommitSubject != "tickets: cancel 02" {
-		t.Fatalf("cancel: %+v", w)
-	}
-	if b := r.ticket(co, "04").BlockedBy; strings.Join(b, ",") != "01,03" {
-		t.Fatalf("blockers %v", b)
-	}
-	// Losing ticket 02 leaves US 2 without an implementation ticket.
-	s := r.status(co)
-	if s.Valid || s.Errors[0].Code != "story_not_covered" {
-		t.Fatalf("status: %+v", s.Errors)
-	}
-	r.op(co, "03", "cancel", "")
-	r.op(co, "01", "cancel", "")
-	if !strings.Contains(r.read(r.ticket(co, "04").Path), "Kind: acceptance\nStatus: open\nCovers:") {
-		t.Fatal("an empty Blocked by line must be removed")
-	}
-	// Cancelling again repairs leftovers and otherwise changes nothing.
-	if w := r.op(co, "01", "cancel", ""); !w.Unchanged {
-		t.Fatalf("%+v", w)
 	}
 }

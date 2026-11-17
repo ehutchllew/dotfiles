@@ -165,5 +165,3 @@ func (f *Feature) nextNumber() int {
 	}
 	return max + 1
 }
-
-func specPath(id string) string { return store.SpecPath(id) }

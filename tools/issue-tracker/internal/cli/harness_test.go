@@ -8,7 +8,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -22,7 +21,11 @@ var update = flag.Bool("update", false, "rewrite golden files")
 // runs it when ISSUE_TRACKER_TEST_EXEC is set.
 func TestMain(m *testing.M) {
 	if os.Getenv("ISSUE_TRACKER_TEST_EXEC") == "1" {
-		dir, _ := os.Getwd()
+		dir, err := os.Getwd()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 		os.Exit(cli.Run(os.Args[1:], cli.Env{Dir: dir, Stdin: os.Stdin, Stdout: os.Stdout, Stderr: os.Stderr}))
 	}
 	os.Exit(m.Run())
@@ -43,55 +46,38 @@ type repo struct {
 
 func newRepo(t *testing.T, features ...string) *repo {
 	t.Helper()
-	root, _ := filepath.EvalSymlinks(t.TempDir())
+	root, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err := os.Mkdir(filepath.Join(root, ".git"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	t.Setenv("ISSUE_TRACKER_LOCK_DIR", t.TempDir())
 	r := &repo{t: t, root: root}
 	for _, f := range features {
-		r.copyFeature(f)
+		src := os.DirFS(filepath.Join("testdata", "features", f))
+		if err := os.CopyFS(filepath.Join(root, ".scratch", f), src); err != nil {
+			t.Fatal(err)
+		}
 	}
 	return r
 }
 
-func (r *repo) copyFeature(name string) {
-	r.t.Helper()
-	src := filepath.Join("testdata", "features", name)
-	err := filepath.WalkDir(src, func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		rel, _ := filepath.Rel(src, p)
-		dst := filepath.Join(r.root, ".scratch", name, rel)
-		if d.IsDir() {
-			return os.MkdirAll(dst, 0o755)
-		}
-		b, err := os.ReadFile(p)
-		if err != nil {
-			return err
-		}
-		return os.WriteFile(dst, b, 0o644)
-	})
-	if err != nil {
-		r.t.Fatal(err)
-	}
-}
-
 type result struct {
-	code int
-	raw  string
+	code   int
+	raw    string
+	stderr string
 }
 
-// decode replaces v with the reply, so fields from an earlier reply decoded
-// into the same variable don't survive.
-func (res result) decode(t *testing.T, v any) {
+// decode parses a reply into a new T.
+func decode[T any](t *testing.T, res result) T {
 	t.Helper()
-	target := reflect.ValueOf(v).Elem()
-	target.Set(reflect.Zero(target.Type()))
-	if err := json.Unmarshal([]byte(res.raw), v); err != nil {
+	var v T
+	if err := json.Unmarshal([]byte(res.raw), &v); err != nil {
 		t.Fatalf("bad JSON %q: %v", res.raw, err)
 	}
+	return v
 }
 
 type apiError struct {
@@ -102,10 +88,9 @@ type apiError struct {
 
 func (res result) err(t *testing.T) apiError {
 	t.Helper()
-	var out struct {
+	out := decode[struct {
 		Error *apiError `json:"error"`
-	}
-	res.decode(t, &out)
+	}](t, res)
 	if out.Error == nil {
 		t.Fatalf("expected an error, got %s", res.raw)
 	}
@@ -116,35 +101,38 @@ func (res result) err(t *testing.T) apiError {
 func (r *repo) runIn(dir, stdin string, args ...string) result {
 	var out, errOut bytes.Buffer
 	code := cli.Run(args, cli.Env{Dir: dir, Stdin: strings.NewReader(stdin), Stdout: &out, Stderr: &errOut})
-	return result{code: code, raw: out.String()}
+	return result{code: code, raw: out.String(), stderr: errOut.String()}
 }
 
 func (r *repo) run(stdin string, args ...string) result {
 	return r.runIn(r.root, stdin, args...)
 }
 
-// ok runs a command that must succeed and decodes its reply into v.
-func (r *repo) ok(v any, stdin string, args ...string) {
+// ok runs a command that must succeed.
+func (r *repo) ok(stdin string, args ...string) result {
 	r.t.Helper()
 	res := r.run(stdin, args...)
 	if res.code != 0 {
 		r.t.Fatalf("%v: exit %d: %s", args, res.code, res.raw)
 	}
-	if v != nil {
-		res.decode(r.t, v)
-	}
+	return res
 }
 
-// fails runs a command that must fail with code and returns the error.
-func (r *repo) fails(code string, stdin string, args ...string) apiError {
+// okReply runs a command that must succeed and decodes its reply.
+func okReply[T any](r *repo, stdin string, args ...string) T {
+	r.t.Helper()
+	return decode[T](r.t, r.ok(stdin, args...))
+}
+
+// fails runs a command that must exit with exit and report the error code,
+// and returns the error. Exit 2 is for bad arguments or input and exit 1 is
+// for other failures, but one code can come with either exit.
+func (r *repo) fails(exit int, code string, stdin string, args ...string) apiError {
 	r.t.Helper()
 	res := r.run(stdin, args...)
-	if res.code == 0 {
-		r.t.Fatalf("%v: expected %s, got success: %s", args, code, res.raw)
-	}
 	e := res.err(r.t)
-	if e.Code != code {
-		r.t.Fatalf("%v: got %s (%s), want %s", args, e.Code, e.Message, code)
+	if e.Code != code || res.code != exit {
+		r.t.Fatalf("%v: got exit %d with %s (%s), want exit %d with %s", args, res.code, e.Code, e.Message, exit, code)
 	}
 	return e
 }
@@ -161,6 +149,7 @@ type writeReply struct {
 	Changed       []string          `json:"changed"`
 	Hashes        map[string]string `json:"hashes"`
 	CommitSubject string            `json:"commit_subject"`
+	GitIgnored    *bool             `json:"git_ignored"`
 	Note          string            `json:"note"`
 }
 
@@ -217,17 +206,14 @@ type docReply struct {
 
 func (r *repo) status(feature string) statusReply {
 	r.t.Helper()
-	var s statusReply
-	r.ok(&s, "", "status", feature)
-	return s
+	return okReply[statusReply](r, "", "status", feature)
 }
 
 func (r *repo) ticket(feature, n string) ticketSummary {
 	r.t.Helper()
-	var list struct {
+	list := okReply[struct {
 		Tickets []ticketSummary `json:"tickets"`
-	}
-	r.ok(&list, "", "ticket", "list", feature)
+	}](r, "", "ticket", "list", feature)
 	for _, t := range list.Tickets {
 		if t.Ticket == n {
 			return t
@@ -239,26 +225,22 @@ func (r *repo) ticket(feature, n string) ticketSummary {
 
 func (r *repo) specHash(feature string) string {
 	r.t.Helper()
-	var d docReply
-	r.ok(&d, "", "spec", "get", feature)
-	return d.Hash
+	return okReply[docReply](r, "", "spec", "get", feature).Hash
 }
 
 // op runs a state operation with the ticket's current hash.
 func (r *repo) op(feature, n, name, input string) writeReply {
 	r.t.Helper()
-	var w writeReply
-	r.ok(&w, input, r.opArgs(feature, n, name, input)...)
-	return w
+	return okReply[writeReply](r, input, r.opArgs(feature, n, name, input)...)
 }
 
 // opFails runs a state operation that must fail, and checks that the
 // ticket file didn't change.
-func (r *repo) opFails(code, feature, n, name, input string) apiError {
+func (r *repo) opFails(exit int, code, feature, n, name, input string) apiError {
 	r.t.Helper()
 	path := r.ticket(feature, n).Path
 	before := r.read(path)
-	e := r.fails(code, input, r.opArgs(feature, n, name, input)...)
+	e := r.fails(exit, code, input, r.opArgs(feature, n, name, input)...)
 	if r.read(path) != before {
 		r.t.Fatalf("a failed %s changed the ticket", name)
 	}
@@ -285,7 +267,9 @@ func (r *repo) read(rel string) string {
 func (r *repo) write(rel, content string) {
 	r.t.Helper()
 	p := filepath.Join(r.root, rel)
-	os.MkdirAll(filepath.Dir(p), 0o755)
+	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+		r.t.Fatal(err)
+	}
 	if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
 		r.t.Fatal(err)
 	}
@@ -341,20 +325,32 @@ func (r *repo) lastComment(feature, n string) string {
 func snapshot(t *testing.T, root string) string {
 	t.Helper()
 	var b strings.Builder
-	filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
-			t.Fatal(err)
+			return err
 		}
-		info, _ := d.Info()
-		rel, _ := filepath.Rel(root, p)
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(root, p)
+		if err != nil {
+			return err
+		}
 		fmt.Fprintf(&b, "%s %v %d %d", rel, info.Mode(), info.Size(), info.ModTime().UnixNano())
 		if d.Type().IsRegular() {
-			data, _ := os.ReadFile(p)
+			data, err := os.ReadFile(p)
+			if err != nil {
+				return err
+			}
 			fmt.Fprintf(&b, " %q", data)
 		}
 		b.WriteString("\n")
 		return nil
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
 	return b.String()
 }
 
@@ -363,7 +359,9 @@ func golden(t *testing.T, name, got string) {
 	t.Helper()
 	p := filepath.Join("testdata", "golden", name)
 	if *update {
-		os.MkdirAll(filepath.Dir(p), 0o755)
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
 		if err := os.WriteFile(p, []byte(got), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -376,13 +374,4 @@ func golden(t *testing.T, name, got string) {
 	if got != string(want) {
 		t.Fatalf("%s differs from the golden file.\ngot:\n%s\nwant:\n%s", name, got, want)
 	}
-}
-
-func intp(n int) *int { return &n }
-
-func attempt(t ticketSummary) int {
-	if t.Attempt == nil {
-		return -1
-	}
-	return *t.Attempt
 }

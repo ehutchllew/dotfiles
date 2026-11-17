@@ -4,8 +4,6 @@ package store
 
 import (
 	"bufio"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"io/fs"
 	"os"
@@ -247,36 +245,38 @@ func (l *Local) Write(rel string, data []byte, create bool) error {
 		return apperr.New("not_found", "%s doesn't exist", rel)
 	}
 
-	var suffix [6]byte
-	_, _ = rand.Read(suffix[:])
-	tmp := filepath.Join(dir, ".issue-tracker-"+hex.EncodeToString(suffix[:])+".tmp")
-	f, err := os.OpenFile(tmp, os.O_WRONLY|os.O_CREATE|os.O_EXCL, mode)
+	fail := func(err error) error {
+		return apperr.New("write_failed", "can't write %s: %v", rel, err)
+	}
+	// The temporary file sits next to the target so the rename is atomic.
+	// Its name starts with a dot so ticket listings skip it.
+	f, err := os.CreateTemp(dir, ".issue-tracker-*.tmp")
 	if err != nil {
-		return apperr.New("write_failed", "can't write %s: %v", rel, err)
+		return fail(err)
 	}
-	cleanup := func(err error) error {
-		f.Close()
-		os.Remove(tmp)
-		return apperr.New("write_failed", "can't write %s: %v", rel, err)
-	}
+	renamed := false
+	defer func() {
+		if !renamed {
+			f.Close()
+			os.Remove(f.Name())
+		}
+	}()
 	if _, err := f.Write(data); err != nil {
-		return cleanup(err)
+		return fail(err)
+	}
+	if err := f.Chmod(mode); err != nil {
+		return fail(err)
 	}
 	if err := f.Sync(); err != nil {
-		return cleanup(err)
+		return fail(err)
 	}
 	if err := f.Close(); err != nil {
-		os.Remove(tmp)
-		return apperr.New("write_failed", "can't write %s: %v", rel, err)
+		return fail(err)
 	}
-	if err := os.Chmod(tmp, mode); err != nil {
-		os.Remove(tmp)
-		return apperr.New("write_failed", "can't write %s: %v", rel, err)
+	if err := os.Rename(f.Name(), full); err != nil {
+		return fail(err)
 	}
-	if err := os.Rename(tmp, full); err != nil {
-		os.Remove(tmp)
-		return apperr.New("write_failed", "can't write %s: %v", rel, err)
-	}
+	renamed = true
 	if d, err := os.Open(dir); err == nil {
 		_ = d.Sync()
 		d.Close()
@@ -313,7 +313,7 @@ func (l *Local) checkPath(rel string) error {
 		return apperr.New("unsafe_path", "%s is outside %s", rel, ScratchDir)
 	}
 	cur := l.Root
-	for _, p := range strings.Split(clean, "/") {
+	for p := range strings.SplitSeq(clean, "/") {
 		if p == ".." || p == "." || p == "" {
 			return apperr.New("unsafe_path", "%s is not a plain path", rel)
 		}

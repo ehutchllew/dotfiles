@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -31,7 +32,7 @@ func Split(b []byte) *Document {
 	}
 	d.FinalNewline = strings.HasSuffix(s, "\n")
 	s = strings.TrimSuffix(s, "\n")
-	for _, line := range strings.Split(s, "\n") {
+	for line := range strings.SplitSeq(s, "\n") {
 		d.Lines = append(d.Lines, strings.TrimSuffix(line, "\r"))
 	}
 	return d
@@ -251,9 +252,9 @@ func SetMeta(d *Document, key, value string, order []string) error {
 // RemoveMeta deletes every metadata line with key.
 func RemoveMeta(d *Document, key string) {
 	s := ParseStructure(d)
-	for i := len(s.Meta) - 1; i >= 0; i-- {
-		if s.Meta[i].Key == key {
-			d.Lines = append(d.Lines[:s.Meta[i].Line], d.Lines[s.Meta[i].Line+1:]...)
+	for _, m := range slices.Backward(s.Meta) {
+		if m.Key == key {
+			d.Lines = append(d.Lines[:m.Line], d.Lines[m.Line+1:]...)
 		}
 	}
 }

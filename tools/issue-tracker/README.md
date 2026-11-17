@@ -28,9 +28,9 @@ echo '{"reason":"Out of disk."}' | issue-tracker ticket stop order-summary 03 --
 
 The target repository is the nearest directory above the working directory with a `.git` entry. A git worktree has a `.git` file, so it uses its own `.scratch/`. `--repo DIR` overrides the search. The install location never matters.
 
-Every command prints one JSON object on stdout. `--pretty` indents it. Failures print `{"error":{"code":"...","message":"...","details":{...}}}` and exit with 1, or 2 for bad arguments or input. A conditional read that finds no change is a success.
+Every command prints one JSON object on stdout. `--pretty` indents it. Failures print `{"error":{"code":"...","message":"...","details":{...}}}` and exit with 1, or 2 for bad arguments or input. A conditional read that finds no change is a success. If stdout can't be written, the command explains on stderr. A command that succeeded then exits with 1. A command that failed keeps its exit status of 1 or 2, and stderr shows the JSON error code and message it couldn't print. Changes may already be on disk, so read the documents again before retrying.
 
-Writes take JSON through `--input FILE`, or `--input -` for stdin. Unknown or misspelled fields fail. Writes to an existing document need `--if-match HASH` with the hash from the caller's last read. A mismatch fails with code `stale` and the current hash. Write responses list the changed paths, their new hashes, and a commit subject. The CLI never commits, stages, or changes git configuration. It does read git to resolve refs such as `HEAD` and to report whether storage is ignored.
+Writes take one JSON object through `--input FILE`, or `--input -` for stdin. Unknown or misspelled fields fail. Writes to an existing document need `--if-match HASH` with the hash from the caller's last read. A mismatch fails with code `stale` and the current hash. Write responses list the changed paths, their new hashes, and a commit subject. The CLI never commits, stages, or changes git configuration. It does read git to resolve refs such as `HEAD` and to report whether storage is ignored.
 
 ## Storage
 
@@ -210,6 +210,6 @@ go test ./...
 go vet ./...
 ```
 
-The tests run the CLI the way agents do. Each test copies hand-written features from `internal/cli/testdata/features` into a temporary directory, passes arguments and stdin to `cli.Run`, and checks the JSON reply, the exit code, and the bytes on disk. `order-summary` holds the documented examples, and `checkout` has two stories and four tickets. One test runs the CLI as separate processes to check locking. Finished documents are compared with files in `internal/cli/testdata/golden`. After an intended format change, run `go test ./internal/cli -update` and review the diff.
+The tests run the CLI the way agents do. Each test copies hand-written features from `internal/cli/testdata/features` into a temporary directory, passes arguments and stdin to `cli.Run`, and checks the JSON reply, the exit code, and the bytes on disk. `order-summary` holds the documented examples, and `checkout` has two stories and four tickets. One test runs the CLI as separate processes to check locking. Most tests use an empty `.git` directory and full SHAs, so one test creates a real git repository to check ref resolution and `git_ignored`. Finished documents are compared with files in `internal/cli/testdata/golden`. After an intended format change, run `go test ./internal/cli -update` and review the diff.
 
 The only test below the CLI is in `internal/tracker`. It swaps in a storage backend that fails one write, because a disk error on a single file can't be caused from outside.

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"slices"
 	"sort"
 	"strings"
 
@@ -243,7 +244,7 @@ Input:
 
 func opUsage(op string) string {
 	fields := tracker.OperationFields(op)
-	commit := contains(fields, "commit")
+	commit := slices.Contains(fields, "commit")
 	usage := "Usage: issue-tracker ticket " + op + " FEATURE NN --if-match HASH [--input FILE]"
 	if commit {
 		usage += " [--commit REF]"

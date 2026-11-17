@@ -6,8 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/ehutchllew/dotfiles/tools/issue-tracker/internal/apperr"
@@ -93,29 +95,36 @@ func Run(argv []string, env Env) int {
 		if !errors.As(err, &e) {
 			e = apperr.New("internal_error", "%v", err)
 		}
-		writeJSON(env.Stdout, map[string]any{"error": e}, pretty)
+		code := 1
 		if e.Usage {
-			return 2
+			code = 2
 		}
+		if werr := write(env.Stdout, map[string]any{"error": e}, pretty); werr != nil {
+			fmt.Fprintf(env.Stderr, "issue-tracker: %v; writing this error to stdout also failed: %v\n", e, werr)
+		}
+		return code
+	}
+	if werr := write(env.Stdout, out, pretty); werr != nil {
+		// A write command has already changed its files at this point.
+		fmt.Fprintf(env.Stderr, "issue-tracker: the command ran, but writing its response to stdout failed: %v\n", werr)
 		return 1
 	}
-	if s, ok := out.(helpText); ok {
-		fmt.Fprint(env.Stdout, string(s))
-		return 0
-	}
-	writeJSON(env.Stdout, out, pretty)
 	return 0
 }
 
 type helpText string
 
-func writeJSON(w io.Writer, v any, pretty bool) {
+func write(w io.Writer, v any, pretty bool) error {
+	if s, ok := v.(helpText); ok {
+		_, err := io.WriteString(w, string(s))
+		return err
+	}
 	enc := json.NewEncoder(w)
 	enc.SetEscapeHTML(false)
 	if pretty {
 		enc.SetIndent("", "  ")
 	}
-	_ = enc.Encode(v)
+	return enc.Encode(v)
 }
 
 // commandFlags lists each command's own flags.
@@ -154,13 +163,9 @@ func commandOf(pos []string) (string, int) {
 func run(argv []string, env Env) (any, error) {
 	all := map[string]bool{}
 	for _, defs := range commandFlags {
-		for k, v := range defs {
-			all[k] = v
-		}
+		maps.Copy(all, defs)
 	}
-	for k, v := range opFlags {
-		all[k] = v
-	}
+	maps.Copy(all, opFlags)
 	a, err := parse(argv, all)
 	if err != nil {
 		return nil, err
@@ -329,7 +334,7 @@ func run(argv []string, env Env) (any, error) {
 				return nil, err
 			}
 			if c, ok := a.flags["commit"]; ok {
-				if !contains(tracker.OperationFields(words[1]), "commit") {
+				if !slices.Contains(tracker.OperationFields(words[1]), "commit") {
 					return nil, apperr.Usage("usage", "%s doesn't take a commit", words[1])
 				}
 				if in.Commit != "" {
@@ -341,15 +346,6 @@ func run(argv []string, env Env) (any, error) {
 		}
 	}
 	return nil, apperr.Usage("usage", "unknown command %q; run issue-tracker help", cmd)
-}
-
-func contains(list []string, v string) bool {
-	for _, x := range list {
-		if x == v {
-			return true
-		}
-	}
-	return false
 }
 
 func open(repo, dir string) (*tracker.Tracker, error) {

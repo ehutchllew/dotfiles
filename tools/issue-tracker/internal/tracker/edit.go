@@ -143,7 +143,7 @@ func (tr *Tracker) SpecCreate(id string, in *SpecCreateInput) (*WriteResult, err
 		return nil, err
 	}
 	defer unlock()
-	path := specPath(id)
+	path := store.SpecPath(id)
 	if ok, err := tr.Store.Exists(path); err != nil {
 		return nil, err
 	} else if ok {
@@ -188,7 +188,7 @@ func (tr *Tracker) SpecEdit(id, ifMatch string, in *SpecEditInput) (*WriteResult
 		return nil, err
 	}
 	defer unlock()
-	path := specPath(id)
+	path := store.SpecPath(id)
 	raw, err := tr.Store.Read(path)
 	if e, ok := err.(*apperr.Error); ok && e.Code == "not_found" {
 		return nil, apperr.New("feature_not_found", "feature %q has no spec at %s", id, path)
@@ -383,8 +383,10 @@ func (f *Feature) checkBlockers(self int, refs []TicketRef) ([]int, error) {
 		}
 		out = append(out, n)
 	}
-	if cycles := f.cycles(map[int][]int{self: out}); len(cycles) > 0 {
-		return nil, apperr.New("invalid_reference", "blockers would form a cycle: %s", strings.Join(cycles[0], " -> "))
+	edges := f.blockerEdges()
+	edges[self] = out
+	if cycle := newCycle(f.blockerEdges(), edges); cycle != nil {
+		return nil, apperr.New("invalid_reference", "blockers would form a cycle: %s", strings.Join(cycle, " -> "))
 	}
 	return out, nil
 }

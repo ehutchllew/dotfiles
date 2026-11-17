@@ -43,6 +43,10 @@ func decodeStrict(data []byte, v any, allowed []string) error {
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return apperr.Usage("invalid_input", "input isn't a JSON object: %v", err)
 	}
+	// Unmarshal accepts null and leaves the map nil.
+	if raw == nil {
+		return apperr.Usage("invalid_input", "input is null; send a JSON object")
+	}
 	ok := map[string]bool{}
 	for _, a := range allowed {
 		ok[a] = true
