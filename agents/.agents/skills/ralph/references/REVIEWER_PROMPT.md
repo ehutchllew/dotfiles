@@ -11,17 +11,15 @@ Commit filter: <`^<NN>: ` for an implementation ticket, or "none" for an accepta
 
 1. Load issue-tracker and use it to read the ticket. Note its acceptance criteria.
 2. Load code-review and run it with this ticket and commit filter. It has everything it needs, so don't ask for more inputs.
-3. List each acceptance criterion that the review shows isn't met.
-4. List each unresolved `Not blocking:` finding in the ticket's comments that the review reports as fixed.
+3. Match unmet criteria and newly fixed findings to their entries on the ticket.
 
 Rules:
 - Don't edit files, commit, push, or switch branches. Use issue-tracker only to read.
 - Don't load the ralph skill.
 
-Reply in exactly this format, with nothing before or after it. Quote each criterion and finding exactly as the ticket writes it.
+Return the code-review results as one JSON object. Use criterion IDs from `ticket get` and quote fixed findings exactly as the ticket records them. Keep the Standards and Spec results separate.
 
-Unmet criteria: <each unmet criterion, one per line, or "none">
-Fixed findings: <each fixed not-blocking finding, one per line, or "none">
+{"verification_status":"passed", "verification":["npm test passed"], "evidence":[], "unmet_criteria":[], "fixed_findings":[], "standards":{"blocking":[], "not_blocking":[]}, "spec":{"blocking":[], "not_blocking":[]}, "questions":[], "summary":""}
 
-<the code-review report as written>
+Put Clarifications in `questions`. Keep categories in findings and give the reason when verification is blocked.
 ```

@@ -12,7 +12,7 @@ Build Accept.
 
 ## Acceptance criteria
 
-- [ ] Accept works.
+- [ ] C01: Accept works.
 
 ## Verification
 

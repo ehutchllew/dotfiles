@@ -143,7 +143,7 @@ func TestInputFromFile(t *testing.T) {
 	if res := r.runIn(filepath.Join(r.root, "src"), "", "ticket", "comment", co, "01", "--if-match", h, "--input", "in.json"); res.code != 0 {
 		t.Fatal(res.raw)
 	}
-	if c := r.lastComment(co, "01"); c != "comment (attempt 0):\n- Note: from a file" {
+	if c := r.lastComment(co, "01"); c != "implement:comment (attempt 0):\n- Note: from a file" {
 		t.Fatalf("comment %q", c)
 	}
 	r.fails(2, "invalid_input", "", "ticket", "comment", co, "01", "--if-match", r.ticket(co, "01").Hash, "--input", "missing.json")
@@ -253,15 +253,13 @@ func TestOutputFailureAfterAWrite(t *testing.T) {
 	if code != 1 || !strings.Contains(errOut.String(), "the command ran") {
 		t.Fatalf("exit %d, stderr %q", code, errOut.String())
 	}
-	if c := r.lastComment(co, "01"); c != "comment (attempt 0):\n- Note: kept" {
+	if c := r.lastComment(co, "01"); c != "implement:comment (attempt 0):\n- Note: kept" {
 		t.Fatalf("comment %q", c)
 	}
 }
 
-// TestGitRefsAndIgnoredStorage uses a real git repository to check ref
-// resolution and git_ignored. Every other test has an empty .git directory
-// and passes full SHAs, which skip git.
-func TestGitRefsAndIgnoredStorage(t *testing.T) {
+func newGitRepo(t *testing.T) (*repo, func(...string) string) {
+	t.Helper()
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git isn't installed")
 	}
@@ -291,6 +289,11 @@ func TestGitRefsAndIgnoredStorage(t *testing.T) {
 	git("config", "core.excludesFile", os.DevNull)
 	git("config", "user.name", "Test")
 	git("config", "user.email", "test@example.com")
+	return r, git
+}
+
+func TestGitRefsAndIgnoredStorage(t *testing.T) {
+	r, git := newGitRepo(t)
 	git("commit", "-q", "--allow-empty", "--no-verify", "-m", "first")
 	first := git("rev-parse", "HEAD")
 	git("commit", "-q", "--allow-empty", "--no-verify", "-m", "second")

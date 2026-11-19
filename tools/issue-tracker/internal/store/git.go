@@ -27,6 +27,30 @@ func (l *Local) ResolveCommit(ref string) (string, error) {
 	return out, nil
 }
 
+// CheckHandoffCheckout checks that the stopped attempt's source is still
+// checked out. Committed tracker changes are allowed after the candidate.
+func (l *Local) CheckHandoffCheckout(commit string) error {
+	status, err := l.git("status", "--porcelain", "--untracked-files=all")
+	if err != nil {
+		return apperr.New("handoff_checkout", "git couldn't check the working tree: %v", err)
+	}
+	if status != "" {
+		return apperr.New("handoff_checkout", "pending hand-off needs a clean checkout")
+	}
+	if _, err := l.git("merge-base", "--is-ancestor", commit, "HEAD"); err != nil {
+		return apperr.New("stale_handoff", "hand-off commit %s is not in HEAD's history", commit)
+	}
+	changed, err := l.git("diff", "--name-only", commit, "HEAD", "--", ".",
+		":(exclude,glob,top).scratch/*/spec.md", ":(exclude,glob,top).scratch/*/issues/*.md")
+	if err != nil {
+		return apperr.New("handoff_checkout", "git couldn't compare the hand-off commit to HEAD: %v", err)
+	}
+	if changed != "" {
+		return apperr.New("stale_handoff", "files other than specs and tickets differ from hand-off commit %s", commit).With("changed", strings.Split(changed, "\n"))
+	}
+	return nil
+}
+
 // IsIgnored reports whether git ignores a repo-relative path. ok is false
 // when git can't answer.
 func (l *Local) IsIgnored(rel string) (ignored, ok bool) {

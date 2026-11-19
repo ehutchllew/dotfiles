@@ -27,10 +27,10 @@ Run `npm test`.
 
 ## Comments
 
-send back (attempt 1):
+review:send-back (attempt 1):
 - Unmet criteria:
-  - "An empty order shows zero."
-  - "The count equals the sum of quantities."
+  - C01: "An empty order shows zero."
+  - C02: "The count equals the sum of quantities."
 - Blocking (wrong): output differs:
   ```text
   ok  	pkg	0.1s
@@ -50,7 +50,7 @@ send back (attempt 1):
   ok  	pkg	0.1s
   ```
 
-stop (attempt 1):
+implement:stop (attempt 1):
 - Reason:
   Blocked:
   ```text
@@ -61,9 +61,9 @@ stop (attempt 1):
     ok  	pkg	0.1s
     ```
 
-comment:
+implement:comment:
 - Not blocking resolved: Rename `n`. Ignored.
 - Not blocking resolved: Split the long function. Moved to ticket 02.
 
-resume (attempt 1):
+implement:resume (attempt 1):
 - Resolution: Fixed the database.

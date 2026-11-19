@@ -3,8 +3,10 @@ package tracker
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"reflect"
 	"sort"
 	"strings"
 
@@ -64,6 +66,10 @@ func decodeStrict(data []byte, v any, allowed []string) error {
 	dec := json.NewDecoder(bytes.NewReader(data))
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(v); err != nil {
+		var mismatch *json.UnmarshalTypeError
+		if errors.As(err, &mismatch) && mismatch.Type == reflect.TypeFor[[]string]() {
+			return apperr.Usage("invalid_input", "%s must be an array of strings", mismatch.Field)
+		}
 		return apperr.Usage("invalid_input", "invalid input: %v", err)
 	}
 	if _, err := dec.Token(); err != io.EOF {
@@ -92,6 +98,8 @@ type OpInput struct {
 	Resolved       []Resolution `json:"resolved"`
 	Reason         string       `json:"reason"`
 	Notes          []string     `json:"notes"`
+	StopKind       string       `json:"stop_kind"`
+	SpecHash       string       `json:"spec_hash"`
 }
 
 // SpecCreateInput is the payload for `spec create`.

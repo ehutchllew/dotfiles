@@ -8,7 +8,7 @@ metadata:
 
 # To spec
 
-Turn the current conversation into a new or revised spec. Build it from what has already been discussed. Don't start a new interview. Ask the user only to confirm the testing approach and commands and, for a revision, the proposed changes.
+Turn the current conversation into a new or revised spec. Don't start a new interview. Ask a focused question if a gap would change observable behavior. Confirm the testing approach and commands, and ask for approval of revisions.
 
 ## Process
 
@@ -16,10 +16,10 @@ Turn the current conversation into a new or revised spec. Build it from what has
 2. Use the terms in `GLOSSARY.md` and respect relevant ADRs. Explore the code as needed.
 3. If the conversation has a summary with decisions, assumptions, out-of-scope items, or open risks, build from it:
    - Decisions go into Implementation decisions.
+   - Write behavior rules with the agreed boundary examples when examples make the rule easier to test.
    - Out-of-scope items go into Out of scope.
    - Assumptions go into Assumptions.
    - Open risks go into Further notes.
-   - If an assumption would change a user story, confirm it with the user first.
 4. Choose what to test and tie each test to a user story or decision. Follow the Testing section of `CODING_STANDARDS.md` if present. Otherwise, use the repo's existing tests and conventions.
 5. Collect the commands for Testing decisions:
    - Copy every command in the Checks section of `CODING_STANDARDS.md`, if present.

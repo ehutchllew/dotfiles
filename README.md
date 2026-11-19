@@ -225,13 +225,15 @@ EOF
 | A ticket got stuck | Fix the cause, then `resume` the ticket. |
 | A ticket's implementer couldn't start | Rework the ticket with `to-tickets`. |
 | A review's verification was blocked | Fix the environment, then `resume` the ticket. |
+| A handoff needs a report correction | Give Ralph the corrected report for the recorded commit. No new implementation attempt is needed. |
+| A review needs a product decision | Clarify the requirement with `to-spec`, then run `to-tickets`. |
 | The loop needed recovery | Follow the recommendation in the ticket's last comment, then `resume` the ticket. |
 | The acceptance review failed | Run `to-tickets` for repair tickets. |
 | You kept not-blocking findings instead of ignoring them | Run `to-tickets` to turn each into a ticket. |
-| A manual ticket is open | Do the work, then run `ralph` again and give it the evidence. |
+| A manual ticket is open | Run the checks and tell Ralph the result. It will ask for any details the ticket requires. |
 | Setup failed | Follow the report. Usually this means fixing the tickets with `to-tickets` or `to-spec`, or cleaning up the checkout. |
 
-Resuming an implementation ticket in the implement phase starts a new attempt. If the ticket stopped on its last attempt, `ralph` stops it again right away. Use `reset-attempts` instead of `resume` for that ticket. The spec's `Attempt limit:` applies to every ticket, so change it only when you want a different budget for all of them.
+After `resume` in the implement phase, the next `claim` starts a new attempt. If the ticket has reached its limit and needs more implementation work, use `reset-attempts` instead. A pending handoff goes straight to review without another claim. The spec's `Attempt limit:` sets the budget for every implementation ticket.
 
 ## Custom Functions
 

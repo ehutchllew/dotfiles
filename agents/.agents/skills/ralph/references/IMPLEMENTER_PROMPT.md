@@ -25,10 +25,9 @@ Rules:
 - Don't push, rewrite history, or switch branches.
 - Don't load the ralph skill.
 
-Reply in exactly this format, with nothing before or after it. Quote each criterion exactly as the ticket writes it.
+Return one JSON object. Use criterion IDs from `ticket get`, not the criterion text.
 
-Outcome: <ready for review | stuck | precondition failed>
-Criteria met: <each acceptance criterion you met, one per line, or "none">
-Verification: <each command and its result, one per line>
-Reason: <why you stopped, for stuck or precondition failed, or "none">
+{"outcome":"ready for review", "criteria_met":["C01"], "verification":["npm test passed"], "notes":[], "reason":""}
+
+Use `stuck` or `precondition failed` and give a reason when you can't hand off. List each verification command and its result, including failures or skips. Use `notes` for evidence the reviewer can't reproduce.
 ```

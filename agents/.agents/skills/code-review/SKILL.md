@@ -50,15 +50,15 @@ An empty diff ends a change review with "No changes to review." In the other mod
    - If the target is the working tree, run there.
    - If the target is a commit, run only when `git status --short` prints nothing and `git diff --name-only <target> HEAD` lists nothing, or only spec and ticket files. Otherwise report verification as `blocked` and list what differs.
 2. Run the verification commands yourself, even when someone reports they passed. Record each command and its result.
-3. In feature acceptance, read the evidence on manual tickets. Don't perform a manual check yourself.
+3. In feature acceptance, check that the evidence on manual tickets covers the required scenarios for the code under review. Reuse earlier evidence if the relevant code and scenarios haven't changed. Don't perform a manual check yourself.
 
 Report one verification status:
 
 | Status | When |
 | --- | --- |
-| `passed` | Every command ran and succeeded, and every required piece of manual evidence exists. |
+| `passed` | Every command ran and succeeded, and the required manual evidence applies to the target. |
 | `failed` | A command ran and failed. |
-| `blocked` | There are no commands, a command couldn't run, manual evidence is missing, or the working tree doesn't hold the target's code. |
+| `blocked` | There are no commands, a command couldn't run, required manual evidence is missing or stale, or the working tree doesn't hold the target's code. |
 | `not run` | Change review only, when there are no commands. |
 
 ## 4. Find standards sources
@@ -108,6 +108,8 @@ Label each finding with a category:
 
 Blocked verification isn't a finding. It shows only in the verification status.
 
+If a material behavior could reasonably satisfy the spec in more than one way and you need a decision to finish the review, report the question under Clarifications. Don't call an unspecified preference a defect.
+
 ## 7. Report
 
 Keep Standards and Spec separate. Check that findings are supported, remove duplicates, and explain priorities or conflicts in the summary. Keep each axis report under 400 words. Use this template:
@@ -134,6 +136,8 @@ Status: <passed | failed | blocked | not run>
 - Fixed: <earlier not-blocking finding>
 
 <or "No spec available.">
+
+<Clarifications, if a product decision is needed.>
 
 Summary: Standards <n> blocking, <n> not blocking. Spec <n> blocking, <n> not blocking. Verification <status>.
 

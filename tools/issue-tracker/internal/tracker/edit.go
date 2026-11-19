@@ -2,6 +2,7 @@ package tracker
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -391,28 +392,36 @@ func (f *Feature) checkBlockers(self int, refs []TicketRef) ([]int, error) {
 	return out, nil
 }
 
-func criteriaLines(values []string, ticked map[string]bool) ([]string, error) {
+func criteriaLines(values []string, existing map[string]doc.Criterion, next int) ([]string, int, error) {
 	if len(values) == 0 {
-		return nil, apperr.Usage("invalid_input", "`criteria` needs at least one criterion")
+		return nil, 0, apperr.Usage("invalid_input", "`criteria` needs at least one criterion")
 	}
 	seen := map[string]bool{}
 	var lines []string
 	for _, v := range values {
 		v = strings.TrimSpace(v)
 		if v == "" || strings.ContainsAny(v, "\r\n") {
-			return nil, apperr.Usage("invalid_input", "each criterion must be one non-empty line")
+			return nil, 0, apperr.Usage("invalid_input", "each criterion must be one non-empty line")
 		}
 		if seen[v] {
-			return nil, apperr.Usage("invalid_input", "criterion %q appears twice", v)
+			return nil, 0, apperr.Usage("invalid_input", "criterion %q appears twice", v)
 		}
 		seen[v] = true
+		c, ok := existing[v]
+		if !ok {
+			if next == math.MaxInt {
+				return nil, 0, apperr.Usage("invalid_input", "no criterion IDs remain")
+			}
+			c.ID = doc.CriterionID(next)
+			next++
+		}
 		mark := " "
-		if ticked[v] {
+		if c.Checked {
 			mark = "x"
 		}
-		lines = append(lines, fmt.Sprintf("- [%s] %s", mark, v))
+		lines = append(lines, fmt.Sprintf("- [%s] %s: %s", mark, c.ID, v))
 	}
-	return lines, nil
+	return lines, next, nil
 }
 
 // TicketCreate adds a ticket with the next unused number.
@@ -440,7 +449,7 @@ func (tr *Tracker) TicketCreate(id string, in *TicketCreateInput) (*WriteResult,
 	if err != nil {
 		return nil, err
 	}
-	criteria, err := criteriaLines(in.Criteria, nil)
+	criteria, _, err := criteriaLines(in.Criteria, nil, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -606,11 +615,11 @@ func (tr *Tracker) TicketEdit(id string, n int, ifMatch string, in *TicketEditIn
 		}
 	}
 	if in.Criteria != nil {
-		ticked := map[string]bool{}
+		existing := map[string]doc.Criterion{}
 		for _, c := range cur.Criteria {
-			ticked[c.Text] = c.Checked
+			existing[c.Text] = c
 		}
-		lines, err := criteriaLines(*in.Criteria, ticked)
+		lines, next, err := criteriaLines(*in.Criteria, existing, cur.NextCriterion)
 		if err != nil {
 			return nil, err
 		}
@@ -622,6 +631,13 @@ func (tr *Tracker) TicketEdit(id string, n int, ifMatch string, in *TicketEditIn
 			}
 		}
 		d.Lines = append(d.Lines[:first], append(lines, d.Lines[last+1:]...)...)
+		// Derive the next ID from the criteria unless an edit removed a
+		// higher number. Remember it then, so old IDs aren't reused.
+		doc.RemoveMeta(d, "Next criterion")
+		t.Reparse()
+		if t.NextCriterion < next {
+			_ = doc.SetMeta(d, "Next criterion", strconv.Itoa(next), doc.TicketMetaOrder)
+		}
 	}
 
 	t.Reparse()

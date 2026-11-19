@@ -67,7 +67,7 @@ func TestTicketHistory(t *testing.T) {
 	r.op(co, "01", "claim", commit(shaB))
 
 	cur := okReply[docReply](r, "", "ticket", "get", co, "01")
-	if cur.History != "current" || cur.OmittedComments != 1 || strings.Contains(*cur.Body, "Blocking (missing): old.") || !strings.Contains(*cur.Body, "revise (attempt 1):") {
+	if cur.History != "current" || cur.OmittedComments != 1 || strings.Contains(*cur.Body, "Blocking (missing): old.") || !strings.Contains(*cur.Body, "implement:revise (attempt 1):") {
 		t.Fatalf("current history: %+v\n%s", cur, *cur.Body)
 	}
 	full := okReply[docReply](r, "", "ticket", "get", co, "01", "--full")
@@ -80,12 +80,23 @@ func TestTicketHistory(t *testing.T) {
 	}
 }
 
+func TestLegacyCommentsRemainReadable(t *testing.T) {
+	r := newRepo(t, co)
+	path := r.ticket(co, "01").Path
+	r.edit(path, "## Comments\n", "## Comments\n\nsend back (attempt 1):\n- Not blocking: Old smell.\n\nrevise (attempt 1):\n- Reason: New scope.\n")
+	r.op(co, "01", "comment", `{"resolved":[{"finding":"Old smell.","resolution":"ignored"}]}`)
+	d := okReply[docReply](r, "", "ticket", "get", co, "01")
+	if d.OmittedComments != 1 || !strings.Contains(*d.Body, "revise (attempt 1):") || !strings.Contains(*d.Body, "implement:comment:") || len(r.status(co).NotBlocking) != 0 {
+		t.Fatalf("mixed comment history: %+v\n%s", d, *d.Body)
+	}
+}
+
 func TestStatusReportsStoppedTickets(t *testing.T) {
 	r := newRepo(t, co)
 	r.op(co, "01", "claim", commit(shaA))
 	r.op(co, "01", "stop", `{"reason":"Stuck on the schema.","verification":["npm test failed"]}`)
 	tk := r.status(co).Tickets[0]
-	if tk.Status != "stopped" || tk.LastComment != "stop (attempt 1):\n- Reason: Stuck on the schema.\n- Verification:\n  - npm test failed" {
+	if tk.Status != "stopped" || tk.LastComment != "implement:stop (attempt 1):\n- Reason: Stuck on the schema.\n- Verification:\n  - npm test failed" {
 		t.Fatalf("%+v", tk)
 	}
 }

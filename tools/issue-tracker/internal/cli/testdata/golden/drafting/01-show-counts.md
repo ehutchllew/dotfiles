@@ -12,7 +12,7 @@ Build Show counts.
 
 ## Acceptance criteria
 
-- [ ] Show counts works.
+- [ ] C01: Show counts works.
 
 ## Verification
 

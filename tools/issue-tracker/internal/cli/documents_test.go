@@ -97,6 +97,31 @@ func TestLifecycle(t *testing.T) {
 	}
 }
 
+func TestAcceptanceAfterCodeRepair(t *testing.T) {
+	r := setup(t, allDone, "04", []string{"Base commit", shaA})
+	spec := r.specHash(co)
+	r.op(co, "04", "start-review", commit(shaB))
+	r.op(co, "04", "stop", `{"reason":"acceptance review failed","findings":["Blocking (wrong): Confirmation omits the item count."]}`)
+	r.ok(ticketJSON("Repair confirmation", "implementation", `["US 1"]`, `["02"]`), "ticket", "create", co, "--input", "-")
+	r.ok(ticketJSON("Recheck confirmation", "manual", `["US 1"]`, `["05"]`), "ticket", "create", co, "--input", "-")
+	r.op(co, "04", "revise", `{"reason":"Wait for the repair and its browser check."}`)
+	r.ok(`{"blocked_by":["01","02","03","05","06"]}`, ticketEditArgs(r, "04")...)
+	r.opFails(1, "not_ready", co, "04", "start-review", commit(shaB))
+
+	r.op(co, "05", "claim", commit(shaB))
+	r.op(co, "05", "hand-off", `{"commit":"`+shaC+`","criteria_met":["C01"],"verification":["Required checks passed."]}`)
+	r.op(co, "05", "pass", `{"verification":["npm test passed."]}`)
+	r.opFails(1, "not_ready", co, "04", "start-review", commit(shaC))
+	r.op(co, "06", "complete", `{"evidence":["User confirmed the repaired confirmation shows the count."]}`)
+	r.op(co, "04", "start-review", commit(shaC))
+	r.op(co, "04", "pass", `{"all_criteria_met":true,"verification":["npm test passed."],"evidence":["Checked ticket 06."]}`)
+
+	tk := r.ticket(co, "04")
+	if tk.Status != "done" || tk.Base != shaA || tk.Target != shaC || r.specHash(co) != spec || !r.status(co).Valid {
+		t.Fatalf("acceptance after repair: %+v", tk)
+	}
+}
+
 func TestCRLFDocumentsKeepTheirLineEndings(t *testing.T) {
 	r := newRepo(t, orders)
 	path := r.ticket(orders, "01").Path
@@ -129,7 +154,7 @@ func TestHandWrittenContentIsPreserved(t *testing.T) {
 	r.op(orders, "01", "claim", `{"commit":"`+shaA+`"}`)
 	r.op(orders, "01", "comment", `{"notes":["hello"]}`)
 	got := r.read(path)
-	if !strings.Contains(got, sketch) || !strings.Contains(got, "A note someone left before any operation.\n\ncomment (attempt 1):\n- Note: hello\n") {
+	if !strings.Contains(got, sketch) || !strings.Contains(got, "A note someone left before any operation.\n\nimplement:comment (attempt 1):\n- Note: hello\n") {
 		t.Fatalf("hand-written content changed:\n%s", got)
 	}
 }

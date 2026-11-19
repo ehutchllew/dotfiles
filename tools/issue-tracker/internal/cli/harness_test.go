@@ -154,21 +154,25 @@ type writeReply struct {
 }
 
 type ticketSummary struct {
-	Ticket       string   `json:"ticket"`
-	Title        string   `json:"title"`
-	Kind         string   `json:"kind"`
-	Phase        string   `json:"phase"`
-	Status       string   `json:"status"`
-	Attempt      *int     `json:"attempt"`
-	BlockedBy    []string `json:"blocked_by"`
-	Covers       []string `json:"covers"`
-	SpecRevision int      `json:"spec_revision"`
-	Base         string   `json:"base"`
-	Target       string   `json:"target"`
-	Ready        bool     `json:"ready"`
-	Hash         string   `json:"hash"`
-	Path         string   `json:"path"`
-	LastComment  string   `json:"last_comment"`
+	Ticket         string   `json:"ticket"`
+	Title          string   `json:"title"`
+	Kind           string   `json:"kind"`
+	Phase          string   `json:"phase"`
+	Status         string   `json:"status"`
+	Attempt        *int     `json:"attempt"`
+	BlockedBy      []string `json:"blocked_by"`
+	Covers         []string `json:"covers"`
+	SpecRevision   int      `json:"spec_revision"`
+	Base           string   `json:"base"`
+	Target         string   `json:"target"`
+	Ready          bool     `json:"ready"`
+	Hash           string   `json:"hash"`
+	Path           string   `json:"path"`
+	LastComment    string   `json:"last_comment"`
+	PendingHandoff *struct {
+		Commit   string `json:"commit"`
+		SpecHash string `json:"spec_hash"`
+	} `json:"pending_handoff"`
 }
 
 type problem struct {
@@ -202,6 +206,11 @@ type docReply struct {
 	History         string  `json:"history"`
 	OmittedComments int     `json:"omitted_comments"`
 	Body            *string `json:"body"`
+	Criteria        []struct {
+		ID      string `json:"id"`
+		Text    string `json:"text"`
+		Checked bool   `json:"checked"`
+	} `json:"criteria"`
 }
 
 func (r *repo) status(feature string) statusReply {
@@ -312,7 +321,7 @@ func (r *repo) lastComment(feature, n string) string {
 	r.t.Helper()
 	body := r.read(r.ticket(feature, n).Path)
 	comments := body[strings.Index(body, "## Comments\n")+len("## Comments\n"):]
-	head := regexp.MustCompile(`(?m)^[a-z ]+( \(attempt \d+\))?:$`)
+	head := regexp.MustCompile(`(?m)^(?:[a-z]+:)?[a-z -]+( \(attempt \d+\))?:$`)
 	locs := head.FindAllStringIndex(comments, -1)
 	if len(locs) == 0 {
 		return ""

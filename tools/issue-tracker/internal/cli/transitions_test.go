@@ -58,39 +58,39 @@ func TestTransitions(t *testing.T) {
 		{name: "claim a retry", n: "01", meta: []string{"Attempt", "1", "Base commit", shaA}, op: "claim", input: commit(shaB), want: "implement/in-progress attempt 2"},
 
 		{name: "hand off", n: "01", meta: inProgress, op: "hand-off", input: `{"commit":"` + shaB + `","verification":["ok"]}`,
-			want: "review/open attempt 1", comment: "hand off (attempt 1):\n- Verification:\n  - ok"},
+			want: "review/open attempt 1", comment: "implement:hand-off (attempt 1):\n- Verification: ok"},
 
-		{name: "pass review", n: "01", meta: reviewOpen, op: "pass", input: `{"verification":["ok"]}`, want: "review/done attempt 1", comment: "pass (attempt 1):"},
-		{name: "pass acceptance", n: "04", done: allDone, meta: accInProgress, op: "pass", input: `{"verification":["ok"]}`, want: "done", comment: "pass:"},
+		{name: "pass review", n: "01", meta: reviewOpen, op: "pass", input: `{"verification":["ok"]}`, want: "review/done attempt 1", comment: "review:pass (attempt 1):"},
+		{name: "pass acceptance", n: "04", done: allDone, meta: accInProgress, op: "pass", input: `{"verification":["ok"]}`, want: "done", comment: "acceptance:pass:"},
 
 		{name: "send back", n: "01", meta: reviewOpen, op: "send-back", input: `{"findings":["Blocking (wrong): x."]}`,
-			want: "implement/open attempt 1", comment: "send back (attempt 1):\n- Blocking (wrong): x."},
+			want: "implement/open attempt 1", comment: "review:send-back (attempt 1):\n- Blocking (wrong): x."},
 
 		{name: "set feature base", n: "04", op: "set-feature-base", input: commit(shaA), want: "open"},
 		{name: "start review", n: "04", done: allDone, meta: []string{"Base commit", shaA}, op: "start-review", input: commit(shaB), want: "in-progress"},
 
 		{name: "stop keeps the phase", n: "01", meta: reviewOpen, op: "stop", input: `{"reason":"Verification blocked."}`,
-			want: "review/stopped attempt 1", comment: "stop (attempt 1):\n- Reason: Verification blocked."},
-		{name: "stop a manual ticket", n: "03", op: "stop", input: `{"reason":"No phone."}`, want: "stopped", comment: "stop:\n- Reason: No phone."},
+			want: "review/stopped attempt 1", comment: "review:stop (attempt 1):\n- Reason: Verification blocked."},
+		{name: "stop a manual ticket", n: "03", op: "stop", input: `{"reason":"No phone."}`, want: "stopped", comment: "manual:stop:\n- Reason: No phone."},
 
 		{name: "resume", n: "01", meta: []string{"Status", "stopped"}, op: "resume", input: `{"reason":"Fixed it."}`,
-			want: "implement/open attempt 0", comment: "resume (attempt 0):\n- Resolution: Fixed it."},
+			want: "implement/open attempt 0", comment: "implement:resume (attempt 0):\n- Resolution: Fixed it."},
 
 		{name: "reset attempts", n: "01", meta: []string{"Status", "stopped", "Attempt", "3", "Base commit", shaA}, op: "reset-attempts", input: `{"reason":"More budget."}`,
-			want: "implement/open attempt 0", comment: "reset attempts (attempt 3):\n- Reason: More budget."},
+			want: "implement/open attempt 0", comment: "implement:reset-attempts (attempt 3):\n- Reason: More budget."},
 
 		{name: "revise implementation in review", n: "01", meta: reviewStopped, op: "revise", input: `{"reason":"Spec changed."}`,
-			want: "implement/open attempt 0", comment: "revise (attempt 1):\n- Reason: Spec changed."},
-		{name: "revise acceptance", n: "04", done: allDone, meta: accInProgress, op: "revise", input: `{"reason":"New blockers."}`, want: "open", comment: "revise:"},
-		{name: "revise manual", n: "03", meta: []string{"Status", "stopped"}, op: "revise", input: `{"reason":"New steps."}`, want: "open", comment: "revise:\n- Reason: New steps."},
+			want: "implement/open attempt 0", comment: "review:revise (attempt 1):\n- Reason: Spec changed."},
+		{name: "revise acceptance", n: "04", done: allDone, meta: accInProgress, op: "revise", input: `{"reason":"New blockers."}`, want: "open", comment: "acceptance:revise:"},
+		{name: "revise manual", n: "03", meta: []string{"Status", "stopped"}, op: "revise", input: `{"reason":"New steps."}`, want: "open", comment: "manual:revise:\n- Reason: New steps."},
 
-		{name: "complete", n: "03", op: "complete", input: `{"evidence":["Pixel 8."]}`, want: "done", comment: "complete:\n- Evidence:\n  - Pixel 8."},
+		{name: "complete", n: "03", op: "complete", input: `{"evidence":["Pixel 8."]}`, want: "done", comment: "manual:complete:\n- Evidence:\n  - Pixel 8."},
 
 		{name: "cancel in review", n: "01", meta: reviewOpen, op: "cancel", input: `{"reason":"Dropped."}`,
-			want: "review/cancelled attempt 1", comment: "cancel (attempt 1):\n- Reason: Dropped."},
+			want: "review/cancelled attempt 1", comment: "review:cancel (attempt 1):\n- Reason: Dropped."},
 
 		{name: "comment on a done ticket", n: "01", meta: []string{"Status", "done"}, op: "comment", input: `{"notes":["See ticket 05."]}`,
-			want: "implement/done attempt 0", comment: "comment (attempt 0):\n- Note: See ticket 05."},
+			want: "implement/done attempt 0", comment: "implement:comment (attempt 0):\n- Note: See ticket 05."},
 	}
 
 	for _, c := range cases {
@@ -137,8 +137,11 @@ func TestTransitionsRejected(t *testing.T) {
 		{name: "claim with a short sha", n: "01", op: "claim", input: commit("abc123"), exit: 1, err: "invalid_commit"},
 
 		{name: "hand off unknown criterion", n: "01", meta: inProgress, op: "hand-off", input: `{"commit":"` + shaB + `","criteria_met":["Nope."],"verification":["ok"]}`, exit: 2, err: "unknown_criterion"},
+		{name: "hand off duplicate criterion", n: "01", meta: inProgress, op: "hand-off", input: `{"commit":"` + shaB + `","criteria_met":["C01","C01"],"verification":["ok"]}`, exit: 2, err: "duplicate_criterion"},
+		{name: "send back duplicate criterion", n: "01", meta: reviewOpen, op: "send-back", input: `{"criteria_unmet":["C01","C01"]}`, exit: 2, err: "duplicate_criterion"},
 		{name: "hand off without verification", n: "01", meta: inProgress, op: "hand-off", input: commit(shaB), exit: 2, err: "invalid_input"},
 		{name: "hand off while open", n: "01", op: "hand-off", input: `{"commit":"` + shaB + `","verification":["ok"]}`, exit: 1, err: "invalid_transition"},
+		{name: "hand off from an ordinary stop", n: "01", meta: append(append([]string{}, inProgress...), "Status", "stopped"), op: "hand-off", input: `{"verification":["ok"]}`, exit: 1, err: "invalid_transition"},
 
 		{name: "pass in implement", n: "01", op: "pass", input: `{}`, exit: 1, err: "invalid_transition"},
 		{name: "pass manual", n: "03", op: "pass", input: `{}`, exit: 1, err: "invalid_transition"},
@@ -263,11 +266,11 @@ func TestCriteriaChanges(t *testing.T) {
 		want    string
 	}{
 		{name: "hand off ticks met criteria", n: "01", meta: inProgress, op: "hand-off",
-			input: `{"commit":"` + shaB + `","criteria_met":["` + zero + `"],"verification":["ok"]}`, want: "- [x] " + zero + "\n- [ ] " + sum},
+			input: `{"commit":"` + shaB + `","criteria_met":["C01"],"verification":["ok"]}`, want: "- [x] " + zero + "\n- [ ] " + sum},
 		{name: "hand off accepts a quoted criterion", n: "01", meta: inProgress, op: "hand-off",
 			input: `{"commit":"` + shaB + `","criteria_met":["\"` + zero + `\""],"verification":["ok"]}`, want: "- [x] " + zero + "\n- [ ] " + sum},
 		{name: "send back unticks unmet criteria", n: "01", meta: reviewOpen, tickAll: true, op: "send-back",
-			input: `{"criteria_unmet":["` + sum + `"]}`, want: "- [x] " + zero + "\n- [ ] " + sum},
+			input: `{"criteria_unmet":["C02"]}`, want: "- [x] " + zero + "\n- [ ] " + sum},
 		{name: "revise unticks every criterion", n: "01", meta: reviewStopped, tickAll: true, op: "revise",
 			input: `{"reason":"Spec changed."}`, want: "- [ ] " + zero + "\n- [ ] " + sum},
 		{name: "acceptance pass can tick every criterion", n: "04", done: allDone, meta: accInProgress, op: "pass",

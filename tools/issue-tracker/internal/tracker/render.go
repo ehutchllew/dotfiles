@@ -78,9 +78,14 @@ func checkValues(field string, values []string, singleLine bool) ([]string, erro
 	return out, nil
 }
 
-// findCriterion matches a criterion by its exact text, ignoring surrounding
-// whitespace and one pair of surrounding double quotes.
+// findCriterion matches an ID, or exact text for older callers.
 func findCriterion(t *doc.Ticket, text string) (int, error) {
+	s := strings.TrimSpace(text)
+	for i, c := range t.Criteria {
+		if c.ID == s {
+			return i, nil
+		}
+	}
 	try := func(s string) []int {
 		var hits []int
 		for i, c := range t.Criteria {
@@ -90,7 +95,6 @@ func findCriterion(t *doc.Ticket, text string) (int, error) {
 		}
 		return hits
 	}
-	s := strings.TrimSpace(text)
 	hits := try(s)
 	if len(hits) == 0 && len(s) >= 2 && strings.HasPrefix(s, `"`) && strings.HasSuffix(s, `"`) {
 		hits = try(strings.TrimSpace(s[1 : len(s)-1]))
@@ -99,11 +103,7 @@ func findCriterion(t *doc.Ticket, text string) (int, error) {
 	case 1:
 		return hits[0], nil
 	case 0:
-		texts := make([]string, len(t.Criteria))
-		for i, c := range t.Criteria {
-			texts[i] = c.Text
-		}
-		return 0, apperr.Usage("unknown_criterion", "ticket %s has no criterion %q; quote it exactly", t.ID(), text).With("criteria", texts)
+		return 0, apperr.Usage("unknown_criterion", "ticket %s has no criterion %q; use a criterion ID from ticket get", t.ID(), text).With("criteria", t.Criteria)
 	default:
 		return 0, apperr.New("ambiguous_criterion", "ticket %s has %d criteria with the text %q", t.ID(), len(hits), text)
 	}

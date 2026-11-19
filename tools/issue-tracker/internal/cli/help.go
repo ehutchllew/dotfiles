@@ -119,7 +119,8 @@ blockers, covered stories, commits, readiness, hash, and path.
 `,
 	"ticket get": `Usage: issue-tracker ticket get FEATURE NN [--if-changed HASH] [--full]
 
-Prints the ticket body and its hash. The hash always covers the whole file.
+Prints the ticket body, its hash, and its criteria with their IDs.
+The hash always covers the whole file.
 
 By default, comments before the ticket's last "revise" comment are left
 out and "omitted_comments" says how many. Earlier blocking findings and
@@ -148,8 +149,8 @@ Input:
 
 Changes content of an open, in-progress, or stopped ticket. It can't
 change kind, phase, status, attempt, commits, or comments; use state
-operations. Criteria whose text is unchanged keep their ticks. An edit
-that would break validation fails with would_invalidate; for example,
+operations. Criteria whose text is unchanged keep their IDs and ticks.
+An edit that would break validation fails with would_invalidate; for example,
 revise an in-progress acceptance ticket before adding blockers to it.
 
 Fields: title, blocked_by, covers, spec_revision (acceptance),
@@ -170,12 +171,15 @@ blocker isn't done and attempt_limit_reached at the spec's limit.
 
 Input: {"commit":"HEAD"}, or pass --commit HEAD.`,
 	"hand-off": `Implementation, implement/in-progress -> review/open. Sets Target
-commit, ticks criteria_met, and comments with verification.
+commit, ticks criteria_met, and records the verification summary.
+Also finishes a pending hand-off from stopped without another claim.
+Omit commit in that case to use the recorded commit.
 
 Input:
 {"commit":"HEAD",
- "criteria_met":["An empty order shows an item count of zero."],
- "verification":["` + "`npm test`" + ` passed."]}`,
+ "criteria_met":["C01"],
+ "verification":["Required checks passed."],
+ "notes":["..."]}`,
 	"pass": `Implementation review/open -> review/done, or acceptance
 in-progress -> done. all_criteria_met ticks every criterion. An acceptance
 pass fails with stale_acceptance if the spec was revised during the review,
@@ -192,7 +196,7 @@ criteria_unmet. Needs criteria_unmet or findings. Put each blocking
 finding in findings as written, such as "Blocking (missing): ...".
 
 Input:
-{"criteria_unmet":["An empty order shows an item count of zero."],
+{"criteria_unmet":["C01"],
  "findings":["Blocking (missing): an empty order shows no count line."],
  "verification":["` + "`npm test`" + ` passed."],
  "not_blocking":["..."],
@@ -211,9 +215,15 @@ Unticks criteria_unmet. A failed acceptance review uses stop.
 
 Input:
 {"reason":"Verification blocked: the test database is down.",
- "criteria_unmet":["..."],"findings":["Blocking (wrong): ..."],
- "verification":["..."]}`,
-	"resume": `Any kind, stopped -> open.
+ "criteria_unmet":["C01"],"findings":["Blocking (wrong): ..."],
+ "verification":["..."]}
+
+For a report-only problem on a claimed implementation:
+{"reason":"The report used an unknown criterion ID.",
+ "stop_kind":"handoff-pending","commit":"HEAD","spec_hash":"sha256:...",
+ "verification":["` + "`npm test`" + ` passed."]}`,
+	"resume": `Any kind, stopped -> open. Discards a pending hand-off; use hand-off
+directly to submit its corrected report without starting a new attempt.
 
 Input: {"reason":"<how the cause was resolved>"}`,
 	"reset-attempts": `Implementation, implement/stopped -> implement/open. Sets

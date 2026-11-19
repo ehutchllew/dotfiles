@@ -21,7 +21,7 @@ var opSpecs = map[string]opSpec{
 	"send-back":        {"send back", []string{"criteria_unmet", "findings", "verification", "not_blocking", "resolved", "notes"}},
 	"set-feature-base": {"set feature base", []string{"commit"}},
 	"start-review":     {"start review", []string{"commit"}},
-	"stop":             {"stop", []string{"reason", "criteria_unmet", "findings", "verification", "evidence", "not_blocking", "resolved", "notes"}},
+	"stop":             {"stop", []string{"reason", "criteria_unmet", "findings", "verification", "evidence", "not_blocking", "resolved", "notes", "stop_kind", "commit", "spec_hash"}},
 	"resume":           {"resume", []string{"reason"}},
 	"reset-attempts":   {"reset attempts", []string{"reason"}},
 	"revise":           {"revise", []string{"reason"}},
@@ -143,7 +143,7 @@ func (tr *Tracker) Apply(id string, n int, op string, ifMatch string, in *OpInpu
 	}
 
 	t := doc.ParseTicket(cur.Raw)
-	a := &applier{tr: tr, f: f, t: t, op: op, in: in, label: spec.label}
+	a := &applier{tr: tr, f: f, t: t, op: op, in: in}
 	if err := a.run(); err != nil {
 		return nil, err
 	}
@@ -216,7 +216,6 @@ type applier struct {
 	t      *doc.Ticket
 	op     string
 	in     *OpInput
-	label  string
 	items  []commentItem
 	note   string
 	others []otherWrite
@@ -225,6 +224,10 @@ type applier struct {
 func (a *applier) run() error {
 	t, in := a.t, a.in
 	impl := t.Kind == doc.KindImplementation
+	prefix := t.Kind
+	if impl {
+		prefix = t.Phase
+	}
 	attempt := t.Attempt
 	comment := true
 	attemptLabel := impl
@@ -261,19 +264,17 @@ func (a *applier) run() error {
 		a.setMeta("Status", doc.StatusInProgress)
 
 	case "hand-off":
-		if !impl || t.Phase != doc.PhaseImplement || t.Status != doc.StatusInProgress {
-			return invalidTransition(a.op, t, "an implementation ticket in implement/in-progress")
-		}
-		sha, err := a.commit()
+		sha, err := a.handoffTarget()
 		if err != nil {
 			return err
 		}
 		if len(in.Verification) == 0 {
 			return apperr.Usage("invalid_input", "hand-off needs `verification` with each command and its result")
 		}
-		if err := a.tick(in.CriteriaMet, true); err != nil {
+		if _, err := a.tick(in.CriteriaMet, true); err != nil {
 			return err
 		}
+		a.clearPendingHandoff()
 		a.setMeta("Target commit", sha)
 		a.setMeta("Phase", doc.PhaseReview)
 		a.setMeta("Status", doc.StatusOpen)
@@ -291,7 +292,7 @@ func (a *applier) run() error {
 		default:
 			return invalidTransition(a.op, t, "an implementation ticket in review/open or an acceptance ticket in progress")
 		}
-		if err := a.tick(in.CriteriaMet, true); err != nil {
+		if _, err := a.tick(in.CriteriaMet, true); err != nil {
 			return err
 		}
 		if in.AllCriteriaMet {
@@ -358,6 +359,11 @@ func (a *applier) run() error {
 		if err := a.requireReason(); err != nil {
 			return err
 		}
+		if in.StopKind != "" || in.Commit != "" || in.SpecHash != "" {
+			if err := a.pinHandoff(); err != nil {
+				return err
+			}
+		}
 		a.setMeta("Status", doc.StatusStopped)
 
 	case "resume":
@@ -367,6 +373,7 @@ func (a *applier) run() error {
 		if err := a.requireReason(); err != nil {
 			return err
 		}
+		a.clearPendingHandoff()
 		a.setMeta("Status", doc.StatusOpen)
 
 	case "reset-attempts":
@@ -376,6 +383,7 @@ func (a *applier) run() error {
 		if err := a.requireReason(); err != nil {
 			return err
 		}
+		a.clearPendingHandoff()
 		a.setMeta("Attempt", "0")
 		a.setMeta("Status", doc.StatusOpen)
 
@@ -386,6 +394,7 @@ func (a *applier) run() error {
 		if err := a.requireReason(); err != nil {
 			return err
 		}
+		a.clearPendingHandoff()
 		setAllCriteria(t, false)
 		if impl {
 			a.setMeta("Phase", doc.PhaseImplement)
@@ -411,6 +420,7 @@ func (a *applier) run() error {
 			comment = false
 			a.note = "the ticket was already cancelled; only its remaining blocker references were removed"
 		} else {
+			a.clearPendingHandoff()
 			a.setMeta("Status", doc.StatusCancelled)
 		}
 		if err := a.unblockOthers(); err != nil {
@@ -432,15 +442,77 @@ func (a *applier) run() error {
 	if err := a.buildItems(); err != nil {
 		return err
 	}
-	header := a.label
+	header := prefix + ":" + a.op
 	if attemptLabel {
-		header = fmt.Sprintf("%s (attempt %d)", a.label, attempt)
+		header = fmt.Sprintf("%s (attempt %d)", header, attempt)
 	}
 	lines := renderComment(header, a.items)
 	if _, unclosed := doc.FenceMask(lines); unclosed {
 		return apperr.Usage("invalid_input", "the comment would have a fenced code block that is never closed")
 	}
 	return doc.AppendToSection(t.Doc, "Comments", lines)
+}
+
+func (a *applier) pinHandoff() error {
+	t, in := a.t, a.in
+	if in.StopKind != "handoff-pending" {
+		return apperr.Usage("invalid_input", "commit and spec_hash for stop require stop_kind: handoff-pending")
+	}
+	if t.Kind != doc.KindImplementation || t.Phase != doc.PhaseImplement || t.Status != doc.StatusInProgress || t.Attempt == 0 {
+		return invalidTransition(a.op, t, "a claimed implementation attempt for a pending hand-off")
+	}
+	if in.SpecHash == "" || len(in.Verification) == 0 {
+		return apperr.Usage("invalid_input", "a pending hand-off needs spec_hash and the original verification results")
+	}
+	if len(in.CriteriaUnmet) > 0 {
+		return apperr.Usage("invalid_input", "a pending hand-off can't change the acceptance criteria")
+	}
+	if in.SpecHash != a.f.Spec.Hash {
+		return apperr.New("stale_handoff", "the spec changed since the implementation report")
+	}
+	sha, err := a.commit()
+	if err != nil {
+		return err
+	}
+	if err := a.tr.Store.CheckHandoffCheckout(sha); err != nil {
+		return err
+	}
+	a.setMeta("Pending handoff", strings.Join([]string{sha, in.SpecHash, t.RequirementsHash()}, " "))
+	return nil
+}
+
+func (a *applier) handoffTarget() (string, error) {
+	t := a.t
+	if t.Kind == doc.KindImplementation && t.Phase == doc.PhaseImplement && t.Status == doc.StatusInProgress {
+		return a.commit()
+	}
+	p := t.PendingHandoff
+	if p == nil {
+		return "", invalidTransition(a.op, t, "an in-progress implementation or a pending hand-off")
+	}
+	if p.SpecHash != a.f.Spec.Hash || p.RequirementsHash != t.RequirementsHash() {
+		return "", apperr.New("stale_handoff", "the spec or ticket requirements changed since the hand-off stopped")
+	}
+	if a.in.Commit != "" {
+		sha, err := a.commit()
+		if err != nil {
+			return "", err
+		}
+		if sha != p.Commit {
+			return "", apperr.New("stale_handoff", "the pending hand-off targets %s, not %s", p.Commit, sha)
+		}
+	}
+	if err := a.requireBlockersDone(); err != nil {
+		return "", err
+	}
+	return p.Commit, a.tr.Store.CheckHandoffCheckout(p.Commit)
+}
+
+func (a *applier) clearPendingHandoff() {
+	if a.t.PendingHandoff != nil {
+		doc.RemoveMeta(a.t.Doc, "Pending handoff")
+		a.t.Reparse()
+	}
 }
 
 func (a *applier) setMeta(key, value string) {
@@ -484,15 +556,22 @@ func (a *applier) requireBlockersDone() error {
 	return nil
 }
 
-func (a *applier) tick(texts []string, checked bool) error {
-	for _, text := range texts {
-		i, err := findCriterion(a.t, text)
+func (a *applier) tick(refs []string, checked bool) ([]doc.Criterion, error) {
+	var criteria []doc.Criterion
+	seen := map[int]bool{}
+	for _, ref := range refs {
+		i, err := findCriterion(a.t, ref)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		if seen[i] {
+			return nil, apperr.Usage("duplicate_criterion", "criterion %s appears more than once", a.t.Criteria[i].ID)
+		}
+		seen[i] = true
 		setCriterion(a.t, i, checked)
+		criteria = append(criteria, a.t.Criteria[i])
 	}
-	return nil
+	return criteria, nil
 }
 
 func (a *applier) unblockOthers() error {
@@ -544,14 +623,13 @@ func (a *applier) buildItems() error {
 		a.items = append(a.items, commentItem{label: label, values: vals})
 	}
 	if len(in.CriteriaUnmet) > 0 {
+		criteria, err := a.tick(in.CriteriaUnmet, false)
+		if err != nil {
+			return err
+		}
 		var quoted []string
-		for _, text := range in.CriteriaUnmet {
-			i, err := findCriterion(a.t, text)
-			if err != nil {
-				return err
-			}
-			setCriterion(a.t, i, false)
-			quoted = append(quoted, strconv.Quote(a.t.Criteria[i].Text))
+		for _, c := range criteria {
+			quoted = append(quoted, c.ID+": "+strconv.Quote(c.Text))
 		}
 		a.items = append(a.items, commentItem{label: "Unmet criteria", values: quoted})
 	}
@@ -579,7 +657,7 @@ func (a *applier) buildItems() error {
 		if err != nil {
 			return err
 		}
-		a.items = append(a.items, commentItem{label: f.label, values: vals, list: true})
+		a.items = append(a.items, commentItem{label: f.label, values: vals, list: a.op != "hand-off" || len(vals) > 1})
 	}
 	if len(in.NotBlocking) > 0 {
 		vals, err := checkValues("not_blocking", in.NotBlocking, true)

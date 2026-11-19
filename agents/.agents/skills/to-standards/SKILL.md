@@ -36,9 +36,11 @@ This skill reads code but changes only `CODING_STANDARDS.md`. Replace secrets, s
    - Put every rule about tests in one `## Testing` section, and always include it.
 5. If neither the docs nor the tests show any testing rules, propose these for the Testing section:
    - Test external behavior, not implementation details.
-   - Test at public entry points and module boundaries, checking their inputs and outputs.
+   - Test at public entry points and narrowest module boundaries, checking their inputs and outputs.
+   - Consolidate overlapping coverages.
    - Don't test private helpers, trivial code, or third-party libraries.
    - Add a focused lower-level test only where it gives clearer failures.
+   - Use table-driven tests when several cases run the same steps and only differ in inputs or expected results.
 6. Show the user the draft and your questions. For an update, show only the changes and any new questions. Repeat until the user approves.
 7. Write the file. Commit only this file with the subject `standards: update`. Skip the commit if git ignores the file.
 

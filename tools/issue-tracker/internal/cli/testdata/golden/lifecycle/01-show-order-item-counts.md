@@ -27,22 +27,20 @@ Run `npm test`.
 
 ## Comments
 
-hand off (attempt 1):
-- Verification:
-  - `npm test` passed.
+implement:hand-off (attempt 1):
+- Verification: `npm test` passed.
 
-send back (attempt 1):
-- Unmet criteria: "An empty order shows an item count of zero."
+review:send-back (attempt 1):
+- Unmet criteria: C01: "An empty order shows an item count of zero."
 - Blocking (missing): an empty order shows no item count line.
 - Verification:
   - `npm test` passed.
 - Not blocking: the local `n` doesn't say it holds the item count.
 
-hand off (attempt 2):
-- Verification:
-  - `npm test` passed.
+implement:hand-off (attempt 2):
+- Verification: `npm test` passed.
 
-pass (attempt 2):
+review:pass (attempt 2):
 - Verification:
   - `npm test` passed.
 - Not blocking resolved: the local `n` doesn't say it holds the item count. Fixed.

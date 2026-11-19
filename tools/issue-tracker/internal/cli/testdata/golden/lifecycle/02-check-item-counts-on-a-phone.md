@@ -23,6 +23,6 @@ Open the order summary on a phone. Record the device and a screenshot in a comme
 
 ## Comments
 
-complete:
+manual:complete:
 - Evidence:
   - Pixel 8, Chrome: readable without zoom. Screenshot in the PR.

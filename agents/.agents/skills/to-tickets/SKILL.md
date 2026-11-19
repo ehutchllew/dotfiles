@@ -27,7 +27,7 @@ Use this skill when:
 3. If the spec's Testing decisions name no commands, ask the user to add them with `to-spec` and stop.
 4. Fetch compact feature status. Read each existing ticket and its comments. For stopped tickets, request full history so you see every attempt.
 5. If any ticket is `in-progress`, work on this feature may still be running. Ask the user to confirm it has stopped before you change anything.
-6. For a failed acceptance review, read the acceptance ticket's `stop` comment. Treat it as a failed review only if the comment lists findings. If it says verification was blocked, report that to the user and stop.
+6. For a failed acceptance review, read the acceptance ticket's `stop` comment. Draft repairs for findings. If it records blocked verification or a product question instead, report that to the user and stop.
 7. For a stopped implementation ticket, read its comments to learn why each attempt failed. Use that to decide how to rework or split it.
 8. Note every unresolved not-blocking finding reported in status, with its ticket number.
 
@@ -41,8 +41,9 @@ Look for prefactoring that would make the feature tickets smaller or simpler. Pl
 
 ### Implementation tickets
 
-- Each ticket holds one deliverable: a change that can be checked on its own once it lands. Treat "and" in the title as a cue to check for unrelated deliverables, not an automatic split.
+- Each ticket holds one deliverable you can check on its own without shipping incorrect behavior. Entering checkout and returning to the cart can land before order placement. Order safety checks belong with the first slice that places orders. Treat "and" in the title as a cue to check for unrelated deliverables, not an automatic split.
 - Acceptance criteria state what the deliverable must do. They are not a todo list.
+- Carry over agreed examples where they apply. If the spec leaves an observable requirement undecided, ask for a decision through `to-spec` rather than deciding it in a ticket.
 - Most deliverables are vertical slices:
   - A slice cuts a narrow path through every layer it needs, such as schema, API, UI, and tests.
   - A finished slice can be shown working or checked on its own.
@@ -60,7 +61,7 @@ Each ticket must pass its own Verification. If a batch can't, split it or fix th
 
 ### Manual tickets
 
-Add a manual ticket for each check in the spec's Testing decisions that only the user can do, and for any product decision or third-party setup the work depends on.
+Add a manual ticket for each check in the spec's Testing decisions that only the user can do, and for any product decision or third-party setup the work depends on. Leave proof of a manual check to that ticket.
 
 ### Acceptance ticket
 
@@ -80,9 +81,9 @@ Draft one implementation ticket for each unresolved not-blocking finding, or one
 Skip this step when the feature has no tickets.
 
 - For every unfinished ticket you change, `revise` it with the reason before editing its content or blockers. This applies to every kind, in any phase, including `in-progress` and `stopped` tickets.
-- Add new tickets for changes to `done` work. `comment` on each affected `done` ticket with a note naming the new ticket and the reason.
+- Add new tickets for changes to `done` work, including any manual scenarios that need to run again after a repair. `comment` on each affected `done` ticket with a note naming the new ticket and the reason.
 - `cancel` work that no longer applies.
-- If the current acceptance ticket is `done`, add a new one. Otherwise, after its new blockers are published, `revise` it and then update its blockers, covered stories, and spec revision to match the new breakdown.
+- If the current acceptance ticket is `done`, add a new one. Otherwise, after its new blockers are published, `revise` it and update its blockers, covered stories, spec revision, and manual evidence references as needed.
 - For each not-blocking finding the user resolved in step 5, use `comment` on its original ticket to resolve it as ignored or moved to the new ticket.
 - If a conflict prevents a runnable plan, name it and let the user decide.
 

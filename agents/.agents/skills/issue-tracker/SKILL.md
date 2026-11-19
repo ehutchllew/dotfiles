@@ -25,7 +25,7 @@ This is a non-exhaustive list:
 | `issue-tracker validate FEATURE [--draft]` | Validation errors. `--draft` skips the checks that need a complete breakdown. |
 | `issue-tracker spec get FEATURE` | The spec and its hash. |
 | `issue-tracker ticket list FEATURE` | Ticket summaries without bodies. |
-| `issue-tracker ticket get FEATURE NN [--full]` | The ticket and its hash. Comments before its last `revise` are left out unless you pass `--full`. |
+| `issue-tracker ticket get FEATURE NN [--full]` | The ticket, hash, and `criteria` with their IDs. Comments before its last `revise` are left out unless you pass `--full`. |
 
 Read with `--if-changed HASH` only when the content for that hash is still in your context. If nothing changed, the reply has `"unchanged": true` and no body. A fresh agent, or one whose context was compacted, reads without it. A hash from another agent doesn't mean you have the content.
 
@@ -50,7 +50,9 @@ Every reply is JSON. A failure has `error.code`:
 | `stale` | The document changed. Read it again, then decide whether the write still applies. |
 | `invalid_transition`, `not_ready`, `attempt_limit_reached`, `stale_acceptance`, `not_current_acceptance` | The ticket or feature isn't in a state that allows the operation. Don't retry it as is. |
 | `would_invalidate` | The write would break validation. The message and details say how. |
-| `unknown_criterion`, `unknown_finding` | Quote the text exactly as the ticket has it. The details list the options. |
+| `unknown_criterion`, `duplicate_criterion` | Use each applicable ID from `ticket get` once. Don't guess which criterion was meant. |
+| `unknown_finding` | Quote the finding exactly as the ticket has it. |
+| `stale_handoff`, `handoff_checkout` | The recorded snapshot no longer matches or the checkout isn't clean. Don't use the report for different work. |
 | `ticket_not_found`, `ambiguous_ticket`, `feature_not_found` | If you're a subagent, stop and report what you found. Otherwise ask the user. |
 | `partial_write` | Run the same operation again to finish it. |
 | anything else | Report the message. |

@@ -152,6 +152,29 @@ func TestTicketEdits(t *testing.T) {
 	}
 }
 
+func TestCriterionIDsSurviveReordering(t *testing.T) {
+	r := newRepo(t, co)
+	path := r.ticket(co, "01").Path
+	before := r.read(path)
+	legacy := okReply[docReply](r, "", "ticket", "get", co, "01").Criteria
+	if len(legacy) != 2 || legacy[0].ID != "C01" || legacy[1].ID != "C02" || r.read(path) != before {
+		t.Fatalf("legacy criteria: %+v", legacy)
+	}
+	r.op(co, "01", "claim", commit(shaA))
+	r.op(co, "01", "hand-off", `{"commit":"`+shaB+`","criteria_met":["C01"],"verification":["ok"]}`)
+	r.ok(`{"criteria":["The count equals the sum of quantities.","An empty order shows zero."]}`, ticketEditArgs(r, "01")...)
+	cs := okReply[docReply](r, "", "ticket", "get", co, "01").Criteria
+	if len(cs) != 2 || cs[0].ID != "C02" || cs[0].Checked || cs[1].ID != "C01" || !cs[1].Checked {
+		t.Fatalf("reordered criteria: %+v", cs)
+	}
+	r.ok(`{"criteria":["An empty order shows zero."]}`, ticketEditArgs(r, "01")...)
+	r.ok(`{"criteria":["An empty order shows zero.","A new criterion."]}`, ticketEditArgs(r, "01")...)
+	cs = okReply[docReply](r, "", "ticket", "get", co, "01").Criteria
+	if len(cs) != 2 || cs[1].ID != "C03" {
+		t.Fatalf("criteria after deletion and addition: %+v", cs)
+	}
+}
+
 func TestTicketEditRejects(t *testing.T) {
 	for _, c := range []struct {
 		name  string

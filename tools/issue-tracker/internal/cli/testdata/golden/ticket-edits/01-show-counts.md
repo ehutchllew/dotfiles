@@ -14,8 +14,8 @@ Show the item count in the order summary.
 
 ## Acceptance criteria
 
-- [x] An empty order shows zero.
-- [ ] A new criterion.
+- [x] C01: An empty order shows zero.
+- [ ] C03: A new criterion.
 
 ## Verification
 
@@ -23,6 +23,5 @@ Run `npm test`.
 
 ## Comments
 
-hand off (attempt 1):
-- Verification:
-  - ok
+implement:hand-off (attempt 1):
+- Verification: ok

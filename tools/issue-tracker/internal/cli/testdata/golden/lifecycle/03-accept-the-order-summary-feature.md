@@ -27,7 +27,7 @@ Run `npm test`. Check the evidence on ticket 02.
 
 ## Comments
 
-pass:
+acceptance:pass:
 - Verification:
   - `npm test` passed.
 - Evidence:

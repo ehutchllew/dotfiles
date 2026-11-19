@@ -2,6 +2,7 @@ package doc
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"slices"
 	"strconv"
@@ -25,24 +26,23 @@ const (
 )
 
 // TicketMetaOrder is the canonical order of ticket metadata lines.
-var TicketMetaOrder = []string{"Kind", "Phase", "Status", "Attempt", "Blocked by", "Covers", "Spec revision", "Base commit", "Target commit"}
+var TicketMetaOrder = []string{"Kind", "Phase", "Status", "Attempt", "Blocked by", "Covers", "Spec revision", "Base commit", "Target commit", "Next criterion", "Pending handoff"}
 
 // TicketSectionOrder is the canonical order of ticket sections.
 var TicketSectionOrder = []string{"What to build", "Acceptance criteria", "Verification", "Out of scope", "Comments"}
 
-// CommentOps are the operation names that start a comment.
-var CommentOps = []string{"claim", "hand off", "pass", "send back", "set feature base", "start review", "stop", "resume", "reset attempts", "revise", "complete", "cancel", "comment"}
-
 var fieldKinds = map[string][]string{
-	"Kind":          {KindImplementation, KindAcceptance, KindManual},
-	"Phase":         {KindImplementation},
-	"Status":        {KindImplementation, KindAcceptance, KindManual},
-	"Attempt":       {KindImplementation},
-	"Blocked by":    {KindImplementation, KindAcceptance, KindManual},
-	"Covers":        {KindImplementation, KindAcceptance, KindManual},
-	"Spec revision": {KindAcceptance},
-	"Base commit":   {KindImplementation, KindAcceptance},
-	"Target commit": {KindImplementation, KindAcceptance},
+	"Kind":            {KindImplementation, KindAcceptance, KindManual},
+	"Phase":           {KindImplementation},
+	"Status":          {KindImplementation, KindAcceptance, KindManual},
+	"Attempt":         {KindImplementation},
+	"Blocked by":      {KindImplementation, KindAcceptance, KindManual},
+	"Covers":          {KindImplementation, KindAcceptance, KindManual},
+	"Spec revision":   {KindAcceptance},
+	"Base commit":     {KindImplementation, KindAcceptance},
+	"Target commit":   {KindImplementation, KindAcceptance},
+	"Next criterion":  {KindImplementation, KindAcceptance, KindManual},
+	"Pending handoff": {KindImplementation},
 }
 
 // Problem is one validation failure.
@@ -54,9 +54,17 @@ type Problem struct {
 
 // Criterion is one acceptance criterion checkbox.
 type Criterion struct {
-	Text    string
-	Checked bool
-	Line    int
+	ID      string `json:"id"`
+	Text    string `json:"text"`
+	Checked bool   `json:"checked"`
+	Line    int    `json:"-"`
+}
+
+// PendingHandoff pins a report to the work and requirements it describes.
+type PendingHandoff struct {
+	Commit           string `json:"commit"`
+	SpecHash         string `json:"spec_hash"`
+	RequirementsHash string `json:"requirements_hash"`
 }
 
 // Item is one top-level `- ` list item in a comment.
@@ -78,31 +86,35 @@ type Comment struct {
 
 // Ticket is a parsed ticket document.
 type Ticket struct {
-	Doc          *Document
-	S            *Structure
-	Number       int
-	Title        string
-	Kind         string
-	Phase        string
-	Status       string
-	Attempt      int
-	BlockedBy    []int
-	Covers       []string
-	SpecRevision int
-	Base         string
-	Target       string
-	Criteria     []Criterion
-	Comments     []Comment
-	Problems     []Problem
+	Doc            *Document
+	S              *Structure
+	Number         int
+	Title          string
+	Kind           string
+	Phase          string
+	Status         string
+	Attempt        int
+	BlockedBy      []int
+	Covers         []string
+	SpecRevision   int
+	Base           string
+	Target         string
+	Criteria       []Criterion
+	NextCriterion  int
+	PendingHandoff *PendingHandoff
+	Comments       []Comment
+	Problems       []Problem
 }
 
 var (
 	ticketTitleRe = regexp.MustCompile(`^(\d+): (\S.*)$`)
 	storyIDRe     = regexp.MustCompile(`^US (\d+)$`)
 	criterionRe   = regexp.MustCompile(`^- \[([ xX])\] (.*)$`)
+	criterionIDRe = regexp.MustCompile(`^(C[0-9]+): (.*)$`)
 	itemRe        = regexp.MustCompile(`^- ([^:]+):(?: (.*))?$`)
-	commentHeadRe = regexp.MustCompile(`^(` + strings.Join(CommentOps, "|") + `)(?: \(attempt (\d+)\))?:\s*$`)
+	commentHeadRe = regexp.MustCompile(`^(?:(?:implement|review|manual|acceptance):)?(claim|hand[- ]off|pass|send[- ]back|set[- ]feature[- ]base|start[- ]review|stop|resume|reset[- ]attempts|revise|complete|cancel|comment)(?: \(attempt (\d+)\))?:\s*$`)
 	shaRe         = regexp.MustCompile(`^(?:[0-9a-f]{40}|[0-9a-f]{64})$`)
+	hashRe        = regexp.MustCompile(`^sha256:[0-9a-f]{16}$`)
 )
 
 // IsFullSHA reports whether s is a full SHA-1 or SHA-256 commit ID.
@@ -110,6 +122,9 @@ func IsFullSHA(s string) bool { return shaRe.MatchString(s) }
 
 // TicketID formats a ticket number.
 func TicketID(n int) string { return fmt.Sprintf("%02d", n) }
+
+// CriterionID formats a criterion number within one ticket.
+func CriterionID(n int) string { return fmt.Sprintf("C%02d", n) }
 
 // ParseTicketNumber parses "1", "01", or "001".
 func ParseTicketNumber(s string) (int, error) {
@@ -200,6 +215,17 @@ func (t *Ticket) parse() {
 			t.Attempt = n
 		}
 	}
+	if v, ok := get("Pending handoff"); ok {
+		parts := strings.Fields(v)
+		switch {
+		case t.Phase != PhaseImplement || t.Status != StatusStopped || t.Attempt == 0:
+			t.problem("invalid_state", "`Pending handoff:` needs a stopped implementation attempt")
+		case len(parts) != 3 || !IsFullSHA(parts[0]) || !hashRe.MatchString(parts[1]) || !hashRe.MatchString(parts[2]):
+			t.problem("invalid_field", "`Pending handoff:` needs a commit, spec hash, and ticket requirements hash")
+		default:
+			t.PendingHandoff = &PendingHandoff{Commit: parts[0], SpecHash: parts[1], RequirementsHash: parts[2]}
+		}
+	}
 
 	if v, ok := get("Blocked by"); ok {
 		t.BlockedBy = nil
@@ -270,20 +296,54 @@ func (t *Ticket) parse() {
 	}
 
 	if sec, ok := s.Section("Acceptance criteria"); ok {
+		seen := map[string]bool{}
+		next := 1
 		for i := sec.Heading + 1; i < sec.End; i++ {
 			if s.Fenced[i] {
 				continue
 			}
 			if m := criterionRe.FindStringSubmatch(t.Doc.Lines[i]); m != nil {
-				t.Criteria = append(t.Criteria, Criterion{Text: strings.TrimSpace(m[2]), Checked: m[1] != " ", Line: i})
+				id, text := CriterionID(len(t.Criteria)+1), strings.TrimSpace(m[2])
+				if tagged := criterionIDRe.FindStringSubmatch(text); tagged != nil {
+					id, text = tagged[1], strings.TrimSpace(tagged[2])
+				}
+				n, err := strconv.Atoi(id[1:])
+				if err != nil || n < 1 || n == math.MaxInt || id != CriterionID(n) {
+					t.problem("invalid_criterion", "criterion ID %q is invalid", id)
+				} else {
+					next = max(next, n+1)
+				}
+				if seen[id] {
+					t.problem("duplicate_criterion", "criterion ID %s appears more than once", id)
+				}
+				seen[id] = true
+				t.Criteria = append(t.Criteria, Criterion{ID: id, Text: text, Checked: m[1] != " ", Line: i})
 			}
 		}
 		if len(t.Criteria) == 0 {
 			t.problem("missing_criteria", "`## Acceptance criteria` has no `- [ ]` criteria")
 		}
+		t.NextCriterion = next
+		if v, ok := get("Next criterion"); ok {
+			if n, err := strconv.Atoi(v); err != nil || n < next {
+				t.problem("invalid_field", "`Next criterion:` must be at least %d", next)
+			} else {
+				t.NextCriterion = n
+			}
+		}
 	}
 
 	t.parseComments()
+}
+
+// RequirementsHash excludes comments and fields changed by a pending stop.
+func (t *Ticket) RequirementsHash() string {
+	d := t.Doc.Clone()
+	RemoveSection(d, "Comments")
+	RemoveMeta(d, "Status")
+	RemoveMeta(d, "Pending handoff")
+	d.FinalNewline = true
+	return Hash(d.Bytes())
 }
 
 func (t *Ticket) parseComments() {
@@ -301,7 +361,7 @@ func (t *Ticket) parseComments() {
 					cur.End = i
 					t.Comments = append(t.Comments, *cur)
 				}
-				cur = &Comment{Op: m[1], Header: i}
+				cur = &Comment{Op: strings.ReplaceAll(m[1], " ", "-"), Header: i}
 				if m[2] != "" {
 					cur.Attempt, _ = strconv.Atoi(m[2])
 					cur.HasAttempt = true

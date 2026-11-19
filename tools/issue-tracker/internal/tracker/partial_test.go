@@ -146,7 +146,7 @@ func TestPartialCancelCanBeFinished(t *testing.T) {
 			if c.written != nil && r.Note == "" {
 				t.Error("a retry after a partial write must say the ticket was already cancelled")
 			}
-			if n := strings.Count(read("01"), "cancel (attempt 0):"); n != 1 {
+			if n := strings.Count(read("01"), "implement:cancel (attempt 0):"); n != 1 {
 				t.Fatalf("ticket 01 has %d cancel comments:\n%s", n, read("01"))
 			}
 			status, err := tr.Status("checkout")
