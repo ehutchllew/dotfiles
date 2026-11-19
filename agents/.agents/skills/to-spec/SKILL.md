@@ -20,7 +20,7 @@ Turn the current conversation into a new or revised spec. Don't start a new inte
    - Assumptions go into Assumptions.
    - Open risks go into Further notes.
 4. Where a behavior rule has a boundary that readers could interpret differently, write the agreed examples of what passes and what fails next to it.
-5. Choose what to test and tie each test to a user story or decision. Follow the Testing section of `CODING_STANDARDS.md` if present. Otherwise, use the repo's existing tests and conventions.
+5. Choose what this feature needs tested and tie each test to a user story or decision. Leave how to write tests to the Testing section of `CODING_STANDARDS.md`, and don't restate its rules. If there is no such section, use the repo's existing tests and conventions.
 6. Collect the commands for Testing decisions:
    - Copy every command in the Checks section of `CODING_STANDARDS.md`, if present.
    - Find the repo's test and check commands in `package.json`, `Makefile`, CI config, and similar.

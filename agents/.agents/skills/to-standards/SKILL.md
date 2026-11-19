@@ -35,12 +35,12 @@ This skill reads code but changes only `CODING_STANDARDS.md`. Replace secrets, s
    - Group rules under topic headings.
    - Put every rule about tests in one `## Testing` section, and always include it.
 5. If neither the docs nor the tests show any testing rules, propose these for the Testing section. They aim for the fewest tests that would catch a regression a caller would notice:
-   - Test each behavior at the public entry point or module boundary that owns it, checking inputs and outputs, not implementation details.
-   - Add a lower-level test only where it gives a clearer failure than the boundary test.
-   - Don't add a test for behavior another test already checks. Merge tests that overlap.
+   - Test each behavior through the narrowest stable interface that owns it, such as a package API, an HTTP endpoint, or a CLI command. Supply inputs and assert on returned values, errors, or state changes. Use a broader test only when the behavior depends on components working together.
+   - Don't repeat the same cases at another layer unless the broader test checks something different.
+   - Cover normal use, meaningful limits and failures, and known regressions. Add rarer cases only when the spec requires them or a failure would be costly. Don't add a case just because it's possible.
    - Don't test private helpers, trivial code such as getters and constants, or third-party libraries.
    - Don't assert on details the behavior doesn't depend on, such as field order, whitespace, or log wording.
-   - Use parameterized or table-driven tests when several cases run the same steps and differ only in inputs or expected results.
+   - Use parameterized or table-driven tests when cases run the same steps and differ only in inputs or expected results. Keep cases with different setup or behavior in separate tests.
 6. Show the user the draft and your questions. For an update, show only the changes and any new questions. Repeat until the user approves.
 7. Write the file. Commit only this file with the subject `standards: update`. Skip the commit if git ignores the file.
 
