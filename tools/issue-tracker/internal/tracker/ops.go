@@ -21,7 +21,7 @@ var opSpecs = map[string]opSpec{
 	"send-back":        {"send back", []string{"criteria_unmet", "findings", "verification", "not_blocking", "resolved", "notes"}},
 	"set-feature-base": {"set feature base", []string{"commit"}},
 	"start-review":     {"start review", []string{"commit"}},
-	"stop":             {"stop", []string{"reason", "criteria_unmet", "findings", "verification", "evidence", "not_blocking", "resolved", "notes", "stop_kind", "commit", "spec_hash"}},
+	"stop":             {"stop", []string{"reason", "criteria_unmet", "findings", "verification", "evidence", "not_blocking", "resolved", "notes"}},
 	"resume":           {"resume", []string{"reason"}},
 	"reset-attempts":   {"reset attempts", []string{"reason"}},
 	"revise":           {"revise", []string{"reason"}},
@@ -264,7 +264,10 @@ func (a *applier) run() error {
 		a.setMeta("Status", doc.StatusInProgress)
 
 	case "hand-off":
-		sha, err := a.handoffTarget()
+		if !impl || t.Phase != doc.PhaseImplement || t.Status != doc.StatusInProgress {
+			return invalidTransition(a.op, t, "an implementation ticket in implement/in-progress")
+		}
+		sha, err := a.commit()
 		if err != nil {
 			return err
 		}
@@ -274,7 +277,6 @@ func (a *applier) run() error {
 		if _, err := a.tick(in.CriteriaMet, true); err != nil {
 			return err
 		}
-		a.clearPendingHandoff()
 		a.setMeta("Target commit", sha)
 		a.setMeta("Phase", doc.PhaseReview)
 		a.setMeta("Status", doc.StatusOpen)
@@ -359,11 +361,6 @@ func (a *applier) run() error {
 		if err := a.requireReason(); err != nil {
 			return err
 		}
-		if in.StopKind != "" || in.Commit != "" || in.SpecHash != "" {
-			if err := a.pinHandoff(); err != nil {
-				return err
-			}
-		}
 		a.setMeta("Status", doc.StatusStopped)
 
 	case "resume":
@@ -373,7 +370,6 @@ func (a *applier) run() error {
 		if err := a.requireReason(); err != nil {
 			return err
 		}
-		a.clearPendingHandoff()
 		a.setMeta("Status", doc.StatusOpen)
 
 	case "reset-attempts":
@@ -383,7 +379,6 @@ func (a *applier) run() error {
 		if err := a.requireReason(); err != nil {
 			return err
 		}
-		a.clearPendingHandoff()
 		a.setMeta("Attempt", "0")
 		a.setMeta("Status", doc.StatusOpen)
 
@@ -394,7 +389,6 @@ func (a *applier) run() error {
 		if err := a.requireReason(); err != nil {
 			return err
 		}
-		a.clearPendingHandoff()
 		setAllCriteria(t, false)
 		if impl {
 			a.setMeta("Phase", doc.PhaseImplement)
@@ -420,7 +414,6 @@ func (a *applier) run() error {
 			comment = false
 			a.note = "the ticket was already cancelled; only its remaining blocker references were removed"
 		} else {
-			a.clearPendingHandoff()
 			a.setMeta("Status", doc.StatusCancelled)
 		}
 		if err := a.unblockOthers(); err != nil {
@@ -451,68 +444,6 @@ func (a *applier) run() error {
 		return apperr.Usage("invalid_input", "the comment would have a fenced code block that is never closed")
 	}
 	return doc.AppendToSection(t.Doc, "Comments", lines)
-}
-
-func (a *applier) pinHandoff() error {
-	t, in := a.t, a.in
-	if in.StopKind != "handoff-pending" {
-		return apperr.Usage("invalid_input", "commit and spec_hash for stop require stop_kind: handoff-pending")
-	}
-	if t.Kind != doc.KindImplementation || t.Phase != doc.PhaseImplement || t.Status != doc.StatusInProgress || t.Attempt == 0 {
-		return invalidTransition(a.op, t, "a claimed implementation attempt for a pending hand-off")
-	}
-	if in.SpecHash == "" || len(in.Verification) == 0 {
-		return apperr.Usage("invalid_input", "a pending hand-off needs spec_hash and the original verification results")
-	}
-	if len(in.CriteriaUnmet) > 0 {
-		return apperr.Usage("invalid_input", "a pending hand-off can't change the acceptance criteria")
-	}
-	if in.SpecHash != a.f.Spec.Hash {
-		return apperr.New("stale_handoff", "the spec changed since the implementation report")
-	}
-	sha, err := a.commit()
-	if err != nil {
-		return err
-	}
-	if err := a.tr.Store.CheckHandoffCheckout(sha); err != nil {
-		return err
-	}
-	a.setMeta("Pending handoff", strings.Join([]string{sha, in.SpecHash, t.RequirementsHash()}, " "))
-	return nil
-}
-
-func (a *applier) handoffTarget() (string, error) {
-	t := a.t
-	if t.Kind == doc.KindImplementation && t.Phase == doc.PhaseImplement && t.Status == doc.StatusInProgress {
-		return a.commit()
-	}
-	p := t.PendingHandoff
-	if p == nil {
-		return "", invalidTransition(a.op, t, "an in-progress implementation or a pending hand-off")
-	}
-	if p.SpecHash != a.f.Spec.Hash || p.RequirementsHash != t.RequirementsHash() {
-		return "", apperr.New("stale_handoff", "the spec or ticket requirements changed since the hand-off stopped")
-	}
-	if a.in.Commit != "" {
-		sha, err := a.commit()
-		if err != nil {
-			return "", err
-		}
-		if sha != p.Commit {
-			return "", apperr.New("stale_handoff", "the pending hand-off targets %s, not %s", p.Commit, sha)
-		}
-	}
-	if err := a.requireBlockersDone(); err != nil {
-		return "", err
-	}
-	return p.Commit, a.tr.Store.CheckHandoffCheckout(p.Commit)
-}
-
-func (a *applier) clearPendingHandoff() {
-	if a.t.PendingHandoff != nil {
-		doc.RemoveMeta(a.t.Doc, "Pending handoff")
-		a.t.Reparse()
-	}
 }
 
 func (a *applier) setMeta(key, value string) {

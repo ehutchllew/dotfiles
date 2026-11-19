@@ -258,8 +258,10 @@ func TestOutputFailureAfterAWrite(t *testing.T) {
 	}
 }
 
-func newGitRepo(t *testing.T) (*repo, func(...string) string) {
-	t.Helper()
+// TestGitRefsAndIgnoredStorage uses a real git repository to check ref
+// resolution and git_ignored. Every other test has an empty .git directory
+// and passes full SHAs, which skip git.
+func TestGitRefsAndIgnoredStorage(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git isn't installed")
 	}
@@ -289,11 +291,6 @@ func newGitRepo(t *testing.T) (*repo, func(...string) string) {
 	git("config", "core.excludesFile", os.DevNull)
 	git("config", "user.name", "Test")
 	git("config", "user.email", "test@example.com")
-	return r, git
-}
-
-func TestGitRefsAndIgnoredStorage(t *testing.T) {
-	r, git := newGitRepo(t)
 	git("commit", "-q", "--allow-empty", "--no-verify", "-m", "first")
 	first := git("rev-parse", "HEAD")
 	git("commit", "-q", "--allow-empty", "--no-verify", "-m", "second")

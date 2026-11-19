@@ -172,8 +172,6 @@ blocker isn't done and attempt_limit_reached at the spec's limit.
 Input: {"commit":"HEAD"}, or pass --commit HEAD.`,
 	"hand-off": `Implementation, implement/in-progress -> review/open. Sets Target
 commit, ticks criteria_met, and records the verification summary.
-Also finishes a pending hand-off from stopped without another claim.
-Omit commit in that case to use the recorded commit.
 
 Input:
 {"commit":"HEAD",
@@ -216,14 +214,8 @@ Unticks criteria_unmet. A failed acceptance review uses stop.
 Input:
 {"reason":"Verification blocked: the test database is down.",
  "criteria_unmet":["C01"],"findings":["Blocking (wrong): ..."],
- "verification":["..."]}
-
-For a report-only problem on a claimed implementation:
-{"reason":"The report used an unknown criterion ID.",
- "stop_kind":"handoff-pending","commit":"HEAD","spec_hash":"sha256:...",
- "verification":["` + "`npm test`" + ` passed."]}`,
-	"resume": `Any kind, stopped -> open. Discards a pending hand-off; use hand-off
-directly to submit its corrected report without starting a new attempt.
+ "verification":["..."]}`,
+	"resume": `Any kind, stopped -> open.
 
 Input: {"reason":"<how the cause was resolved>"}`,
 	"reset-attempts": `Implementation, implement/stopped -> implement/open. Sets

@@ -98,8 +98,6 @@ type OpInput struct {
 	Resolved       []Resolution `json:"resolved"`
 	Reason         string       `json:"reason"`
 	Notes          []string     `json:"notes"`
-	StopKind       string       `json:"stop_kind"`
-	SpecHash       string       `json:"spec_hash"`
 }
 
 // SpecCreateInput is the payload for `spec create`.

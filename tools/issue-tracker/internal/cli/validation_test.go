@@ -40,6 +40,9 @@ func TestValidation(t *testing.T) {
 			p := r.ticket(co, "03").Path
 			r.edit(p, "- [ ] The count is readable without zooming.", "The count is readable without zooming.")
 		}, want: []string{"03:missing_criteria"}},
+		{name: "written criterion ID matches an untagged one", setup: func(r *repo) {
+			r.edit(r.ticket(co, "01").Path, "- [ ] The count equals", "- [ ] C01: The count equals")
+		}, want: []string{"01:duplicate_criterion"}},
 		{name: "unclosed fence", setup: func(r *repo) {
 			r.edit(r.ticket(co, "03").Path, "## Verification", "```\n## Verification")
 		}, want: []string{"03:malformed"}},

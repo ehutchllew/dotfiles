@@ -17,7 +17,6 @@ type Store interface {
 	Write(rel string, data []byte, create bool) error
 	Lock(feature string, exclusive bool) (func(), error)
 	ResolveCommit(ref string) (string, error)
-	CheckHandoffCheckout(commit string) error
 	IsIgnored(rel string) (ignored, ok bool)
 }
 

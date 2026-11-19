@@ -41,8 +41,9 @@ Look for prefactoring that would make the feature tickets smaller or simpler. Pl
 
 ### Implementation tickets
 
-- Each ticket holds one deliverable you can check on its own without shipping incorrect behavior. Entering checkout and returning to the cart can land before order placement. Order safety checks belong with the first slice that places orders. Treat "and" in the title as a cue to check for unrelated deliverables, not an automatic split.
+- Each ticket holds one deliverable you can check on its own without shipping incorrect behavior. Put a safety requirement in the first ticket that introduces the risk it guards against. Treat "and" in the title as a cue to check for unrelated deliverables, not an automatic split.
 - Acceptance criteria state what the deliverable must do. They are not a todo list.
+- Every criterion must be something the ticket's Verification can confirm. If only a person can check it, such as a visual check when the repo has no browser automation, put it in a manual ticket instead.
 - Carry over agreed examples where they apply. If the spec leaves an observable requirement undecided, ask for a decision through `to-spec` rather than deciding it in a ticket.
 - Most deliverables are vertical slices:
   - A slice cuts a narrow path through every layer it needs, such as schema, API, UI, and tests.
@@ -61,7 +62,7 @@ Each ticket must pass its own Verification. If a batch can't, split it or fix th
 
 ### Manual tickets
 
-Add a manual ticket for each check in the spec's Testing decisions that only the user can do, and for any product decision or third-party setup the work depends on. Leave proof of a manual check to that ticket.
+Add a manual ticket for each check in the spec's Testing decisions that only the user can do, and for any product decision or third-party setup the work depends on.
 
 ### Acceptance ticket
 
@@ -83,7 +84,7 @@ Skip this step when the feature has no tickets.
 - For every unfinished ticket you change, `revise` it with the reason before editing its content or blockers. This applies to every kind, in any phase, including `in-progress` and `stopped` tickets.
 - Add new tickets for changes to `done` work, including any manual scenarios that need to run again after a repair. `comment` on each affected `done` ticket with a note naming the new ticket and the reason.
 - `cancel` work that no longer applies.
-- If the current acceptance ticket is `done`, add a new one. Otherwise, after its new blockers are published, `revise` it and update its blockers, covered stories, spec revision, and manual evidence references as needed.
+- If the current acceptance ticket is `done`, add a new one. Otherwise, after its new blockers are published, `revise` it and update its blockers, covered stories, and spec revision to match the new breakdown.
 - For each not-blocking finding the user resolved in step 5, use `comment` on its original ticket to resolve it as ignored or moved to the new ticket.
 - If a conflict prevents a runnable plan, name it and let the user decide.
 

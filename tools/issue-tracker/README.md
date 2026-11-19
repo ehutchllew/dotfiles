@@ -123,7 +123,7 @@ Target commit: <sha>                   (set by hand-off or start-review)
 
 `ticket edit` changes content only. Status, phase, attempt, commits, and comments change only through state operations. Done and cancelled tickets can't be edited, only commented on.
 
-`ticket get` returns the criterion IDs and text. Create and edit still take criterion text. Unchanged text keeps its ID when reordered. New or replaced criteria get new IDs, and `Next criterion:` keeps deleted IDs from being reused. Older tickets get IDs in their original order without a rewrite. State operations take criterion IDs and still accept exact text from older callers.
+`ticket get` returns the criterion IDs and text. Create and edit still take criterion text. Unchanged text keeps its ID when reordered. New or replaced criteria get new IDs, and `Next criterion:` keeps deleted IDs from being reused. Older tickets get IDs in their original order without a rewrite. If you add a criterion by hand without an ID, it gets one from its place in the list. When that matches an ID written on another criterion, validation reports `duplicate_criterion`, and you fix it by writing an unused ID on the new line. State operations take criterion IDs and still accept exact text from older callers.
 
 ### State operations
 
@@ -133,7 +133,7 @@ Target commit: <sha>                   (set by hand-off or start-review)
 | --- | --- | --- | --- | --- |
 | `claim` | implementation | implement/open | implement/in-progress | Adds 1 to `Attempt`. Sets `Base commit` if missing. Needs every blocker done and `Attempt` below the limit. |
 | `claim` | implementation | implement/in-progress | no change | The current attempt continues. |
-| `hand-off` | implementation | implement/in-progress or implement/stopped with a pending handoff | review/open | Sets `Target commit`. Ticks met criteria. Records verification. Does not increment `Attempt`. |
+| `hand-off` | implementation | implement/in-progress | review/open | Sets `Target commit`. Ticks met criteria. Records verification. |
 | `pass` | implementation | review/open | review/done | Comments. |
 | `send-back` | implementation | review/open | implement/open | Unticks unmet criteria. Comments with findings. |
 | `set-feature-base` | acceptance | open | no change | Sets `Base commit`. Fails if already set. |
@@ -142,14 +142,12 @@ Target commit: <sha>                   (set by hand-off or start-review)
 | `pass` | acceptance | in-progress | done | Needs the current acceptance ticket, the spec's revision, and every blocker done. Comments. Can tick every criterion. |
 | `complete` | manual | open | done | Ticks every criterion. Comments with evidence. |
 | `stop` | any | open or in-progress | stopped | Comments with the reason. Phase doesn't change. |
-| `resume` | any | stopped | open | Comments with the resolution. Discards any pending handoff. |
+| `resume` | any | stopped | open | Comments with the resolution. |
 | `reset-attempts` | implementation | implement/stopped | implement/open | Sets `Attempt` to 0. |
 | `revise` | implementation | any phase; open, in-progress, or stopped | implement/open | Sets `Attempt` to 0. Unticks every criterion. Keeps both commits. |
 | `revise` | acceptance, manual | open, in-progress, or stopped | open | Unticks every criterion. |
 | `cancel` | any | anything except done | cancelled | Removes the ticket from every `Blocked by:` line. |
 | `comment` | any | any | no change | Appends a comment. |
-
-To stop for a report-only correction, pass `stop_kind: "handoff-pending"`, the candidate `commit`, the `spec_hash` from dispatch, and the original `verification` results to `stop`, with the claimed ticket's `--if-match` hash. `status` reports the pending handoff. Submit the corrected report with `hand-off` and the stopped ticket's hash. The tracker checks that the spec and ticket requirements match and the checkout is clean. Only committed changes to specs and tickets may differ from the candidate. A successful handoff clears the pending state and keeps the attempt number, even at the limit.
 
 ### Comments
 
@@ -214,6 +212,6 @@ go test ./...
 go vet ./...
 ```
 
-The tests run the CLI the way agents do. Each test copies hand-written features from `internal/cli/testdata/features` into a temporary directory, passes arguments and stdin to `cli.Run`, and checks the JSON reply, the exit code, and the bytes on disk. `order-summary` holds the documented examples, and `checkout` has two stories and four tickets. One test runs the CLI as separate processes to check locking. Most tests use an empty `.git` directory and full SHAs. Tests for ref resolution and handoff recovery use real Git repositories. Finished documents are compared with files in `internal/cli/testdata/golden`. After an intended format change, run `go test ./internal/cli -update` and review the diff.
+The tests run the CLI the way agents do. Each test copies hand-written features from `internal/cli/testdata/features` into a temporary directory, passes arguments and stdin to `cli.Run`, and checks the JSON reply, the exit code, and the bytes on disk. `order-summary` holds the documented examples, and `checkout` has two stories and four tickets. One test runs the CLI as separate processes to check locking. Most tests use an empty `.git` directory and full SHAs, so one test creates a real git repository to check ref resolution and `git_ignored`. Finished documents are compared with files in `internal/cli/testdata/golden`. After an intended format change, run `go test ./internal/cli -update` and review the diff.
 
 The only test below the CLI is in `internal/tracker`. It swaps in a storage backend that fails one write, because a disk error on a single file can't be caused from outside.

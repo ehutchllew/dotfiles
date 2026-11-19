@@ -40,38 +40,36 @@ func (tr *Tracker) ListFeatures() ([]FeatureEntry, error) {
 
 // TicketSummary is a ticket's metadata without its body.
 type TicketSummary struct {
-	Ticket         string              `json:"ticket"`
-	Title          string              `json:"title"`
-	Kind           string              `json:"kind"`
-	Phase          string              `json:"phase,omitempty"`
-	Status         string              `json:"status"`
-	Attempt        *int                `json:"attempt,omitempty"`
-	BlockedBy      []string            `json:"blocked_by,omitempty"`
-	Covers         []string            `json:"covers,omitempty"`
-	SpecRevision   int                 `json:"spec_revision,omitempty"`
-	Base           string              `json:"base,omitempty"`
-	Target         string              `json:"target,omitempty"`
-	Ready          bool                `json:"ready"`
-	Hash           string              `json:"hash"`
-	Path           string              `json:"path,omitempty"`
-	LastComment    string              `json:"last_comment,omitempty"`
-	PendingHandoff *doc.PendingHandoff `json:"pending_handoff,omitempty"`
+	Ticket       string   `json:"ticket"`
+	Title        string   `json:"title"`
+	Kind         string   `json:"kind"`
+	Phase        string   `json:"phase,omitempty"`
+	Status       string   `json:"status"`
+	Attempt      *int     `json:"attempt,omitempty"`
+	BlockedBy    []string `json:"blocked_by,omitempty"`
+	Covers       []string `json:"covers,omitempty"`
+	SpecRevision int      `json:"spec_revision,omitempty"`
+	Base         string   `json:"base,omitempty"`
+	Target       string   `json:"target,omitempty"`
+	Ready        bool     `json:"ready"`
+	Hash         string   `json:"hash"`
+	Path         string   `json:"path,omitempty"`
+	LastComment  string   `json:"last_comment,omitempty"`
 }
 
 func (f *Feature) summary(t *TicketDoc, withPath bool) TicketSummary {
 	s := TicketSummary{
-		Ticket:         doc.TicketID(t.FileNumber),
-		Title:          t.Title,
-		Kind:           t.Kind,
-		Phase:          t.Phase,
-		Status:         t.Status,
-		Covers:         t.Covers,
-		SpecRevision:   t.SpecRevision,
-		Base:           t.Base,
-		Target:         t.Target,
-		PendingHandoff: t.PendingHandoff,
-		Ready:          f.Ready(t),
-		Hash:           t.Hash,
+		Ticket:       doc.TicketID(t.FileNumber),
+		Title:        t.Title,
+		Kind:         t.Kind,
+		Phase:        t.Phase,
+		Status:       t.Status,
+		Covers:       t.Covers,
+		SpecRevision: t.SpecRevision,
+		Base:         t.Base,
+		Target:       t.Target,
+		Ready:        f.Ready(t),
+		Hash:         t.Hash,
 	}
 	if t.Kind == doc.KindImplementation {
 		a := t.Attempt

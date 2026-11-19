@@ -50,9 +50,8 @@ Every reply is JSON. A failure has `error.code`:
 | `stale` | The document changed. Read it again, then decide whether the write still applies. |
 | `invalid_transition`, `not_ready`, `attempt_limit_reached`, `stale_acceptance`, `not_current_acceptance` | The ticket or feature isn't in a state that allows the operation. Don't retry it as is. |
 | `would_invalidate` | The write would break validation. The message and details say how. |
-| `unknown_criterion`, `duplicate_criterion` | Use each applicable ID from `ticket get` once. Don't guess which criterion was meant. |
+| `unknown_criterion`, `duplicate_criterion`, `ambiguous_criterion` | Use each applicable ID from `ticket get` once. Don't guess which criterion was meant. |
 | `unknown_finding` | Quote the finding exactly as the ticket has it. |
-| `stale_handoff`, `handoff_checkout` | The recorded snapshot no longer matches or the checkout isn't clean. Don't use the report for different work. |
 | `ticket_not_found`, `ambiguous_ticket`, `feature_not_found` | If you're a subagent, stop and report what you found. Otherwise ask the user. |
 | `partial_write` | Run the same operation again to finish it. |
 | anything else | Report the message. |

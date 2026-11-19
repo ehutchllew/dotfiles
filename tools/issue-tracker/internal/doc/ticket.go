@@ -26,23 +26,22 @@ const (
 )
 
 // TicketMetaOrder is the canonical order of ticket metadata lines.
-var TicketMetaOrder = []string{"Kind", "Phase", "Status", "Attempt", "Blocked by", "Covers", "Spec revision", "Base commit", "Target commit", "Next criterion", "Pending handoff"}
+var TicketMetaOrder = []string{"Kind", "Phase", "Status", "Attempt", "Blocked by", "Covers", "Spec revision", "Base commit", "Target commit", "Next criterion"}
 
 // TicketSectionOrder is the canonical order of ticket sections.
 var TicketSectionOrder = []string{"What to build", "Acceptance criteria", "Verification", "Out of scope", "Comments"}
 
 var fieldKinds = map[string][]string{
-	"Kind":            {KindImplementation, KindAcceptance, KindManual},
-	"Phase":           {KindImplementation},
-	"Status":          {KindImplementation, KindAcceptance, KindManual},
-	"Attempt":         {KindImplementation},
-	"Blocked by":      {KindImplementation, KindAcceptance, KindManual},
-	"Covers":          {KindImplementation, KindAcceptance, KindManual},
-	"Spec revision":   {KindAcceptance},
-	"Base commit":     {KindImplementation, KindAcceptance},
-	"Target commit":   {KindImplementation, KindAcceptance},
-	"Next criterion":  {KindImplementation, KindAcceptance, KindManual},
-	"Pending handoff": {KindImplementation},
+	"Kind":           {KindImplementation, KindAcceptance, KindManual},
+	"Phase":          {KindImplementation},
+	"Status":         {KindImplementation, KindAcceptance, KindManual},
+	"Attempt":        {KindImplementation},
+	"Blocked by":     {KindImplementation, KindAcceptance, KindManual},
+	"Covers":         {KindImplementation, KindAcceptance, KindManual},
+	"Spec revision":  {KindAcceptance},
+	"Base commit":    {KindImplementation, KindAcceptance},
+	"Target commit":  {KindImplementation, KindAcceptance},
+	"Next criterion": {KindImplementation, KindAcceptance, KindManual},
 }
 
 // Problem is one validation failure.
@@ -58,13 +57,6 @@ type Criterion struct {
 	Text    string `json:"text"`
 	Checked bool   `json:"checked"`
 	Line    int    `json:"-"`
-}
-
-// PendingHandoff pins a report to the work and requirements it describes.
-type PendingHandoff struct {
-	Commit           string `json:"commit"`
-	SpecHash         string `json:"spec_hash"`
-	RequirementsHash string `json:"requirements_hash"`
 }
 
 // Item is one top-level `- ` list item in a comment.
@@ -86,24 +78,23 @@ type Comment struct {
 
 // Ticket is a parsed ticket document.
 type Ticket struct {
-	Doc            *Document
-	S              *Structure
-	Number         int
-	Title          string
-	Kind           string
-	Phase          string
-	Status         string
-	Attempt        int
-	BlockedBy      []int
-	Covers         []string
-	SpecRevision   int
-	Base           string
-	Target         string
-	Criteria       []Criterion
-	NextCriterion  int
-	PendingHandoff *PendingHandoff
-	Comments       []Comment
-	Problems       []Problem
+	Doc           *Document
+	S             *Structure
+	Number        int
+	Title         string
+	Kind          string
+	Phase         string
+	Status        string
+	Attempt       int
+	BlockedBy     []int
+	Covers        []string
+	SpecRevision  int
+	Base          string
+	Target        string
+	Criteria      []Criterion
+	NextCriterion int
+	Comments      []Comment
+	Problems      []Problem
 }
 
 var (
@@ -114,7 +105,6 @@ var (
 	itemRe        = regexp.MustCompile(`^- ([^:]+):(?: (.*))?$`)
 	commentHeadRe = regexp.MustCompile(`^(?:(?:implement|review|manual|acceptance):)?(claim|hand[- ]off|pass|send[- ]back|set[- ]feature[- ]base|start[- ]review|stop|resume|reset[- ]attempts|revise|complete|cancel|comment)(?: \(attempt (\d+)\))?:\s*$`)
 	shaRe         = regexp.MustCompile(`^(?:[0-9a-f]{40}|[0-9a-f]{64})$`)
-	hashRe        = regexp.MustCompile(`^sha256:[0-9a-f]{16}$`)
 )
 
 // IsFullSHA reports whether s is a full SHA-1 or SHA-256 commit ID.
@@ -215,17 +205,6 @@ func (t *Ticket) parse() {
 			t.Attempt = n
 		}
 	}
-	if v, ok := get("Pending handoff"); ok {
-		parts := strings.Fields(v)
-		switch {
-		case t.Phase != PhaseImplement || t.Status != StatusStopped || t.Attempt == 0:
-			t.problem("invalid_state", "`Pending handoff:` needs a stopped implementation attempt")
-		case len(parts) != 3 || !IsFullSHA(parts[0]) || !hashRe.MatchString(parts[1]) || !hashRe.MatchString(parts[2]):
-			t.problem("invalid_field", "`Pending handoff:` needs a commit, spec hash, and ticket requirements hash")
-		default:
-			t.PendingHandoff = &PendingHandoff{Commit: parts[0], SpecHash: parts[1], RequirementsHash: parts[2]}
-		}
-	}
 
 	if v, ok := get("Blocked by"); ok {
 		t.BlockedBy = nil
@@ -296,16 +275,19 @@ func (t *Ticket) parse() {
 	}
 
 	if sec, ok := s.Section("Acceptance criteria"); ok {
-		seen := map[string]bool{}
+		// fromPosition records whether an ID was written or came from the
+		// criterion's place in the list.
+		fromPosition := map[string]bool{}
+		var clashes []string
 		next := 1
 		for i := sec.Heading + 1; i < sec.End; i++ {
 			if s.Fenced[i] {
 				continue
 			}
 			if m := criterionRe.FindStringSubmatch(t.Doc.Lines[i]); m != nil {
-				id, text := CriterionID(len(t.Criteria)+1), strings.TrimSpace(m[2])
+				id, text, positional := CriterionID(len(t.Criteria)+1), strings.TrimSpace(m[2]), true
 				if tagged := criterionIDRe.FindStringSubmatch(text); tagged != nil {
-					id, text = tagged[1], strings.TrimSpace(tagged[2])
+					id, text, positional = tagged[1], strings.TrimSpace(tagged[2]), false
 				}
 				n, err := strconv.Atoi(id[1:])
 				if err != nil || n < 1 || n == math.MaxInt || id != CriterionID(n) {
@@ -313,10 +295,14 @@ func (t *Ticket) parse() {
 				} else {
 					next = max(next, n+1)
 				}
-				if seen[id] {
-					t.problem("duplicate_criterion", "criterion ID %s appears more than once", id)
+				if earlier, ok := fromPosition[id]; ok {
+					if earlier || positional {
+						clashes = append(clashes, id)
+					} else {
+						t.problem("duplicate_criterion", "criterion ID %s appears more than once", id)
+					}
 				}
-				seen[id] = true
+				fromPosition[id] = fromPosition[id] || positional
 				t.Criteria = append(t.Criteria, Criterion{ID: id, Text: text, Checked: m[1] != " ", Line: i})
 			}
 		}
@@ -331,19 +317,12 @@ func (t *Ticket) parse() {
 				t.NextCriterion = n
 			}
 		}
+		for _, id := range clashes {
+			t.problem("duplicate_criterion", "two criteria use ID %s. One has no ID written on it, so it got that ID from its place in the list. Write an unused ID, such as %s, on each criterion that has none.", id, CriterionID(t.NextCriterion))
+		}
 	}
 
 	t.parseComments()
-}
-
-// RequirementsHash excludes comments and fields changed by a pending stop.
-func (t *Ticket) RequirementsHash() string {
-	d := t.Doc.Clone()
-	RemoveSection(d, "Comments")
-	RemoveMeta(d, "Status")
-	RemoveMeta(d, "Pending handoff")
-	d.FinalNewline = true
-	return Hash(d.Bytes())
 }
 
 func (t *Ticket) parseComments() {

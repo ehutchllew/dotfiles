@@ -16,17 +16,17 @@ Turn the current conversation into a new or revised spec. Don't start a new inte
 2. Use the terms in `GLOSSARY.md` and respect relevant ADRs. Explore the code as needed.
 3. If the conversation has a summary with decisions, assumptions, out-of-scope items, or open risks, build from it:
    - Decisions go into Implementation decisions.
-   - Write behavior rules with the agreed boundary examples when examples make the rule easier to test.
    - Out-of-scope items go into Out of scope.
    - Assumptions go into Assumptions.
    - Open risks go into Further notes.
-4. Choose what to test and tie each test to a user story or decision. Follow the Testing section of `CODING_STANDARDS.md` if present. Otherwise, use the repo's existing tests and conventions.
-5. Collect the commands for Testing decisions:
+4. Where a behavior rule has a boundary that readers could interpret differently, write the agreed examples of what passes and what fails next to it.
+5. Choose what to test and tie each test to a user story or decision. Follow the Testing section of `CODING_STANDARDS.md` if present. Otherwise, use the repo's existing tests and conventions.
+6. Collect the commands for Testing decisions:
    - Copy every command in the Checks section of `CODING_STANDARDS.md`, if present.
    - Find the repo's test and check commands in `package.json`, `Makefile`, CI config, and similar.
    - Confirm the testing approach and commands with the user.
-6. Keep the default attempt limit unless the user asks for a different one.
-7. Publish the spec through `issue-tracker`:
+7. Keep the default attempt limit unless the user asks for a different one.
+8. Publish the spec through `issue-tracker`:
    - Create a new spec if none exists.
    - For a revision, show the user the proposed changes and publish only after approval. Treat fixes that don't change meaning as editorial.
    - Commit spec changes as `issue-tracker` directs.

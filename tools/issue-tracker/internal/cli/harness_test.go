@@ -154,25 +154,21 @@ type writeReply struct {
 }
 
 type ticketSummary struct {
-	Ticket         string   `json:"ticket"`
-	Title          string   `json:"title"`
-	Kind           string   `json:"kind"`
-	Phase          string   `json:"phase"`
-	Status         string   `json:"status"`
-	Attempt        *int     `json:"attempt"`
-	BlockedBy      []string `json:"blocked_by"`
-	Covers         []string `json:"covers"`
-	SpecRevision   int      `json:"spec_revision"`
-	Base           string   `json:"base"`
-	Target         string   `json:"target"`
-	Ready          bool     `json:"ready"`
-	Hash           string   `json:"hash"`
-	Path           string   `json:"path"`
-	LastComment    string   `json:"last_comment"`
-	PendingHandoff *struct {
-		Commit   string `json:"commit"`
-		SpecHash string `json:"spec_hash"`
-	} `json:"pending_handoff"`
+	Ticket       string   `json:"ticket"`
+	Title        string   `json:"title"`
+	Kind         string   `json:"kind"`
+	Phase        string   `json:"phase"`
+	Status       string   `json:"status"`
+	Attempt      *int     `json:"attempt"`
+	BlockedBy    []string `json:"blocked_by"`
+	Covers       []string `json:"covers"`
+	SpecRevision int      `json:"spec_revision"`
+	Base         string   `json:"base"`
+	Target       string   `json:"target"`
+	Ready        bool     `json:"ready"`
+	Hash         string   `json:"hash"`
+	Path         string   `json:"path"`
+	LastComment  string   `json:"last_comment"`
 }
 
 type problem struct {

@@ -27,11 +27,10 @@ No role pushes, rewrites history, or switches branches.
 
 1. Load `issue-tracker`. If the user didn't provide the feature id or feature name, ask for it.
 2. Fetch compact feature status. If it fails or is invalid, report the errors, suggest `to-tickets` or `to-spec`, and stop. Never treat a failed or invalid status as an empty queue.
-3. If a ticket is `stopped`, report its latest comment and stop, except for a `pending_handoff` whose corrected report the user supplied.
+3. If any ticket is `stopped`, report it with its latest comment and stop.
 4. If you're on the repo's default branch, ask the user for a feature branch or worktree. Don't switch yourself.
 5. Check `git status --short`. If only ticket files changed, they're unsaved orchestrator writes. Commit them with the subject `tickets: multiple` and one `unsaved <NN>` line per changed ticket in the body. If spec or ticket files are untracked and not ignored, ask the user to commit or ignore them. If anything else changed, report it and stop. Never discard changes.
-6. Finish any pending handoff from step 3 as described in [Recovery](#recovery).
-7. If the current acceptance ticket has no base commit, use `set-feature-base`:
+6. If the current acceptance ticket has no base commit, use `set-feature-base`:
    - Use the earlier acceptance base reported in the status, if present.
    - Otherwise, if no implementation ticket has an attempt count above 0, use `HEAD`.
    - Otherwise, ask the user for the feature's starting commit and stop.
@@ -53,7 +52,7 @@ If nothing matches, stop the loop.
 
 ### 2. Dispatch
 
-Before an implementer, `claim` the ticket, using `HEAD` for a missing base commit. Before an acceptance reviewer, `start-review` with `HEAD` as the target commit. Commit the ticket, then dispatch. Keep the spec hash and the claimed ticket hash for the handoff.
+Before an implementer, `claim` the ticket, using `HEAD` for a missing base commit. Before an acceptance reviewer, `start-review` with `HEAD` as the target commit. Commit the ticket, then dispatch.
 
 Give each child the feature slug and ticket number. Children read the spec and tickets through `issue-tracker`. Never pass paths, hashes, or pasted markdown.
 
@@ -69,7 +68,7 @@ Implementers need edit, shell, and commit access. Reviewers need read and shell 
 
 If the reply is missing or malformed, including unknown or duplicate criterion IDs, or `git status --short` isn't empty, follow [Recovery](#recovery).
 
-Record each result with one operation. For review, include the command results, manual evidence checked, not-blocking findings, and findings resolved as fixed.
+Record each result with one operation. For review, include the command results, manual evidence checked, not-blocking findings, findings resolved as fixed, and any questions as notes.
 
 After an implementer:
 
@@ -87,7 +86,7 @@ After a reviewer, check these in order and apply the first match:
 | Product decision needed, with no known failure | `stop` with the question and refer the user to `to-spec`. | Same. |
 | Verification explicitly `passed`, no unmet criteria or blocking findings | `pass`. | `pass` and mark every acceptance criterion met. |
 
-Treat any other result as malformed. Commit the ticket files. A `stop` ends the loop unless you can finish a pending handoff as described below.
+Treat any other result as malformed. Commit the ticket files. Any `stop` ends the loop.
 
 If the tracker rejects only how you packaged the input and nothing was written, correct it and retry once if the ticket and target are unchanged. For problems with the child's report, use [Recovery](#recovery). Otherwise report the error and stop. Never edit ticket files to work around an error.
 
@@ -99,9 +98,7 @@ If the tracker rejects only how you packaged the input and nothing was written, 
 
 ## Recovery
 
-If the implementer committed the work and only the report format or criterion IDs are wrong, use `stop` with `stop_kind: handoff-pending`. Send the dispatch hashes, full `HEAD` SHA, and original verification and notes. In the reason, record the original claims and what couldn't be submitted. Don't pin a handoff without usable evidence and identifiable claims.
-
-Commit the stop, then ask the original implementer at most once to correct only the report. If the child is unavailable or the correction fails, report the pending handoff to the user. Given a valid correction, confirm the claims and evidence haven't changed, then `hand-off` directly from the stopped state and send it to independent review. Don't `resume` or `claim` to deliver the report. On restart, use the ticket's recorded stop and candidate to check a correction the user supplies.
+Sometimes only the implementer's report is wrong. The implementer committed its work and the checkout is clean, but the reply is malformed, uses unknown or duplicate criterion IDs, or leaves out a criterion. Leave the ticket in progress and ask the same implementer once to correct its report without changing code. If the corrected report is valid, record it as usual. Otherwise, stop the loop without stopping the ticket. The next run sends the in-progress ticket to a fresh implementer, and `claim` continues the same attempt.
 
 For other missing or malformed replies, contradictory or missing evidence, or an unclean checkout, use one investigator and `stop` with the problem and the recommended action. Don't retry work or discard changes. If the checkout had other changes, leave the stop uncommitted too. The investigator can't supply verification or review.
 
@@ -110,7 +107,8 @@ For other missing or malformed replies, contradictory or missing evidence, or an
 Stop the loop when:
 
 - the current acceptance ticket is `done`,
-- a ticket remains `stopped`,
+- you applied any `stop`,
+- an implementer's report is still invalid after one correction,
 - the user keeps a not-blocking finding before an acceptance review,
 - the user has no evidence for a manual ticket,
 - nothing matches in step 1, or
@@ -121,7 +119,7 @@ If the feature is accepted with unresolved not-blocking findings, ask the user w
 Fetch the final compact feature status and use it to build this report:
 
 ```markdown
-Ralph stopped: <feature accepted | ticket stopped | findings need a decision | waiting on the user | setup failed>.
+Ralph stopped: <feature accepted | ticket stopped | report rejected | findings need a decision | waiting on the user | setup failed>.
 
 | Ticket | Kind | Phase | Status | Attempt / limit | Notes |
 | --- | --- | --- | --- | --- | --- |
@@ -134,7 +132,7 @@ Ralph stopped: <feature accepted | ticket stopped | findings need a decision | w
 
 Next steps for the user. Put the matching ones in the report, and never take them yourself:
 
-- A pending handoff: provide a corrected report for the recorded commit. Use `resume` only if you intend to abandon that handoff and start another attempt.
+- A rejected implementer report: run `ralph` again. A fresh implementer continues the same attempt. List what was wrong with the report.
 - A product question: clarify it with `to-spec`, then run `to-tickets`.
 - A `precondition failed` stop: rework the ticket with `to-tickets`.
 - A failed acceptance review: run `to-tickets` for repair tickets.

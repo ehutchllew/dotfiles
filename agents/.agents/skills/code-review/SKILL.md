@@ -108,7 +108,7 @@ Label each finding with a category:
 
 Blocked verification isn't a finding. It shows only in the verification status.
 
-If a material behavior could reasonably satisfy the spec in more than one way and you need a decision to finish the review, report the question under Clarifications. Don't call an unspecified preference a defect.
+If a material behavior could reasonably satisfy the spec in more than one way and you need a decision to finish the review, report the question under Clarifications. Don't call an unspecified preference a defect. If earlier reviews on this ticket already sent back the same criterion for different edge cases, consider whether the criterion itself needs a Clarification.
 
 ## 7. Report
 
